@@ -1,0 +1,149 @@
+
+---
+
+## 4) Calidad y validaciones (checklist)
+
+- `Set-StrictMode -Version 3.0` al iniciar scripts.
+- Rutas con `$PSScriptRoot` + `Join-Path` (sin concatenaciones manuales).
+- Escritura **UTF‑8 sin BOM** consistente entre PowerShell 5.1 y 7+ (usa helper `Write-Utf8NoBom`).
+- `SupportsShouldProcess` **y** llamada a `ShouldProcess()` en funciones que cambian estado.
+- **Linters**: `PSScriptAnalyzer` (PS) y `markdownlint` (MD040: fence con lenguaje; MD038: backticks inline).
+- **Pre-commit opcional**: regla que rechace `\`\`\`\`` (4 backticks) y cierres `'@`/`"@` con indentación.
+
+> **Integración con el repo:** este protocolo se alinea con los artefactos existentes (`Backticks.md`, `bootstrap.ps1`, `Invoke-SerintraQualityGate.ps1`) para unificar criterios de generación y verificación. Ver **Filemap** del proyecto para la ubicación de estos archivos.
+
+
+---
+
+## 5) Errores comunes y correcciones
+
+**E1. Usar 4 backticks**  
+*Solución*: nunca usar 4 backticks; para anidación, usar **tildes** externas.
+
+**E2. Cierre de here-string no alineado**  
+*Solución*: `'@` / `"@` deben ir solos en **columna 1**.
+
+**E3. `-f` con JSON/plantillas**  
+*Solución*: evitar `-f`; si es forzoso, duplicar llaves `{{` `}}`.
+
+**E4. Codificación inconsistente entre PS5.1 y PS7**  
+*Solución*: usar `Write-Utf8NoBom` (Apéndice A) que fuerza UTF‑8 sin BOM en ambas versiones.
+
+**E5. Fence sin lenguaje**  
+*Solución*: especificar ` ```powershell`, ` ```json`, ` ```text`, etc.
+
+---
+
+## Apéndice A — Helpers PowerShell
+
+**A.1 — Escritura UTF‑8 sin BOM (PS5.1 y PS7+)**
+
+```powershell
+function Write-Utf8NoBom {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]
+        [string]$Path,
+        [Parameter(Mandatory)]
+        [string]$Content,
+        [switch]$NoNewLine
+    )
+    Set-StrictMode -Version 3.0
+    $dir = Split-Path -Path $Path -Parent
+    if ($dir -and -not (Test-Path $dir)) { New-Item -ItemType Directory -Path $dir | Out-Null }
+
+    if ($PSVersionTable.PSVersion.Major -ge 7) {
+        if ($NoNewLine) {
+            [System.IO.File]::WriteAllText($Path, $Content, [System.Text.UTF8Encoding]::new($false))
+        } else {
+            [System.IO.File]::WriteAllText($Path, $Content + [Environment]::NewLine, [System.Text.UTF8Encoding]::new($false))
+        }
+        return
+    }
+
+    # PS5.1: forzar UTF-8 sin BOM
+    $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+    $bytes = $utf8NoBom.GetBytes($(if ($NoNewLine) { $Content } else { $Content + [Environment]::NewLine }))
+    [System.IO.File]::WriteAllBytes($Path, $bytes)
+}
+```
+
+**A.2 — Guardado “backtick-safe” (literal + footer expandible)**
+
+```powershell
+function Write-BacktickSafeFile {
+    [CmdletBinding(SupportsShouldProcess)]
+    param(
+        [Parameter(Mandatory)] [string]$Path,
+        [Parameter(Mandatory)] [string]$BodyLiteral,  # contenido @' ... '@
+        [Parameter()]           [string]$FooterExpandable = ''
+    )
+    Set-StrictMode -Version 3.0
+
+    $sep = "`r`n`r`n"
+    $final = if ($FooterExpandable) { $BodyLiteral + $sep + $FooterExpandable } else { $BodyLiteral }
+
+    if ($PSCmdlet.ShouldProcess($Path, "Escribir contenido UTF-8 sin BOM")) {
+        Write-Utf8NoBom -Path $Path -Content $final
+    }
+}
+```
+
+**A.3 — Chequeos rápidos de estilo (antipatrones)**
+
+```powershell
+function Test-FenceSafety {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName)]
+        [string[]]$Path
+    )
+    begin { Set-StrictMode -Version 3.0 }
+    process {
+        foreach ($p in $Path) {
+            if (-not (Test-Path $p)) { continue }
+            $text = Get-Content -Path $p -Raw
+
+            $issues = @()
+
+            if ($text -match '````') {  # 4 backticks
+                $issues += 'Uso prohibido de 4 backticks (````)'
+            }
+            if ($text -match "^\s+['""]@") { # cierre here-string con indentación
+                $issues += "Cierre de here-string con indentación (debe ir en columna 1)"
+            }
+            if ($text -match '-f\s+.*\{.*\}') {
+                $issues += "Uso de -f con llaves {}; duplica llaves o evita -f"
+            }
+
+            [PSCustomObject]@{
+                Path   = $p
+                Issues = if ($issues) { $issues -join '; ' } else { '<OK>' }
+            }
+        }
+    }
+}
+```
+
+---
+
+## 6) Ejemplo de uso (end-to-end)
+
+```powershell
+$version = '1.2.3'
+$fecha   = (Get-Date).ToString('yyyy-MM-dd')
+
+$body = @'
+# Título
+Contenido con `$ y ``` sin expandir.
+'@
+
+$footer = @"
+© 2025 — Proyecto Anastasis Revenari · Versión: $version · Fecha: $fecha
+"@
+
+Write-BacktickSafeFile -Path (Join-Path $PSScriptRoot 'salida\documento.md') -BodyLiteral $body -FooterExpandable $footer -WhatIf
+
+# Validación rápida
+Test-FenceSafety -Path (Join-Path $PSScriptRoot 'salida\documento.md')
+```

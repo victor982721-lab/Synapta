@@ -1,0 +1,65 @@
+#requires -Version 7
+Set-StrictMode -Version Latest; $ErrorActionPreference='Stop'
+
+# Rutas
+$RH   = "C:\Users\VictorFabianVeraVill\Desktop\TBEA\tools\ResourceHacker.exe"
+$dst  = "C:\Users\VictorFabianVeraVill\Desktop\TBEA\i18n_work"
+$src1 = "C:\YSD300A\YSD300AN.exe"
+$src2 = "C:\YSD300A\YSD300AN-P2406.exe"
+
+# Archivos
+$rc1      = Join-Path $dst "YSD300AN.rc"
+$rc2      = Join-Path $dst "YSD300AN-P2406.rc"
+$rc1_str  = Join-Path $dst "YSD300AN.strings.rc"
+$rc2_str  = Join-Path $dst "YSD300AN-P2406.strings.rc"
+$res1_str = Join-Path $dst "YSD300AN.strings.res"
+$res2_str = Join-Path $dst "YSD300AN-P2406.strings.res"
+$out1     = Join-Path $dst "YSD300AN.es.exe"
+$out2     = Join-Path $dst "YSD300AN-P2406.es.exe"
+
+# ---- Helpers: extraer SOLO STRINGTABLE de un .rc ----
+function New-StringsOnlyRc {
+  param([string]$InRc,[string]$OutRc)
+  if(-not (Test-Path -LiteralPath $InRc)){ throw "No existe RC: $InRc" }
+  $lines = Get-Content -LiteralPath $InRc -Encoding UTF8
+  $out   = New-Object System.Collections.Generic.List[string]
+  $inTbl = $false
+  foreach($ln in $lines){
+    if(-not $inTbl -and $ln -match '^\s*STRINGTABLE\b'){ $inTbl=$true; $out.Add($ln); continue }
+    if($inTbl -and $ln -match '^\s*END\b'){ $out.Add($ln); $out.Add(''); $inTbl=$false; continue }
+    if($inTbl){ $out.Add($ln); continue }
+  }
+  if($out.Count -eq 0){ throw "No se encontraron bloques STRINGTABLE en: $InRc" }
+  $header = @(
+    "/* Strings-only RC generado automáticamente",
+    "   Fuente: $InRc",
+    "   Nota: edita aquí las cadenas para traducir */",""
+  )
+  # Guardamos en Unicode (UTF-16 LE) para compatibilidad con RH
+  Set-Content -LiteralPath $OutRc -Value ($header + $out) -Encoding Unicode
+}
+
+# ---- 1) Generar RCs solo con cadenas ----
+New-StringsOnlyRc -InRc $rc1 -OutRc $rc1_str
+New-StringsOnlyRc -InRc $rc2 -OutRc $rc2_str
+
+# ---- 2) Compilar strings.rc -> strings.res ----
+& $RH -open $rc1_str -save $res1_str -action compile
+& $RH -open $rc2_str -save $res2_str -action compile
+
+# Verificar .res
+$missing = @($res1_str,$res2_str) | Where-Object { -not (Test-Path -LiteralPath $_) }
+if($missing.Count){ throw "Faltan .res tras compilar: `n - " + ($missing -join "`n - ") }
+
+# ---- 3) Reinyectar .res sobre copias .es.exe ----
+& $RH -open $src1 -save $out1 -action addoverwrite -res $res1_str
+& $RH -open $src2 -save $out2 -action addoverwrite -res $res2_str
+
+# Verificar .es.exe y hashes
+$outs = @($out1,$out2)
+$miss = $outs | Where-Object { -not (Test-Path -LiteralPath $_) }
+if($miss.Count){ throw "No se generaron .es.exe: `n - " + ($miss -join "`n - ") }
+
+"`n== SHA256 (build .es) =="
+Get-FileHash -Algorithm SHA256 -LiteralPath $outs | Sort-Object Path | Format-Table Hash,Path -Auto
+"[OK] Copias traducidas generadas en: $dst"

@@ -1,0 +1,3 @@
+```plaintext
+Analiza mi estilo de redacción en Gmail y sugiere mejoras para hacerlo más profesional.
+```

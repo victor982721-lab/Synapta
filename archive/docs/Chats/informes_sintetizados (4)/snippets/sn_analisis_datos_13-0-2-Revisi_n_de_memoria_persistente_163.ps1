@@ -1,0 +1,5 @@
+.\extract_ui_strings_csv.ps1 `
+  -Root  'C:\Users\VictorFabianVeraVill\Desktop\TBEA\01_Software' `
+  -Files @('YSD300AN.md','YSD300AN-P2406.md') `
+  -OutDir 'C:\Users\VictorFabianVeraVill\Desktop\TBEA\01_Software\_strings' `
+  -OutCsv 'strings_candidates.csv'

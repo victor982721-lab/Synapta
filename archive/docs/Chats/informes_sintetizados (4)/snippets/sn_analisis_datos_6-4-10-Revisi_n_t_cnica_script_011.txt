@@ -1,0 +1,111 @@
+*** a/orchestrator_modular.py
+--- b/orchestrator_modular.py
+@@
+-from pathlib import Path
++from pathlib import Path
++import re, platform, time
+@@
+ BASE_DIR_DEFAULT = "/mnt/data"
++STEM_PATTERN = re.compile(r"^[A-Za-z0-9._-]{1,64}$")
++
++def _validate_stem(stem: str) -> str:
++    if not STEM_PATTERN.match(stem):
++        raise ValueError(f"Stem inválido: '{stem}'. Usa [A-Za-z0-9._-], máx 64 chars.")
++    if any(sep in stem for sep in ("/", "\\", os.sep, os.altsep or "")):
++        raise ValueError("Stem no debe contener separadores de ruta.")
++    return stem
+@@
+ def make_png(user_content: str, *, stem="entrega", base_dir=BASE_DIR_DEFAULT) -> dict:
+@@
+-    except Exception:
+-        return {"path": str(p), "status": "skipped_no_matplotlib", "link": _sb(p)}
++    except Exception:
++        return {"path": str(p), "status": "skipped_no_matplotlib", "link": None, "exists": False}
+@@
+-    res = _write_bytes_idempotent(p, png_bytes)
+-    res["link"] = _sb(p)
++    res = _write_bytes_idempotent(p, png_bytes)
++    res["link"] = _sb(p); res["exists"] = True
+     return res
+@@
+ def collect_links(*, stem="entrega", base_dir=BASE_DIR_DEFAULT) -> dict:
+-    out = Path(base_dir)
+-    mapping = {
++    out = Path(base_dir)
++    candidates = {
+         "ps1": out / f"{stem}.ps1",
+         "md": out / f"{stem}.md",
+         "txt": out / f"{stem}.txt",
+         "json": out / f"{stem}.json",
+         "csv": out / f"{stem}.csv",
+         "html": out / f"{stem}.html",
+         "chart": out / f"{stem}_chart.png",
+         "zip": out / f"{stem}_bundle.zip",
+         "explanation": out / f"{stem}_explanation.md",
+     }
+-    return {k: _sb(v) for k, v in mapping.items()}
++    return {k: _sb(v) for k, v in candidates.items() if v.exists()}
+@@
+-def make_bundle(*, stem="entrega", base_dir=BASE_DIR_DEFAULT, include: list[str] | None = None) -> dict:
++def make_bundle(*, stem="entrega", base_dir=BASE_DIR_DEFAULT, include: list[str] | None = None) -> dict:
+@@
+-    with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as z:
+-        for rel in include:
+-            fp = out_dir / rel
+-            if fp.exists():
+-                z.write(fp, arcname=fp.name)
+-    return {"path": str(zip_path), "status": "created", "link": _sb(zip_path)}
++    # calcular digest combinado de contenidos existentes
++    hasher = hashlib.sha256()
++    existing = []
++    for rel in include:
++        fp = out_dir / rel
++        if fp.exists():
++            existing.append(fp)
++            hasher.update(fp.name.encode("utf-8"))
++            hasher.update(fp.read_bytes())
++    combo = hasher.hexdigest()
++    # si ya existe y el comentario coincide, no reescribas
++    if zip_path.exists():
++        try:
++            with zipfile.ZipFile(zip_path, "r") as z:
++                if z.comment.decode("utf-8", "ignore") == combo:
++                    return {"path": str(zip_path), "status": "unchanged", "link": _sb(zip_path)}
++        except Exception:
++            pass
++    # reconstruir zip
++    with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as z:
++        for fp in existing:
++            z.write(fp, arcname=fp.name)
++        z.comment = combo.encode("utf-8")
++    return {"path": str(zip_path), "status": ("updated" if zip_path.exists() else "created"), "link": _sb(zip_path)}
+@@
+-def run_all(user_content: str, *, stem="entrega", base_dir=BASE_DIR_DEFAULT, note_for_canvas: str = "") -> dict:
++def run_all(user_content: str, *, stem="entrega", base_dir=BASE_DIR_DEFAULT, note_for_canvas: str = "", modules: list[str] | None = None) -> dict:
+@@
+-    results: dict[str, dict] = {}
+-    for mod in ["ps1", "txt", "md", "html", "json", "csv", "png", "explanation"]:
++    stem = _validate_stem(stem)
++    results: dict[str, dict] = {}
++    mods = modules or ["ps1", "txt", "md", "html", "json", "csv", "png", "explanation"]
++    timings = {}
++    for mod in mods:
++        t0 = time.perf_counter()
+         results[mod] = run_module(mod, user_content, stem=stem, base_dir=base_dir)
++        timings[mod] = round((time.perf_counter() - t0) * 1000, 2)
+-    results["bundle"] = make_bundle(stem=stem, base_dir=base_dir)
++    results["bundle"] = make_bundle(stem=stem, base_dir=base_dir)
+     # Canvas helpers (archivos)
+     results["canvas_files"] = write_canvas_files(stem=stem, base_dir=base_dir, note=note_for_canvas)
+     # Enlaces agregados
+     results["links"] = collect_links(stem=stem, base_dir=base_dir)
++    results["env"] = {
++        "python_version": sys.version.split()[0],
++        "platform": platform.platform(),
++        "modules_run": mods,
++        "timings_ms": timings,
++    }
+     return results
+@@
+-        user_content = p.read_text(encoding="utf-8", errors="ignore")
++        user_content = p.read_text(encoding="utf-8", errors="replace")

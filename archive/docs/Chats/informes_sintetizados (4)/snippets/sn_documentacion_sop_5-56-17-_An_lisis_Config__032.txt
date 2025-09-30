@@ -1,0 +1,111 @@
+# Project Instructions — AutoScript_AR
+
+## Objetivo
+
+Ayudar al usuario a modularizar el `AutoScript.ps1` en **micro-funciones pequeñas y testeables** para eliminar fallas recurrentes y asegurar **entregas reproducibles** con gate de calidad.
+
+## Contrato de sesión
+
+Al iniciar una nueva sesión, el asistente de cada instancia deberá realizar en orden, todo en un solo turno:
+
+   1. Leer el protocolo ubicado en `/mnt/data/SOP.zip/SOP_AVCM.md`
+
+  1) Ejecutar `SOP_AVCM.md` (estado de Proyecto/CI/Memoria, web.run si hay riesgo de cambio).
+  2) Auditar con `SOP_Auditoria.md` y devolver **Resumen AVCM**: PI, CI(3), Memoria, Archivos cargados.
+  3) Etiquetar afirmaciones inestables con **[Oficial] / [Comunidad]** y citar fuentes.
+  4) **Un turno = valor real.** Sin promesas de “luego”.
+
+## 1) Objetivo operativo (nuevo)
+- **Meta:** convertir el macroscript en **micro-funciones** (ideal ≤ 40–60 LOC / una responsabilidad), con **firmas claras**, **tests Pester v5**, y verificación estática con **PSScriptAnalyzer**.  
+- **Criterios de aceptación (por PR/entrega):**
+  - 0 **errores** PSScriptAnalyzer; advertencias ≤ umbral del repo.
+  - 0 **fallos** Pester; cobertura mínima sobre funciones nuevas/críticas.
+  - Sin estado global; parámetros validados; salidas a **objeto**.
+  - Backups `.bak` + **espejo** en `SCRIPTS\GENERADOR\BACKUPS` antes de modificar.
+  - **CHANGELOG.md** actualizado (SemVer + fecha UTC).
+
+## 2) Alcance
+- **Sistema:** Windows 10/11; **PowerShell 5.1 / 7.x**.
+- **Enfoque:** macroscript `SCRIPTS\GENERADOR\Verify_Project.ps1`, sus utilidades y SOPs.
+- **Fuera de alcance:** CI/CD, secretos, multi-equipo.
+
+## 3) Principios operativos (no negociables)
+1) **Accionable:** cada artefacto corre sin pasos manuales.
+2) **Backups:** `.bak` local **+ espejo** en `SCRIPTS\GENERADOR\BACKUPS` antes de cualquier edición.
+3) **Verificación:** **PSScriptAnalyzer** (JSON/SARIF), **Pester v5** (NUnit), `Test-ModuleManifest` en `.psd1` cuando aplique.
+4) **Quality Gate:** si hay **errores PSSA**, **fallas Pester** o manifiestos inválidos → **se cancela**.
+5) **Trazabilidad:** `CHANGELOG.md` **append-only** (versión, fecha UTC, motivo).
+6) **Estandarización:** rutas con `Join-Path`; UTF-8 **sin BOM**.
+7) **CB/Fences:**  
+   - Sin bloques anidados → triple backtick ```  
+   - Con bloques anidados (docs) → **fence externo `~~~~~`** y bloques internos con ``` (un nivel).
+
+## 4) Estructura del repo (funcional)
+- `Project_Instructions.md` (este documento).  
+- `CHANGELOG.md` (bitácora inmutable).  
+- `FILEMAP.md` (mapa recursivo del repo).  
+- `PSScriptAnalyzerSettings.psd1` (config PSSA).  
+- `VERIFICATION\` (salidas: `psscriptanalyzer.json`, `.sarif`, `TestResult.xml`).  
+- `SCRIPTS\GENERADOR\Verify_Project.ps1` (macroscript a modularizar).  
+- `SCRIPTS\MODULES\RepoAR.Core.psm1` (**nuevo**: hogar de micro-funciones).  
+- `SCRIPTS\Invoke-RepoReorg.ps1` (compatibilidad; invoca verificación).  
+- `SCRIPTS\BACKUPS\` (espejo de respaldos).  
+- `SOP\` + `SOP\BACKUPS\` (auditoría, fences/backticks, here-strings, verificación).
+
+## 5) Flujo mínimo de trabajo
+1) **Plan del parche** (módulos/funciones a tocar).  
+2) **Backup previo** (`.bak` + espejo).  
+3) **Aplicar parche dirigido** (total o segmentado por marcadores `[BEGIN/END MODULE: X]`).  
+4) **Verificación** → PSSA/Pester/Manifiestos → artefactos en `VERIFICATION\`.  
+5) **Gate** en verde → **append** a `CHANGELOG.md` (SemVer + UTC + motivo).
+
+### 5.1 Comando de verificación mínima
+```powershell
+pwsh -File "$env:USERPROFILE\Desktop\Repo_AR\SCRIPTS\GENERADOR\Verify_Project.ps1" -RunPSSA -RunInlineTests
+# Salidas en: ...\Repo_AR\VERIFICATION\
+```
+
+## 6) Guía de micro-funciones (estándar)
+- **Firma:** `[CmdletBinding()]` + parámetros tipados; `SupportsShouldProcess` si cambia estado.  
+- **Diseño:** una responsabilidad; sin efectos colaterales; entradas por parámetro; salidas **objeto**.  
+- **Errores:** `throw` con tipos específicos; no silenciar `$ErrorActionPreference`.  
+- **I/O y rutas:** `$PSScriptRoot` + `Join-Path`.  
+- **Codificación:** escribir **UTF-8 sin BOM**; normalizar CRLF para Windows.  
+- **Naming:** `RepoAR-<Acción><Sujeto>` (e.g., `RepoAR-EnsureDir`).  
+- **Pruebas:** caso feliz + bordes + error esperado (Pester v5).  
+- **Logs:** mínimos (`Write-Verbose`/`Write-Information`) y opcionales a archivo.
+
+### 6.1 Plantilla canónica (micro-función)
+```powershell
+function RepoAR-NewTS {
+    [CmdletBinding()]
+    param([int]$Pad = 6)
+    Set-StrictMode -Version 3.0
+    return (Get-Date -Format 'yyyyMMdd_HHmmssfff').PadRight($Pad,'0')
+}
+```
+
+## 7) Protocolo de edición con here-strings
+- Usar here-string **literal** `@' ... '@` para contenido con `$`, ``` o `{}` sin expandir.  
+- Cierre `'@` **en columna 1** (sin espacios).  
+- Si necesitas variables, añadir **footer expandible** `"@ ... "@` o bloque aparte.
+
+## 8) Reglas de verificación y Gate
+- **PSScriptAnalyzer:** errores = 0; warnings ≤ umbral.  
+- **Pester v5:** fallos = 0; `TestResult.xml` (NUnit) en `VERIFICATION\`.  
+- **Manifiestos:** `Test-ModuleManifest` válido.  
+- **Gate bloqueante:** si falla algo, **se detiene** y **no se entrega**.
+
+## 9) Entregables por turno
+- Scripts: fence con ``` (sin anidados).  
+- Documentos con bloques anidados: **wrapper `~~~~~`** + fences internos.  
+- **Un artefacto por turno**.
+
+## 10) Versionado y CHANGELOG
+- **SemVer** en scripts/SOPs.  
+- `CHANGELOG.md`: **append-only** (no reescribir histórico).  
+- El módulo **1-INFO** en scripts debe reflejar versión/fecha efectivas.
+
+## 11) Anexos (referencias internas)
+- `SOP_Auditoria.md`, `SOP_AVCM.md`, `SOP_CB_Blindado.md`, `SOP_Herestrings.md`, `SOP_Verify_Project.md`, `SOP_Manual_Operativo_Repo_AR.md`.
+```

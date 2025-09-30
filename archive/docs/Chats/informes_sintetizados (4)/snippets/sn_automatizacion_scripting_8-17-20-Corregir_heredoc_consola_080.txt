@@ -1,0 +1,71 @@
+TARGET="${TMPDIR:-$HOME}/screen_menu.sh"; mkdir -p "$(dirname "$TARGET")"
+cat >"$TARGET" <<'SH'
+#!/bin/sh
+# Menu captura/grabación para Android (Termux o adb shell)
+
+# ---------- util ----------
+ts() { date +%Y%m%d_%H%M%S; }
+have() { command -v "$1" >/dev/null 2>&1; }
+is_shell_uid() { [ "$(id -u)" = "2000" ] || [ "${USER:-}" = "shell" ]; } # adb shell
+
+pick_outdir() {
+  if [ -w /sdcard ]; then echo "/sdcard/DCIM/Camera"; return; fi
+  if [ -d "$HOME/storage/shared" ] && [ -w "$HOME/storage/shared" ]; then
+    echo "$HOME/storage/shared/DCIM/Camera"; return
+  fi
+  [ -d "$HOME/Download" ] && [ -w "$HOME/Download" ] && { echo "$HOME/Download"; return; }
+  echo "$PWD"
+}
+
+OUTDIR="$(pick_outdir)"
+mkdir -p "$OUTDIR" 2>/dev/null || {
+  echo "ERROR: no puedo crear '$OUTDIR'."
+  echo "• En Termux, ejecuta: termux-setup-storage (otorga permisos)"; exit 1; }
+[ -w "$OUTDIR" ] || { echo "ERROR: sin permiso de escritura en '$OUTDIR'"; exit 1; }
+
+# ---------- acciones ----------
+do_screenshot() {
+  FILE="$OUTDIR/captura_$(ts).png"
+  if have termux-screenshot; then
+    # intentar sintaxis directa; si falla, probar -o
+    termux-screenshot "$FILE" 2>/dev/null || termux-screenshot -o "$FILE" || {
+      echo "ERROR: termux-screenshot falló. ¿Instalaste Termux:API y diste permisos?"; return 1; }
+  elif is_shell_uid && [ -x /system/bin/screencap ]; then
+    /system/bin/screencap -p "$FILE" || { echo "ERROR: screencap falló (requiere UID shell)"; return 1; }
+  else
+    echo "ERROR: sin permisos para capturar."
+    echo "Opciones:"
+    echo "  • Instalar Termux:API:  pkg install termux-api  (y app 'Termux:API')"
+    echo "  • O ejecutar este menú bajo:  adb shell"
+    return 1
+  fi
+  echo "Captura guardada en: $FILE"
+}
+
+do_record() {
+  FILE="$OUTDIR/video_$(ts).mp4"
+  if have termux-screenrecord; then
+    echo "Grabando... Ctrl+C para detener"
+    termux-screenrecord "$FILE" 2>/dev/null || termux-screenrecord -o "$FILE"
+  elif is_shell_uid && [ -x /system/bin/screenrecord ]; then
+    echo "Grabando... Ctrl+C para detener"
+    /system/bin/screenrecord "$FILE"
+  else
+    echo "ERROR: sin permisos para grabar (usa Termux:API o adb shell)"; return 1
+  fi
+  [ -s "$FILE" ] && echo "Video guardado en: $FILE" || echo "AVISO: no se produjo archivo"
+}
+
+# ---------- menú ----------
+echo "[1] Captura de pantalla"
+echo "[2] Grabar pantalla (Ctrl+C para parar)"
+printf "Elige opción [1-2]: "
+IFS= read -r opt
+
+case "$opt" in
+  1) do_screenshot ;;
+  2) do_record ;;
+  *) echo "Opción inválida"; exit 1 ;;
+esac
+SH
+chmod +x "$TARGET"; sh "$TARGET"

@@ -1,0 +1,9 @@
+def run_iterative(user_content, *, stem, base_dir, only=None, skip=None):
+    only = set(only or [])
+    skip = set(skip or [])
+    def want(name): return (not only or name in only) and (name not in skip)
+
+    if want("ps1"):   yield "ps1", write_ps1(...)
+    if want("md"):    yield "md", write_md(...)
+    if want("html"):  yield "html", write_html(...)
+    ...

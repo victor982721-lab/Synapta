@@ -1,0 +1,3 @@
+python orquestador.py --stem workspace-wizard-ps5-7 --input - --link-check --debug <<'PSCODE'
+(PEGA AQUÍ TODO EL SCRIPT POWERSHELL)
+PSCODE

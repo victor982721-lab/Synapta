@@ -1,0 +1,35 @@
+````powershell
+# C:\Users\VictorFabianVeraVill\Desktop\EntornoInfo.ps1
+# Propósito: Mostrar información básica del entorno para crear scripts personalizados
+# Compatible con PowerShell 7.5.3 en Windows 10 Pro x64
+
+Set-Location -Path $HOME\Desktop
+
+try {
+    Write-Host "=== Información del Entorno ===`n"
+
+    # Usuario actual
+    Write-Host "Usuario: $([Environment]::UserName)"
+    Write-Host "Directorio de usuario: $HOME"
+
+    # SO
+    $os = Get-CimInstance Win32_OperatingSystem -ErrorAction Stop
+    Write-Host "Sistema operativo: $($os.Caption) $($os.Version) ($($os.OSArchitecture))"
+
+    # PowerShell
+    Write-Host "PowerShell: $($PSVersionTable.PSEdition) $($PSVersionTable.PSVersion)"
+
+    # Red
+    $ip = Get-NetIPAddress -AddressFamily IPv4 -PrefixOrigin Dhcp -ErrorAction SilentlyContinue |
+          Where-Object { $_.IPAddress -notlike '169.*' } |
+          Select-Object -First 1 -ExpandProperty IPAddress
+    Write-Host "IP asignada: $ip"
+
+    # Disco
+    $disk = Get-PSDrive -Name C -ErrorAction Stop
+    Write-Host "Disco C: usado $([math]::Round(($disk.Used/1GB),2)) GB de $([math]::Round(($disk.Maximum/1GB),2)) GB"
+}
+catch {
+    Write-Error "Error al obtener información: $_"
+}
+````

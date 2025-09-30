@@ -1,0 +1,82 @@
+# Informe de ingesta
+
+- Total de archivos detectados: 72
+- Conteo por extensión: 36 `.md` + 36 `.json`
+
+## Lista de archivos `.md`
+
+- 2025-9-29/3-57-48-_An_lisis___Integraci_n_.md
+- 2025-9-29/4-58-47-_WsW_mnt_.md
+- 2025-9-29/5-16-29-_WsW_Script_.md
+- 2025-9-29/5-22-31-_WsW_Contexto_.md
+- 2025-9-29/5-30-5-_PS_Master_XML_Config_.md
+- 2025-9-29/5-31-12-_SCRIPT___Invoke_RepoReorg_.md
+- 2025-9-29/5-36-5-_SOP_01___An_lisis__01_.md
+- 2025-9-29/5-40-13-_SOP_Backticks_Fences_Here_Strings_.md
+- 2025-9-29/5-46-4-_SOP_01___An_lisis__02_.md
+- 2025-9-29/5-48-30-_SOP_01___An_lisis__03_.md
+- 2025-9-29/5-50-50-_SOP___Env_Survey_.md
+- 2025-9-29/5-52-44-_SOP_01___An_lisis__03_.md
+- 2025-9-29/5-56-17-_An_lisis_Config_.md
+- 2025-9-29/5-58-16-_Trazabilidad_y_coherencia_.md
+- 2025-9-29/6-0-1-_Config_YSD_.md
+- 2025-9-29/6-11-18-An_lisis_de_documentaci_n_PS.md
+- 2025-9-29/6-14-34-An_lisis_de_script_PowerShell.md
+- 2025-9-29/6-19-13-An_lisis_PUAV_Compat.md
+- 2025-9-29/6-20-18-An_lisis_SOP_01_y_errores.md
+- 2025-9-29/6-22-21-Lee_y_analiza_script.md
+- 2025-9-29/6-23-21-New_chat.md
+- 2025-9-29/6-24-5-New_chat.md
+- 2025-9-29/6-26-32-An_lisis_de_instrucciones_proyecto.md
+- 2025-9-29/6-29-54-An_lisis_de_instrucciones.md
+- 2025-9-29/6-31-26-Auditor_a_de_configuraci_n.md
+- 2025-9-29/6-33-27-An_lisis_de_m_dulos_PowerShell.md
+- 2025-9-29/6-34-30-An_lisis_protocolo_auditor_a.md
+- 2025-9-29/6-36-14-An_lisis_y_auditor_a_t_cnica.md
+- 2025-9-29/6-4-10-Revisi_n_t_cnica_script.md
+- 2025-9-29/6-40-30-An_lisis_SOP_auditor_a.md
+- 2025-9-29/6-44-25-Auditor_a_t_cnica_documento.md
+- 2025-9-29/6-45-32-An_lisis_README_proyecto.md
+- 2025-9-29/6-48-56-An_lisis_t_cnico_orquestador.md
+- 2025-9-29/6-50-15-An_lisis_de_protocolo_SOP01.md
+- 2025-9-29/6-7-43-An_lisis_SOP_01.md
+- 2025-9-29/6-9-11-Instrucciones_de_ejecuci_n.md
+
+## Lista de archivos `.json`
+
+- 2025-9-29/3-57-48-_An_lisis___Integraci_n_.json
+- 2025-9-29/4-58-47-_WsW_mnt_.json
+- 2025-9-29/5-16-29-_WsW_Script_.json
+- 2025-9-29/5-22-31-_WsW_Contexto_.json
+- 2025-9-29/5-30-5-_PS_Master_XML_Config_.json
+- 2025-9-29/5-31-12-_SCRIPT___Invoke_RepoReorg_.json
+- 2025-9-29/5-36-5-_SOP_01___An_lisis__01_.json
+- 2025-9-29/5-40-13-_SOP_Backticks_Fences_Here_Strings_.json
+- 2025-9-29/5-46-4-_SOP_01___An_lisis__02_.json
+- 2025-9-29/5-48-30-_SOP_01___An_lisis__03_.json
+- 2025-9-29/5-50-50-_SOP___Env_Survey_.json
+- 2025-9-29/5-52-44-_SOP_01___An_lisis__03_.json
+- 2025-9-29/5-56-17-_An_lisis_Config_.json
+- 2025-9-29/5-58-16-_Trazabilidad_y_coherencia_.json
+- 2025-9-29/6-0-1-_Config_YSD_.json
+- 2025-9-29/6-11-18-An_lisis_de_documentaci_n_PS.json
+- 2025-9-29/6-14-34-An_lisis_de_script_PowerShell.json
+- 2025-9-29/6-19-13-An_lisis_PUAV_Compat.json
+- 2025-9-29/6-20-18-An_lisis_SOP_01_y_errores.json
+- 2025-9-29/6-22-21-Lee_y_analiza_script.json
+- 2025-9-29/6-23-21-New_chat.json
+- 2025-9-29/6-24-5-New_chat.json
+- 2025-9-29/6-26-32-An_lisis_de_instrucciones_proyecto.json
+- 2025-9-29/6-29-54-An_lisis_de_instrucciones.json
+- 2025-9-29/6-31-26-Auditor_a_de_configuraci_n.json
+- 2025-9-29/6-33-27-An_lisis_de_m_dulos_PowerShell.json
+- 2025-9-29/6-34-30-An_lisis_protocolo_auditor_a.json
+- 2025-9-29/6-36-14-An_lisis_y_auditor_a_t_cnica.json
+- 2025-9-29/6-4-10-Revisi_n_t_cnica_script.json
+- 2025-9-29/6-40-30-An_lisis_SOP_auditor_a.json
+- 2025-9-29/6-44-25-Auditor_a_t_cnica_documento.json
+- 2025-9-29/6-45-32-An_lisis_README_proyecto.json
+- 2025-9-29/6-48-56-An_lisis_t_cnico_orquestador.json
+- 2025-9-29/6-50-15-An_lisis_de_protocolo_SOP01.json
+- 2025-9-29/6-7-43-An_lisis_SOP_01.json
+- 2025-9-29/6-9-11-Instrucciones_de_ejecuci_n.json

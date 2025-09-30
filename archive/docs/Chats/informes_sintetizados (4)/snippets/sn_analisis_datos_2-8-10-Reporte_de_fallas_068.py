@@ -1,0 +1,6 @@
+from string import Template
+tmpl = Template("""### Descargas
+- [PS1]($ps1)
+- [MD]($md)
+""")
+return tmpl.safe_substitute(links)

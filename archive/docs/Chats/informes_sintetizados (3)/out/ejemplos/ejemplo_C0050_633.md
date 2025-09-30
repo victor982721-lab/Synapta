@@ -1,0 +1,36 @@
+```json
+[
+  { "op": "remove", "path": "/output_contract" },
+
+  { "op": "add", "path": "/units", "value": { "percent_scale": "0-100" } },
+
+  { "op": "remove", "path": "/gates/gov_min" },
+  { "op": "add", "path": "/gates/gov_min_pct", "value": 98 },
+
+  { "op": "replace", "path": "/gates/tti_max_seconds", "value": 180 },
+  { "op": "remove", "path": "/gates/tti_min_seconds" },
+
+  { "op": "add", "path": "/validators/-", "value": {
+      "name": "final_score_gate",
+      "on_state": "SOP_RUNNING",
+      "must_pass": true,
+      "checks": [
+        { "field": "final_score", "op": ">=", "value": 85 },
+        { "field": "metrics.tti_seconds", "op": "<=", "value": 180 }
+      ],
+      "on_fail": "flag_no_go"
+  }},
+
+  { "op": "add", "path": "/checklist_required/-", "value": "secret_scan_evidencia_presente" },
+  { "op": "add", "path": "/checklist_required/-", "value": "single_download_link_validado" },
+
+  { "op": "add", "path": "/metric_guards", "value": {
+      "consistency_cv": { "min_samples": 2, "if_mean_zero": "score_consistencia=0; bloquear veredicto" },
+      "reproducibility": { "if_deterministas_zero": "repro_pct=null; bloquear veredicto" }
+  }},
+
+  { "op": "add", "path": "/transitions/1/guard/final_score_gte", "value": 85 },
+
+  { "op": "replace", "path": "/procedures/3/steps/2", "value": "Aplicar gates consolidados: gov_pct >= 98; criticos_abiertos = 0; tti_seconds <= 180; final_score >= 85." }
+]
+```

@@ -1,0 +1,39 @@
+
+---
+
+# Módulos 2A a 2E – Inicialización del Entorno
+
+<Objetivo>
+- Preparar un entorno controlado antes de cualquier lógica de negocio.
+- Establecer política de ejecución (Real/Prueba), logging unificado y rutas estándar garantizadas.
+- Dejar el contexto listo para verificación, parches y auditoría sin intervención manual.
+</Objetivo>
+
+<Resumen>
+- Fase robusta y reproducible:
+  - 2A: modo y preferencias globales (incl. dry-run).
+  - 2B: logging central (consola/archivo).
+  - 2C: validación de escritura.
+  - 2D: estructura de rutas estándar.
+  - 2E: consolidación en InitConfig.
+- Resultado: inicialización auditable y lista para GUI.
+</Resumen>
+
+---
+
+## 2A – [INIT-ENV]
+
+<Objetivo>
+- Determinar el modo de ejecución (Real/Prueba) por parámetro o auto-detección (REPO_AR_MODE/DEBUG/DRY_RUN).
+- Exponer bandera global de simulación (RepoAR_IsDryRun).
+- Aplicar StrictMode y preferencias globales para reducir ruido.
+- Forzar I/O de consola en UTF-8 sin BOM.
+- Publicar metadatos de inicialización (versión y modo).
+</Objetivo>
+
+<Resumen>
+- Real: ErrorAction=Stop, DryRun=False.
+- Prueba: ErrorAction=Continue, DryRun=True (advertido).
+- Silencia Warning/Information/Verbose/Progress y normaliza codificación.
+- Punto único de verdad del “modo” para el resto del flujo.
+</Resumen>

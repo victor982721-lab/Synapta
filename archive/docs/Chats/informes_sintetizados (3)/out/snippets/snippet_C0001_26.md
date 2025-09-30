@@ -1,0 +1,5 @@
+```
+hiperrealismo, plástico/CGI, ojos desalineados, anatomía extraña, duplicados,
+artefactos, texto o marcas de agua, glitches, fondos vacíos, copia de un estilo único
+(Heidi/Candy), low‑res, oversharpen
+```

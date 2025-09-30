@@ -1,0 +1,4 @@
+ID,Original,Traduccion
+1,"<texto en inglés/chino>",""
+2,"<texto>",""
+...

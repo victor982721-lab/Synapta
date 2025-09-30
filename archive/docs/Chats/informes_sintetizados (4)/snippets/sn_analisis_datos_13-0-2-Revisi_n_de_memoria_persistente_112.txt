@@ -1,0 +1,1 @@
+Expand-Archive -Path <ruta_del_zip> -DestinationPath "$root\tools" -Force

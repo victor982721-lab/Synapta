@@ -1,0 +1,12 @@
+### Entrada (user)
+
+1. Revisa de forma recursiva el interior de este .zip
+2. Lee los documentos al interior.
+3. Explica la estructura observada.
+4. Explica el contenido de los archivos.
+
+
+
+### Salida (assistant)
+
+{"content_type": "code", "language": "unknown", "response_format_name": null, "text": "import os, zipfile, json, sys, textwrap, pathlib, hashlib, mimetypes, re, io, csv, base64, binascii, datetime\r\n\r\nzip_path = \"/mnt/data/mnt.zip\"\r\nres = {}\r\nif not os.path.exists(zip_path):\r\n    res['exists'] = False\r\n    res['message'] = \"Zip not found\"\r\n    res\r\nelse:\r\n    res['exists'] = True\r\n    # Open zip and collect info\r\n    z = zipfile.ZipFile(zip_path, 'r')\r\n    file_infos = []\r\n    for zi in z.infolist():\r\n        # Skip directory entries\r\n        is_dir = zi.is_dir() if hasattr(zi, 'is_dir') else zi.filename.endswith('/')\r\n        size = zi.file_size\r\n        compress_size = zi.compress_size\r\n        date_time = datetime.datetime(*zi.date_time).isoformat()\r\n        path = zi.filename\r\n        ext = pathlib.Path(path).suffix.lower()\r\n        # Try read small files to detect type\r\n        content_summary = None\r\n        text_head = None\r\n        bytes_head = None\r\n        detected_type = None\r\n        if not is_dir:\r\n            with z.open(zi, 'r') as f:\r\n                head = f.read(4096)\r\n            # Detect if text\r\n            try:\r\n                text_head = head.decode('utf-8')\r\n                detected_type = 'text'\r\n            except UnicodeDecodeError:\r\n                try:\r\n                    text_head = head.decode('latin-1')\r\n                    detected_type = 'text-latin1'\r\n                except UnicodeDecodeError:\r\n                    detected_type = 'binary'\r\n                    bytes_head = head[:64]\r\n            # crude mime by extension\r\n            mime, _ = mimetypes.guess_type(path)\r\n        else:\r\n            mime = None\r\n        file_infos.append({\r\n            'path': path,\r\n            'is_dir': is_dir,\r\n            'size': size,\r\n            'compress_size': compress_size,\r\n            'date_time': date_time,\r\n            'ext': ext,\r\n            'mime_guess': mime,\r\n            'detected_type': detected_type,\r\n            'text_head': text_head[:400] if text_head else None,\r\n            'bytes_head_b64': base64.b64encode(bytes_head).decode() if bytes_head else None,\r\n        })\r\n    len(file_infos), file_infos[:3]\n"}

@@ -1,0 +1,3 @@
+```
+filemap_sha256.ps1 -InputCsv FileList_abs.csv -Exclude ".venv", "site-packages", "C:\Users\Vic_Anastasis_Revenari_"
+```

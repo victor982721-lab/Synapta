@@ -1,0 +1,18 @@
+
+---
+
+# 2C – [INIT-CHECKS]
+
+<Objetivo>
+- Diagnosticar si una ruta es escribible de forma segura.
+- Respetar el modo: prueba efectiva en Real, simulación en Prueba.
+- Retornar booleano claro y registrar detalles vía Write-Log.
+- No dejar residuos (archivo temporal autocontenido).
+</Objetivo>
+
+<Resumen>
+- Ruta inexistente → False inmediato.
+- Dry-run → omite prueba real, loguea y retorna True.
+- Real → crea/escribe/borra .writetest_<GUID>.tmp (UTF-8 sin BOM).
+- Excepción → Warn y False. No eleva privilegios ni corrige permisos.
+</Resumen>

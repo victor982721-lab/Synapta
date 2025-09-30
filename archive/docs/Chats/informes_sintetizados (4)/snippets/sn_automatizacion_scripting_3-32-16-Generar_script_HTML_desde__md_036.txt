@@ -1,0 +1,405 @@
+#requires -Version 5.1
+<#
+.SYNOPSIS
+Audita la versión de PowerShell y todo el contexto relevante del entorno para escribir scripts correctamente.
+
+.DESCRIPTION
+Compatible con Windows PowerShell 5.1 y PowerShell 7+. Recolecta:
+- Versión/edición de PowerShell, motor .NET/CLR, host, ruta y arquitectura.
+- SO y build, arquitectura de proceso, Admin/SO de 64/32 bits.
+- Políticas de ejecución por ámbito.
+- Cultura e idioma, y fuerza cultura invariante durante la ejecución (recomendación de Semilla 2). 
+- Codificaciones de consola y default.
+- Protocolos TLS activos y verificación de TLS 1.2 (según Semilla 2).
+- Herramientas clave: winget, git, pwsh, powershell.exe.
+- Módulos recomendados y versión (PSReadLine, PSResourceGet, Pester, PSScriptAnalyzer, PlatyPS, ThreadJob, SecretManagement, SecretStore).
+- Rutas y perfiles ($PSHOME, $PROFILE.*), variables relevantes y límites básicos.
+Entrega reporte en Markdown/JSON/TXT y muestra progreso. Manejo de errores con Stop y try/catch.
+
+.PARAMETER StartDirectory
+Directorio donde se ejecutará el script. Si no existe se crea y se establece como ubicación de trabajo.
+
+.PARAMETER ReportPath
+Ruta de salida del reporte. Extensión gobierna el formato si no se especifica -ReportFormat.
+
+.PARAMETER ReportFormat
+Formato del reporte: markdown, json o txt. Por defecto, deduce por extensión o usa markdown.
+
+.PARAMETER IncludeModuleInventory
+Incluye inventario detallado de módulos instalados.
+
+.PARAMETER IncludeEnvVars
+Incluye variables de entorno seleccionadas.
+
+.PARAMETER IncludePaths
+Incluye PATH y rutas destacadas.
+
+.PARAMETER OpenAfter
+Abre el reporte al finalizar.
+
+.EXAMPLE
+.\PS-Env-Audit.ps1 -OpenAfter
+
+.EXAMPLE
+.\PS-Env-Audit.ps1 -ReportPath "$env:USERPROFILE\Desktop\PS_Env_Report.json" -ReportFormat json -IncludeModuleInventory -IncludePaths
+
+.NOTES
+- Seguridad y consistencia al inicio: ErrorActionPreference='Stop', cultura invariante y TLS 1.2 cuando aplique (Semilla 2). 
+- No requiere privilegios de administrador.
+#>
+
+[CmdletBinding(SupportsShouldProcess=$true, ConfirmImpact='Low')]
+param(
+    [Parameter()]
+    [ValidateScript({
+        if ($_ -and -not (Test-Path -LiteralPath $_ -PathType Container)) {
+            New-Item -ItemType Directory -Path $_ -Force | Out-Null
+        }
+        $true
+    })]
+    [string]$StartDirectory = [Environment]::GetFolderPath('Desktop'),
+
+    [Parameter()]
+    [ValidateScript({
+        if ($_){
+            $dir = Split-Path -LiteralPath $_ -Parent
+            if ($dir -and -not (Test-Path -LiteralPath $dir -PathType Container)) {
+                New-Item -ItemType Directory -Path $dir -Force | Out-Null
+            }
+        }
+        $true
+    })]
+    [string]$ReportPath = (Join-Path ([Environment]::GetFolderPath('Desktop')) 'PS_Env_Report.md'),
+
+    [Parameter()]
+    [ValidateSet('markdown','json','txt')]
+    [string]$ReportFormat,
+
+    [Parameter()]
+    [switch]$IncludeModuleInventory,
+
+    [Parameter()]
+    [switch]$IncludeEnvVars,
+
+    [Parameter()]
+    [switch]$IncludePaths,
+
+    [Parameter()]
+    [switch]$OpenAfter
+)
+
+begin {
+    # Semilla 2: configuración y seguridad al inicio (errores a Stop; cultura invariante; TLS 1.2 si aplica). fileciteturn1file2 fileciteturn1file4
+    $ErrorActionPreference = 'Stop'  # manejo de errores determinista. fileciteturn1file2
+
+    # Cambiar directorio de trabajo solicitado
+    try {
+        if ($StartDirectory) { Set-Location -LiteralPath $StartDirectory }
+    } catch {
+        throw "No se pudo establecer StartDirectory: $StartDirectory. $_"
+    }
+
+    # Cultura invariante para toda la sesión del script
+    try {
+        $prevCulture   = [System.Threading.Thread]::CurrentThread.CurrentCulture
+        $prevUICulture = [System.Threading.Thread]::CurrentThread.CurrentUICulture
+        [System.Threading.Thread]::CurrentThread.CurrentCulture   = [System.Globalization.CultureInfo]::InvariantCulture
+        [System.Threading.Thread]::CurrentThread.CurrentUICulture = [System.Globalization.CultureInfo]::InvariantCulture  # fileciteturn1file4
+    } catch { }
+
+    # TLS 1.2 si está disponible (no falla en Core si no existe la clase) fileciteturn1file3
+    try {
+        if ([type]::GetType('System.Net.ServicePointManager')) {
+            [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
+    }} catch { }
+}
+
+process {
+    function Write-Step($t,$p){ Write-Progress -Activity "Auditoría de entorno" -Status $t -PercentComplete $p }
+
+    Write-Step "Recolectando datos base" 5
+
+    # Helper: versiones .NET / runtime
+    function Get-DotNetRuntimeInfo {
+        $info = [ordered]@{
+            FrameworkDescription = $null
+            RuntimeIdentifier    = $null
+            Version              = $null
+            ClrVersionLegacy     = $null
+        }
+        try {
+            # Disponible en PS 7+ (Core)
+            $rt = [System.Runtime.InteropServices.RuntimeInformation]::FrameworkDescription
+            $info.FrameworkDescription = $rt
+            $info.RuntimeIdentifier    = [System.Runtime.InteropServices.RuntimeInformation]::RuntimeIdentifier
+        } catch { }
+        try {
+            # En PS 5.1 suele existir CLRVersion en $PSVersionTable
+            if ($PSVersionTable.ContainsKey('CLRVersion') -and $PSVersionTable.CLRVersion) {
+                $info.ClrVersionLegacy = $PSVersionTable.CLRVersion.ToString()
+            }
+        } catch { }
+        try {
+            $info.Version = [System.Environment]::Version.ToString()
+        } catch { }
+        [PSCustomObject]$info
+    }
+
+    # Helper: políticas de ejecución
+    function Get-ExecutionPolicyInfo {
+        try {
+            $list = Get-ExecutionPolicy -List | Select-Object Scope, ExecutionPolicy
+        } catch {
+            # PS Core en Linux/Mac puede no soportar todo
+            $list = [PSCustomObject]@{ Scope='CurrentUser'; ExecutionPolicy=(Get-ExecutionPolicy) }
+        }
+        $list
+    }
+
+    # Helper: módulos recomendados
+    function Get-ModuleSummary {
+        param([string[]]$Names)
+        $result = foreach($n in $Names){
+            $m = Get-Module -ListAvailable -Name $n | Sort-Object Version -Descending | Select-Object -First 1
+            [PSCustomObject]@{
+                Name    = $n
+                Found   = [bool]$m
+                Version = if ($m){ $m.Version.ToString() } else { $null }
+                Path    = $m.Path
+            }
+        }
+        $result
+    }
+
+    # Helper: si existe comando
+    function Test-Cmd([string]$name){
+        $c = Get-Command $name -ErrorAction SilentlyContinue
+        [PSCustomObject]@{ Name=$name; Found=[bool]$c; Path= $c.Path }
+    }
+
+    # Datos base
+    $hostInfo = [ordered]@{
+        PSVersion           = $PSVersionTable.PSVersion.ToString()
+        PSEdition           = $PSVersionTable.PSEdition
+        PSCompatible        = ($PSVersionTable.PSCompatibleVersions | ForEach-Object { $_.ToString() }) -join ', '
+        PSRemotingProtocol  = $PSVersionTable.PSRemotingProtocolVersion
+        Serialization       = $PSVersionTable.SerializationVersion
+        WSManStack          = $PSVersionTable.WSManStackVersion
+        Platform            = $PSVersionTable.Platform
+        OS                  = $PSVersionTable.OS
+        PSHome              = $PSHOME
+        ProcessArch         = $env:PROCESSOR_ARCHITECTURE
+        Is64BitProcess      = [Environment]::Is64BitProcess
+        Is64BitOS           = [Environment]::Is64BitOperatingSystem
+        HostName            = $Host.Name
+        HostVersion         = $Host.Version.ToString()
+        UserName            = [Environment]::UserName
+        MachineName         = [Environment]::MachineName
+        CurrentDirectory    = (Get-Location).Path
+        ProfileAllHosts     = $PROFILE.AllUsersAllHosts
+        ProfileCurrent      = $PROFILE.CurrentUserAllHosts
+        PSExecutable        = (Get-Process -Id $PID).Path
+    }
+
+    Write-Step "Consultando SO y runtime" 20
+    $osInfo = [ordered]@{
+        OSVersionString     = [Environment]::OSVersion.VersionString
+        OSMajorMinorBuild   = [Environment]::OSVersion.Version.ToString()
+        SystemDirectory     = [Environment]::SystemDirectory
+        TempPath            = [IO.Path]::GetTempPath()
+    }
+
+    $dotnet = Get-DotNetRuntimeInfo
+
+    Write-Step "Políticas de ejecución y seguridad" 35
+    $execPol = Get-ExecutionPolicyInfo
+    $tlsInfo  = try { [Net.ServicePointManager]::SecurityProtocol.ToString() } catch { $null }
+
+    Write-Step "Cultura y codificaciones" 50
+    $culture = [ordered]@{
+        CurrentCulture      = [System.Threading.Thread]::CurrentThread.CurrentCulture.Name
+        CurrentUICulture    = [System.Threading.Thread]::CurrentThread.CurrentUICulture.Name
+        ConsoleOutputEnc    = [Console]::OutputEncoding.WebName
+        ConsoleInputEnc     = [Console]::InputEncoding.WebName
+        DefaultEncoding     = [Text.Encoding]::Default.WebName
+    }
+
+    Write-Step "Herramientas y módulos" 70
+    $tools = @('winget','git','pwsh','powershell.exe') | ForEach-Object { Test-Cmd $_ }
+    $modulesWanted = @('PSReadLine','PSResourceGet','Pester','PSScriptAnalyzer','PlatyPS','ThreadJob','Microsoft.PowerShell.SecretManagement','Microsoft.PowerShell.SecretStore')
+    $modSummary = Get-ModuleSummary -Names $modulesWanted
+
+    # Opcionales
+    $envVars = $null
+    if ($IncludeEnvVars) {
+        $selected = 'PATH','PSModulePath','TEMP','TMP','HOME','USERPROFILE','ProgramFiles','ProgramData'
+        $envVars = foreach($n in $selected){ [PSCustomObject]@{ Name=$n; Value=$env:$n } }
+    }
+
+    $pathsDump = $null
+    if ($IncludePaths) {
+        $pathsDump = [PSCustomObject]@{
+            PathList = ($env:PATH -split ';') | Where-Object { $_ } 
+            PSModulePathList = ($env:PSModulePath -split ';') | Where-Object { $_ }
+        }
+    }
+
+    $modulesInventory = $null
+    if ($IncludeModuleInventory) {
+        Write-Step "Inventariando módulos instalados" 85
+        $modulesInventory = Get-Module -ListAvailable | Sort-Object Name, Version | Select-Object Name, Version, Path, ModuleBase
+    }
+
+    Write-Step "Construyendo reporte" 95
+    $report = [ordered]@{
+        Timestamp           = (Get-Date).ToString('s')
+        Summary             = [ordered]@{
+            PSVersion      = $hostInfo.PSVersion
+            Edition        = $hostInfo.PSEdition
+            OSVersion      = $osInfo.OSVersionString
+            Runtime        = $dotnet.FrameworkDescription
+            TLSProtocols   = $tlsInfo
+            Culture        = $culture.CurrentCulture
+        }
+        Host                = $hostInfo
+        OS                  = $osInfo
+        DotNet              = $dotnet
+        ExecutionPolicy     = $execPol
+        CultureAndEncoding  = $culture
+        TLS                 = $tlsInfo
+        Tools               = $tools
+        ModulesRecommended  = $modSummary
+        EnvVars             = $envVars
+        Paths               = $pathsDump
+        ModulesInventory    = $modulesInventory
+    }
+
+    # Determinar formato real
+    if (-not $ReportFormat) {
+        $ext = ([IO.Path]::GetExtension($ReportPath)).TrimStart('.').ToLowerInvariant()
+        $ReportFormat = switch ($ext) { 'json'{'json'} 'txt'{'txt'} default {'markdown'} }
+    }
+
+    # Serialización a disco
+    switch ($ReportFormat) {
+        'json' {
+            $json = $report | ConvertTo-Json -Depth 6
+            if ($PSCmdlet.ShouldProcess($ReportPath,"Escribir JSON")) {
+                Set-Content -LiteralPath $ReportPath -Value $json -Encoding UTF8
+            }
+        }
+        'txt' {
+            $lines = @()
+            $lines += "PS Environment Report"
+            $lines += "Generated: $($report.Timestamp)"
+            $lines += ""
+            $lines += "PowerShell: $($hostInfo.PSEdition) $($hostInfo.PSVersion)  Host: $($hostInfo.HostName) $($hostInfo.HostVersion)"
+            $lines += "OS: $($osInfo.OSVersionString)  Arch: $(if($hostInfo.Is64BitOS){'x64'}else{'x86'})  ProcArch: $($hostInfo.ProcessArch)"
+            $lines += "Runtime: $($dotnet.FrameworkDescription)  CLR(legacy): $($dotnet.ClrVersionLegacy)"
+            $lines += "TLS: $tlsInfo"
+            $lines += "Culture: $($culture.CurrentCulture)  EncodingOut: $($culture.ConsoleOutputEnc)"
+            $lines += "ExecutionPolicy:"
+            $lines += ($execPol | ForEach-Object { "  {0,-14} {1}" -f $_.Scope, $_.ExecutionPolicy })
+            $lines += ""
+            $lines += "Tools:"
+            $lines += ($tools | ForEach-Object { "  {0,-14} {1}" -f $_.Name, (if ($_.Found) { $_.Path } else { 'Not found' }) })
+            $lines += ""
+            $lines += "Recommended modules:"
+            $lines += ($modSummary | ForEach-Object { "  {0,-30} {1}" -f ($_.Name + (if($_.Found){''}else{' (missing)'})), $_.Version })
+            if ($IncludeEnvVars -and $envVars){ 
+                $lines += ""
+                $lines += "Env Vars:"
+                $lines += ($envVars | ForEach-Object { "  {0}={1}" -f $_.Name, $_.Value })
+            }
+            if ($IncludePaths -and $pathsDump){
+                $lines += ""
+                $lines += "PATH:"
+                $lines += ($pathsDump.PathList | ForEach-Object { "  $_" })
+                $lines += ""
+                $lines += "PSModulePath:"
+                $lines += ($pathsDump.PSModulePathList | ForEach-Object { "  $_" })
+            }
+            if ($IncludeModuleInventory -and $modulesInventory){
+                $lines += ""
+                $lines += "Modules Inventory:"
+                $lines += ($modulesInventory | ForEach-Object { "  {0} {1}  {2}" -f $_.Name, $_.Version, $_.Path })
+            }
+            if ($PSCmdlet.ShouldProcess($ReportPath,"Escribir TXT")) {
+                Set-Content -LiteralPath $ReportPath -Value ($lines -join [Environment]::NewLine) -Encoding UTF8
+            }
+        }
+        default { # markdown
+            $md = @()
+            $md += "# PowerShell Environment Report"
+            $md += ""
+            $md += "- **Generated**: $($report.Timestamp)"
+            $md += "- **PowerShell**: $($hostInfo.PSEdition) $($hostInfo.PSVersion) — Host: $($hostInfo.HostName) $($hostInfo.HostVersion)"
+            $md += "- **OS**: $($osInfo.OSVersionString)  | **Arch**: $(if($hostInfo.Is64BitOS){'x64'}else{'x86'})  | **ProcArch**: $($hostInfo.ProcessArch)"
+            $md += "- **Runtime**: $($dotnet.FrameworkDescription)  | **CLR(legacy)**: $($dotnet.ClrVersionLegacy)"
+            $md += "- **TLS**: $tlsInfo"
+            $md += "- **Culture**: $($culture.CurrentCulture)  | **EncodingOut**: $($culture.ConsoleOutputEnc)"
+            $md += ""
+            $md += "## ExecutionPolicy"
+            $md += ""
+            $md += "| Scope | Policy |"
+            $md += "|---|---|"
+            foreach($ep in $execPol){ $md += "| $($ep.Scope) | $($ep.ExecutionPolicy) |" }
+            $md += ""
+            $md += "## Tools"
+            $md += ""
+            $md += "| Tool | Found | Path |"
+            $md += "|---|:---:|---|"
+            foreach($t in $tools){ $md += "| $($t.Name) | $(if($t.Found){'Yes'}else{'No'}) | $([string]$t.Path) |" }
+            $md += ""
+            $md += "## Recommended modules"
+            $md += ""
+            $md += "| Module | Found | Version | Path |"
+            $md += "|---|:---:|---|---|"
+            foreach($m in $modSummary){ $md += "| $($m.Name) | $(if($m.Found){'Yes'}else{'No'}) | $([string]$m.Version) | $([string]$m.Path) |" }
+            if ($IncludeEnvVars -and $envVars){
+                $md += ""
+                $md += "## Env Vars"
+                $md += ""
+                foreach($e in $envVars){ $md += "- **$($e.Name)** = `$($e.Value)`" }
+            }
+            if ($IncludePaths -and $pathsDump){
+                $md += ""
+                $md += "## PATH"
+                $md += ""
+                foreach($p in $pathsDump.PathList){ $md += "- $p" }
+                $md += ""
+                $md += "## PSModulePath"
+                $md += ""
+                foreach($p in $pathsDump.PSModulePathList){ $md += "- $p" }
+            }
+            if ($IncludeModuleInventory -and $modulesInventory){
+                $md += ""
+                $md += "## Modules Inventory (top 200 by name)"
+                $md += ""
+                $md += ($modulesInventory | Select-Object -First 200 | ForEach-Object { "- {0} {1}  `{2}`" -f $_.Name, $_.Version, $_.Path })
+                if ($modulesInventory.Count -gt 200) { $md += ""; $md += "_…otros $($modulesInventory.Count-200) módulos no listados…_" }
+            }
+            $text = $md -join [Environment]::NewLine
+            if ($PSCmdlet.ShouldProcess($ReportPath,"Escribir Markdown")) {
+                Set-Content -LiteralPath $ReportPath -Value $text -Encoding UTF8
+            }
+        }
+    }
+
+    Write-Step "Completado" 100
+    Write-Progress -Activity "Auditoría de entorno" -Completed
+
+    if ($OpenAfter) { Start-Process -FilePath $ReportPath }
+
+    # Salida útil al pipeline
+    [PSCustomObject]$report
+}
+end {
+    # Restaurar cultura si la habíamos cambiado
+    try {
+        if ($prevCulture) {
+            [System.Threading.Thread]::CurrentThread.CurrentCulture   = $prevCulture
+            [System.Threading.Thread]::CurrentThread.CurrentUICulture = $prevUICulture
+        }
+    } catch { }
+}

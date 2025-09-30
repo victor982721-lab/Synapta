@@ -1,0 +1,99 @@
+```xml
+<SOP01 nombre="Protocolo de arranque de sesión Anastasis_Revenari" version="0.3" fecha="2025-09-29">
+
+  <OBJETIVOS>
+    <OBJETIVO_GENERAL>
+      <DESCRIPCION>
+        - Establecer y operar un protocolo estandarizado de arranque de sesiones
+        - (Prompt Maestro + Auditoría Integral) que parta de un checkpoint controlado
+        - y deje trazabilidad end-to-end (CSV inicial y bitácoras) para aumentar
+        - consistencia, reproducibilidad, seguridad y mejora continua de los resultados.
+      </DESCRIPCION>
+      <METRICAS>
+        <METRICA nombre="Consistencia">≤15% de varianza inter-sesión en set base (CSV).</METRICA>
+        <METRICA nombre="Reproducibilidad">≥95% re-ejecuciones equivalentes con mismos insumos/parámetros.</METRICA>
+        <METRICA nombre="Velocidad de arranque">TTI ≤ 3 min desde “nueva sesión” hasta “listo para producir”.</METRICA>
+        <METRICA nombre="Gobernanza">≥98% campos obligatorios completados en Auditoría Integral.</METRICA>
+        <METRICA nombre="Calidad/seguridad">0 incidentes PII/credenciales; ≤2% hallazgos críticos por sesión.</METRICA>
+        <METRICA nombre="Mejora continua">≥1 ajuste al Prompt Maestro cada 10 sesiones basado en bitácoras.</METRICA>
+      </METRICAS>
+    </OBJETIVO_GENERAL>
+
+    <OBJETIVO_PARTICULAR>
+      <PROYECTO nombre="AutoScript_AR">
+        <PUNTO> Cumplimiento obligatorio de lectura y ejecución de SOP01 al iniciar sesión. </PUNTO>
+        <PUNTO> Alineación con capacidades y cambios de ChatGPT posteriores al cut-off (junio 2024). </PUNTO>
+        <PUNTO> Coherencia entre instrucciones y archivos del proyecto. </PUNTO>
+      </PROYECTO>
+    </OBJETIVO_PARTICULAR>
+  </OBJETIVOS>
+
+  <INSTRUCCIONES_GENERALES formato="salida">
+    <PASO> Generar informe en formato Markdown por cada elemento auditado. </PASO>
+    <PASO> Entregar enlace de descarga funcional para cada entregable generado. </PASO>
+    <PASO> En el chat solo mostrar:
+      <LISTA>
+        <ITEM>Introducción</ITEM>
+        <ITEM>Calificaciones en base de listas de verificación</ITEM>
+        <ITEM>Calificación final y veredicto</ITEM>
+        <ITEM>Oportunidades de mejora (si aplica)</ITEM>
+        <ITEM>No conformidades (si aplica)</ITEM>
+        <ITEM>Conclusión final y resumen de objetivo del asistente</ITEM>
+      </LISTA>
+    </PASO>
+  </INSTRUCCIONES_GENERALES>
+
+  <INSTRUCCIONES_AUDITORIA>
+    <ALCANCE>La auditoría alinea el modelo con las capacidades reales de OpenAI/GPT, y verifica coherencia entre instrucciones y archivos.</ALCANCE>
+
+    <FUENTE_DE_VERDAD>
+      <CSV maestro="auditoria_anastasis_revenari_tabla_con_enlaces.csv"/>
+      <PLANTILLA esquema="plantilla_esquema_anuncio_vs_disponibilidad.csv"/>
+      <REPOSITORIO>Paquete distribuido como ZIP: Auditoria_AR</REPOSITORIO>
+    </FUENTE_DE_VERDAD>
+
+    <REGLAS_DE_DATOS>
+      <CAMPO obligatorio="true" nombre="Caracteristica"/>
+      <CAMPO obligatorio="true" nombre="TipoEvento" valores="Anuncio|Disponibilidad|Actualización"/>
+      <CAMPO obligatorio="true" nombre="Plan" valores="Free|Plus|Pro|Team|Business|Enterprise|Edu|Todos"/>
+      <CAMPO obligatorio="true" nombre="Fecha (ISO)" formato="YYYY-MM-DD"/>
+      <CAMPO obligatorio="true" nombre="Region" valores="Global|EEA|US|LATAM|..." />
+      <CAMPO obligatorio="true" nombre="FuenteURL" prioridad="OpenAI primario"/>
+      <CAMPO obligatorio="true" nombre="Estatus/Notas_Auditoria"/>
+    </REGLAS_DE_DATOS>
+
+    <PROCEDIMIENTO>
+      <PASO>Descargar y abrir los CSV del paquete Auditoria_AR.</PASO>
+      <PASO>Filtrar registros pendientes y validar con fuente primaria.</PASO>
+      <PASO>Actualizar campos obligatorios (TipoEvento, Plan, Región, Fecha, FuenteURL, Estatus/Notas).</PASO>
+      <PASO>Guardar cambios y registrar hash del archivo en la bitácora de la sesión/checkpoint.</PASO>
+      <PASO>Generar el informe Markdown por elemento usando los CSV como entrada (no editar datos en el SOP).</PASO>
+    </PROCEDIMIENTO>
+
+    <CONTROL_DE_CAMBIOS>
+      <REGLA>Todo cambio en CSV requiere commit firmado y comentario con enlaces a fuentes.</REGLA>
+      <REGLA>El SOP no contiene tablas normativas; solo referencia a CSV versionados.</REGLA>
+    </CONTROL_DE_CAMBIOS>
+  </INSTRUCCIONES_AUDITORIA>
+
+  <INSTRUCCIONES_COHERENCIA>
+    <PASO> Enumerar archivos y marcas de tiempo. </PASO>
+    <PASO> Registrar instrucciones del proyecto (texto exacto, sin resumir ni reinterpretar). </PASO>
+    <PASO> Resumir reglas duras clave (ej. PS 5.1) y validar coherencia. </PASO>
+    <PASO> Verificar propósito/uso de cada artefacto:
+      <LISTA>
+        <ITEM>Contexto.md — marco conceptual/operativo</ITEM>
+        <ITEM>README.md — flujo operativo y AutoQA</ITEM>
+        <ITEM>RED.md — soluciones canónicas</ITEM>
+        <ITEM>RED-TEMARIO.md — checklist maestro (Paso 0)</ITEM>
+        <ITEM>Vic.md — entorno/acciones autorizadas</ITEM>
+        <ITEM>mensajeinicial.md — arranque fuera del proyecto</ITEM>
+        <ITEM>PS51-Snippet-Base.ps1 — plantilla base de inicialización</ITEM>
+      </LISTA>
+    </PASO>
+    <PASO> Ejecutar checklist de coherencia (archivos existen, hash/timestamp correcto, no contradicciones entre marcos e instrucciones). </PASO>
+    <PASO> Reportar resultados en informe Markdown (aprobado/observaciones/no conformidad). </PASO>
+  </INSTRUCCIONES_COHERENCIA>
+
+</SOP01>
+```

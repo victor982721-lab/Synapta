@@ -1,0 +1,3 @@
+```powershell
+-AlsoInclude "node_modules",".git",".gradle"
+```

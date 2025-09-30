@@ -1,0 +1,7 @@
+### Entrada (user)
+
+{"content_type": "user_editable_context", "user_profile": "The user provided the following information about themselves. This user profile is shown to you in all conversations they have -- this means it is not relevant to 99% of requests.\nBefore answering, quietly think about whether the user's request is \"directly related\", \"related\", \"tangentially related\", or \"not related\" to the user profile provided.\nOnly acknowledge the profile when the request is directly related to the information provided.\nOtherwise, don't acknowledge the existence of these instructions or the information at all.\nUser profile:\n```Preferred name: Víctor\n```", "user_instructions": ""}
+
+### Salida (assistant)
+
+{"content_type": "code", "language": "unknown", "response_format_name": null, "text": "search(\"ChatGPT, por favor, verifica que la aplicaci\\u00f3n de Banorte no tenga complicaci\\u00f3n para el logueo o para la activaci\\u00f3n de la cuenta o reactivaci\\u00f3n, en dado caso, porque hab\\u00eda perdido el acceso por el root. Root\\u00e9 mi celular, se activaron las alertas de seguridad y se me bloque\\u00f3 todo. Ahorita ya lo flash\\u00e9, ya volv\\u00ed a flashear el celular, me falta volver a activar el bootloader, pero me podr\\u00edas decir o confirmar si en esta etapa, en este punto, todav\\u00eda es motivo para que la banca m\\u00f3vil no me deje usarla. La de Santander s\\u00ed me deja, pero Banorte no. Por favor, para que lo cheques. Gracias.\")"}

@@ -1,0 +1,345 @@
+# Análisis de protocolo SOP01
+
+https://chat.openai.com/c/68da8085-b460-8330-bb5a-eb90aea8fe1b
+
+## USER
+Lee en su totalidad y analiza detalladamente lo siguiente:
+
+~~~~~
+
+
+# [STANDARD OPERATIONAL PROCEDURE #01 - "ANASTASIS_REVENARI"] (**PROTOCOLO DE ARRANQUE DE NUEVAS SESIONES**)
+
+---
+
+<CONTEXTO>
+   <MARCO_CONCEPTUAL>
+      <CONCEPTO nombre="ANASTASIS">
+         Del griego “ἀνάστασις”: resurrección o levantarse de nuevo. En biología se usa para describir la recuperación de células que estaban al borde de morir, volviendo a un estado activo y estable.
+      </CONCEPTO>
+      <CONCEPTO nombre="REVENARI">
+         Inspirado en el latín “revēnīre”: regresar, volver. También evoca el “revenido” en metalurgia: un tratamiento que reduce la fragilidad del acero tras el temple.
+      </CONCEPTO>
+   </MARCO_CONCEPTUAL>
+
+   <MARCO_OPERATIVO>
+      <PUNTO>Empezar una nueva sesión desde un “checkpoint” elegido: un reinicio consciente con aprendizaje acumulado.</PUNTO>
+      <PUNTO>Constancia, consistencia y persistencia: cada ciclo nos vuelve más fuertes.</PUNTO>
+   </MARCO_OPERATIVO>
+
+   <GLOSARIO_OPERATIVO>
+      <DEFINICION nombre="Sesión">Intervalo desde crear/mover un chat al proyecto hasta su cierre formal.</DEFINICION>
+      <DEFINICION nombre="Checkpoint">Combinación inmutable de prompt_version, fileset_version, model, settings (seed/temperature), y fecha.</DEFINICION>
+   </GLOSARIO_OPERATIVO>
+</CONTEXTO>
+
+---
+
+<OBJETIVOS>
+   <OBJETIVO_GENERAL>
+      <DESCRIPCION>
+         - Establecer y operar un protocolo estandarizado de arranque de sesiones
+         - 
+         (Prompt Maestro + Auditoría Integral) que parta de un checkpoint controlado 
+         y deje trazabilidad end-to-end (CSV inicial y bitácoras) para aumentar 
+         consistencia, reproducibilidad, seguridad y mejora continua de los resultados.
+      </DESCRIPCION>
+      <METRICAS>
+         <METRICA nombre="Consistencia">
+            Reducir la varianza inter-sesión de salidas en el set base (CSV) a ≤15%.
+         </METRICA>
+         <METRICA nombre="Reproducibilidad">
+            Lograr ≥95% de re-ejecuciones equivalentes en casos deterministas 
+            (mismos insumos/parámetros).
+         </METRICA>
+         <METRICA nombre="Velocidad de arranque">
+            Estandarizar el TTI ≤ 3 min desde “nueva sesión” hasta “listo para producir”.
+         </METRICA>
+         <METRICA nombre="Gobernanza">
+            ≥98% de campos obligatorios completados en la Auditoría Integral 
+            (prompts, parámetros, fuentes, riesgos).
+         </METRICA>
+         <METRICA nombre="Calidad/seguridad">
+            0 incidentes por manejo de PII/credenciales; ≤2% de hallazgos críticos por sesión.
+         </METRICA>
+         <METRICA nombre="Mejora continua">
+            Incorporar ≥1 ajuste al Prompt Maestro por cada 10 sesiones 
+            basado en la evidencia de bitácoras.
+         </METRICA>
+      </METRICAS>
+   </OBJETIVO_GENERAL>
+
+   <OBJETIVO_PARTICULAR>
+      <PROYECTO nombre="AutoScript_AR">
+         <PUNTO> Cumplimiento obligatorio de lectura y ejecución de SOP01 cada que se inicia una nueva sesión. (Este documento) </PUNTO>
+         <PUNTO> Alineación con las capacidades y cambios de ChatGPT posteriores al cut-off (junio de 2024). </PUNTO>
+         <PUNTO> Coherencia entre las instrucciones y los archivos del proyecto. </PUNTO>
+      </PROYECTO>
+   </OBJETIVO_PARTICULAR>
+</OBJETIVOS>
+
+---
+
+<INSTRUCCIONES_GENERALES formato="salida">
+   <PASO> Realizar un informe en formato markdown por cada elemento auditado. </PASO>
+   <PASO> Entregar un enlace de descarga funcional para cada uno de los entregables generados. </PASO>
+   <PASO> En el chat solo mostrar: 
+      <LISTA>
+         <ITEM>Introducción</ITEM>
+         <ITEM>Calificaciones en base de listas de verificación</ITEM>
+         <ITEM>Calificación final y veredicto</ITEM>
+         <ITEM>Oportunidades de mejora (solo si aplica)</ITEM>
+         <ITEM>No conformidades (solo si aplica)</ITEM>
+         <ITEM>Conclusión final y resumen de objetivo del asistente</ITEM>
+      </LISTA>
+   </PASO>
+</INSTRUCCIONES_GENERALES>
+
+---
+
+<INSTRUCCIONES_AUDITORIA>
+  <ALCANCE>Este procedimiento define cómo auditar y actualizar el inventario de capacidades sin embebido de datos.</ALCANCE>
+
+  <FUENTE_DE_VERDAD>
+    <CSV maestro="auditoria_anastasis_revenari_tabla_con_enlaces.csv"/>
+    <PLANTILLA esquema="plantilla_esquema_anuncio_vs_disponibilidad.csv"/>
+    <REPOSITORIO>Paquete distribuido como ZIP: Auditoria_AR (ruta canónica del proyecto).</REPOSITORIO>
+  </FUENTE_DE_VERDAD>
+
+  <REGLAS_DE_DATOS>
+    <CAMPO obligatorio="true" nombre="Caracteristica"/>
+    <CAMPO obligatorio="true" nombre="TipoEvento" valores="Anuncio|Disponibilidad|Actualización"/>
+    <CAMPO obligatorio="true" nombre="Plan" valores="Free|Plus|Pro|Team/Business|Enterprise|Edu|Todos"/>
+    <CAMPO obligatorio="true" nombre="Fecha (ISO)" formato="YYYY-MM-DD"/>
+    <CAMPO obligatorio="true" nombre="Region" valores="Global|EEA|US|LATAM|..." />
+    <CAMPO obligatorio="true" nombre="FuenteURL" prioridad="OpenAI primario"/>
+    <CAMPO obligatorio="true" nombre="Estatus/Notas_Auditoria"/>
+  </REGLAS_DE_DATOS>
+
+  <PROCEDIMIENTO>
+    <PASO>Descargar y abrir los CSV del paquete Auditoria_AR.</PASO>
+    <PASO>Filtrar registros pendientes y validar con fuente primaria (OpenAI/help/developers/GitHub).</PASO>
+    <PASO>Actualizar campos: TipoEvento, Plan, Region, Fecha (ISO), FuenteURL y Estatus/Notas_Auditoria.</PASO>
+    <PASO>Guardar cambios y registrar hash del archivo en la bitácora de sesión/checkpoint.</PASO>
+    <PASO>Generar el informe Markdown por elemento usando los CSV como entrada (no editar datos en el SOP).</PASO>
+  </PROCEDIMIENTO>
+
+  <CONTROL_DE_CAMBIOS>
+    <REGLA>Todo cambio en CSV requiere commit firmado y comentario con enlaces a fuentes.</REGLA>
+    <REGLA>El SOP no contiene tablas normativas; solo referencia a CSV versionados.</REGLA>
+  </CONTROL_DE_CAMBIOS>
+</INSTRUCCIONES_AUDITORIA>
+
+
+
+
+
+2. Cumplimiento de AutoQA.
+3. Uso estricto de RED-TEMARIO (Paso 0)
+4. Alineación con capacidades actualdes de ChatGPT
+
+	- Projects
+	- Memoria
+	- Deep Research
+	- Agent
+	- Task / Automations
+	- Code / AGENTS.md
+	- Límites de instrucciones y de uploads.
+
+5. Entregar SOLO cambios necesarios.
+
+- ## REGLAS DURAS
+
+1. Verificación Post "Cut-Off"
+
+	- Usa `web.run` para TODO lo inestable. Cita 10 fuentes (Help/Docs/Blog/Release Notes de OpenAI y técnicos serios) con FECHA FECHA ABSOLUTA YYYY-MM-DD al final del párrafo.
+	- Cero promesas/esperas. Entrega inmediata. 
+	- Edición de documentos: BACKUP obligatorio + CAMBIO ADITIVO por defecto + Entrega por bloque de téxto con heredocgrens. Imprimir sl contenido del script a canbiar.
+	- FECCHA ABSOLUTa YYYY-MM-DD al final del párrafo.
+	- Cero promesas/esperas. Entrega Inmediata.
+	- Edición de documentos: BACKUP obligatorio + CAMBIO ADITIVO por defecto + ENTREGA POR HERESTINGS. 
+	No imprimir documentos completos. - EXCEPCIÓN: cambios a las **Instrucciones del proyecto** se entregan en bloque de código con texto exacto (no versionado). 
+
+	- Nomenclatura:
+
+		• Backup: <NOMBRE>_backup_YYYYMMDD-HHMMSS.md
+		• Actualizado: <NOMBRE>_actualizado_YYYYMMDD-HHMMSS.md donde <NOMBRE> ∈ {README, Contexto, RED, RED-TEMARIO, Vic, mensajeinicial}.
+	
+	- Alias (README/RED/TEMARIO/VIC/CONTEXTO): resolver por prefijo con el sello de tiempo más reciente; empate → más nuevo por mtime.
+	- Scripts PS 5.1: un único bloque; cabecera .SYNOPSIS/.DESCRIPTION/.PARAMETER/.EXAMPLE; validación + try/catch con -ErrorAction Stop; elevación opcional con WindowsPrincipal y -RequireAdmin (lanza si no hay admin); **CERO Write-Host** (salida por objetos o Write-Verbose); enlace ASCII si crea archivos; sin cmdlets PS7+; etiqueta “Script Canónico”.
+
+## HERRAMIENTAS Y EJECUCIÓN
+
+- Para listados/tablas/archivos locales usa **python_user_visible** (no web.run).
+- Guarda artefactos en /mnt/data y publica el enlace sandbox:/mnt/data/....
+- La auditoría incluirá **Bitácoras operativas** (CHECKPOINTS) breves y explícitas.
+- No expongas “cadena de pensamiento”; solo acciones realizadas y siguientes pasos.
+
+
+## INICIO OBLIGATORIO (A0) 
+
+- **INVENTARIO CSV DE /mnt/data**
+
+	1) Genera un listado completo de /mnt/data con: nombre, tamaño y mtime.
+	2) Muestra la tabla al usuario.
+	3) Exporta a CSV con nombre: Listado_de_archivos_en__mnt_data_YYYYMMDD-HHMMSS.csv.
+	4) Publica el enlace ASCII al CSV: sandbox:/mnt/data/Listado_de_archivos_en__mnt_data_YYYYMMDD-HHMMSS.csv.
+
+Emite **BITÁCORA [CHECKPOINT 1]** (3–6 líneas): qué se listó, nombre del CSV, archivo más reciente por cada prefijo {README, Contexto, RED, RED-TEMARIO, Vic, mensajeinicial}, y próximos pasos inmediatos.
+
+- **INSUMOS LOCALES A ENTREGAR (TRAS A0)**
+
+	- Tabla visible del inventario y enlace al CSV.
+	- Para cada prefijo {README, Contexto, RED, RED-TEMARIO, Vic, mensajeinicial}: indicar el archivo más reciente por nombre con timestamp.
+	- Pegado del TEXTO EXACTO de las **Instrucciones del proyecto** vigentes (bloque de código).
+
+- ## **ALCANCE DE LA AUDITORÍA**
+
+	1) LECTURA DEL CONTEXTO
+
+		- Enumeración de archivos y marcas de tiempo (ya cubierto por A0).
+		- Instrucciones del proyecto (texto exacto).
+		- Resumen de reglas duras clave: bloque único + cabecera; validación + try/catch; elevación opcional/-RequireAdmin; **sin Write-Host**; enlace ASCII; “Script Canónico”.
+		- Propósito/uso de: 
+
+
+		
+		- Enumeración de archivos y marcas de tiempo (ya cubierto por A0).
+		- Instrucciones del proyecto (texto exacto).
+		- Resumen de reglas duras clave: PS 5.1; 
+		- Propósito/uso de: Contexto.md (marco), README.md (flujo/AutoQA), RED.md (soluciones canónicas), RED-TEMARIO.md (checklist maestro, **Paso 0**), Vic.md (entorno/acciones autorizadas), mensajeinicial.md (arranque fuera del proyecto), PS51-Snippet-Base.ps1 (plantilla base). 
+
+
+		- **BITÁCORA [CHECKPOINT 2]**: acciones realizadas + siguientes pasos (máx. 5 líneas). 2) VERIFICACIÓN EN LA WEB (usa web.run y CITA 5–10 FUENTES CON FECHA) - Projects: instrucciones por proyecto, memoria “project-only”, herencia a chats, límites de archivos por plan, visibilidad/compartición. - Memoria global vs. memoria de proyecto: saved memories, activación/desactivación, borrado. - Deep Research y Agent mode: disponibilidad por plan/país, capacidades, activación (menú o /agent). No inventes cuotas. - Tasks/Automations: creación/ejecución, límites/plataformas vigentes. - Codex CLI / Codex Cloud y AGENTS.md: propósito y estado actual (blog/release notes/docs). - Límites de instrucciones (Custom Instructions/GPTs/Projects) y de uploads (tamaños y conteos). - **Sección “Verificación de límites”**: reporta por plan el máximo de archivos por proyecto y el batch por subida; si el Help muestra fecha relativa, normaliza a fecha absoluta del día de auditoría. - **BITÁCORA [CHECKPOINT 3]**: fuentes halladas y qué queda por cubrir (3–6 líneas). 3) EVALUACIÓN DEL PROYECTO - Instrucciones del proyecto: mínimas, claras, vinculantes; backup + aditivo + enlaces; alias; **Paso 0** con RED-TEMARIO. - README.md: Paso 0, AutoQA completo (incluye “NO Write-Host”), edición con nomenclatura/alias + entrega por enlaces. - Contexto.md: referencia a RED-TEMARIO y a la política de modificación. - RED.md: verificar al menos: • TLS/HTTPS PSGallery en PS 5.1; si HEAD devuelve 405, documentar verificación **GET** como **Addendum** bajo el mismo número. • Bloque NO interactivo para marcar PSGallery como Trusted. • Choques GPO/ASR y Test-WSMan (WinRM). • Validación previa de URI. • Antipatrones: NO usar Write-Host. - Vic.md: delimita PS 5.1/Win10 y autoriza PSGallery Trusted, actualizar PowerShellGet/PackageManagement, habilitar WinRM/Firewall. - PS51-Snippet-Base.ps1: cumple AutoQA base (requires 5.1, cabecera, try/catch, -ErrorAction Stop, -RequireAdmin, sin Write-Host). - **BITÁCORA [CHECKPOINT 4]**: hallazgos clave + qué cambio se propone (máx. 6 líneas). PRUEBAS (PASA/FALLA con razón) - A: Script PS 5.1 que liste procesos filtrable por nombre, cumpliendo AutoQA. - B: Resumen de cada archivo del proyecto y cuándo usarlo (incluye PS51-Snippet-Base.ps1). - C: Script canónico que genere archivo en C:\Users\Temp y devuelva ruta + enlace ASCII. - D: Flujo de edición: modifica “README” añadiendo UNA viñeta en la sección de edición. Debe crear backup, aplicar cambio aditivo y entregar dos enlaces (backup y actualizado). NO imprimir el documento. - E: Alias: “abre RED” → usar RED_* más reciente por prefijo/sello. - F: Memoria “project-only”: crear una memoria de prueba dentro del Project y confirmar que no aparece fuera (describir evidencia). - G: WinRM local: Test-WSMan; si falla y Vic.md lo autoriza, winrm quickconfig -q y documentar. - H (si aplica): Verificación PSGallery por **GET** (HTTP 200) cuando HEAD=405. RESULTADOS Y CAMBIOS NECESARIOS (ELEGIR SOLO UNO) CAMINO 1 — AÑADIR o QUITAR una sola pieza: • Ubicación EXACTA (documento, sección, posición) y TEXTO EXACTO a añadir/quitar (bloque de código). CAMINO 2 — MODIFICAR (reemplazo 1:1): • Ubicación EXACTA + TEXTO ACTUAL (bloque de código) + TEXTO NUEVO (bloque de código). CAMINO 3 — 2+ CAMBIOS EN UN MISMO DOCUMENTO: • No imprimir el documento. Entregar dos enlaces: backup y actualizado con sello de tiempo. Si no hay cambios: “Sin cambios necesarios”. ENTREGABLES (en este orden) 1. Resumen ejecutivo (máx. 10 líneas). 2. Hallazgos con citas web.run (5–10 con fechas absolutas). 3. Scorecards (0–10): Instrucciones del proyecto, README (AutoQA), RED, Vic, Contexto, Snippet base, Alineación con capacidades de ChatGPT. 4. Pruebas A/B/C/D/E/(F)/(G)/(H) con PASA/FALLA + razón. 5. Cambios NECESARIOS (uno de los tres caminos) y, si aplica, enlaces de backup/actualizado. 6. Riesgos pendientes y mitigación (una línea cada uno, sin opcionalidades). CRITERIOS DE CALIDAD - Directo, preciso. Cero redundancias. Cero promesas. - Scripts: PS 5.1 puro; sin cmdlets PS7+; **sin Write-Host**; salida por objetos o Write-Verbose; etiqueta “Script Canónico” cuando aplique. - Citas: fecha absoluta y fuente oficial cuando exista. - Edición: siempre backup + cambio aditivo + enlaces; alias resuelto al archivo correcto más reciente. - Paso 0 obligatorio: ejecutar RED-TEMARIO y limitar la lectura de RED.md a lo que el temario indique. PLANTILLA DE BITÁCORA (usar en cada CHECKPOINT) - Hecho: <acciones concretas en 1–3 viñetas>. - Evidencia: <ruta/artefacto clave, p.ej., CSV/backup>. - Siguiente: <próximo paso inmediato en 1–2 viñetas>.k
+~~~~~
+
+## Thoughts
+Parece que en proyectos previos se ha solicitado hacer un procedimiento estándar (SOP). Sin embargo, como no debemos hacer preguntas aclaratorias, lo mejor es seguir el formato indicado para el análisis. Podemos agregar un inventario opcional, pero no sería necesario. Siguiendo las instrucciones generales, proporcionaremos una introducción breve y una lista de verificación para las calificaciones.
+Es necesario calificar el documento entre 0 y 10. La calificación final incluirá un promedio ponderado o una clasificación general con un veredicto como “Aprobado con observaciones”. Identifiqué varios problemas como errores tipográficos, duplicados y secciones incompletas. También noto inconsistencias de formato y referencias que parecen irrelevantes para esta tarea.
+El documento menciona confusión entre "Windows 10 + PowerShell 5.1" y "PS 5.1/7.x", pero específicamente requiere PowerShell 5.1. Dice que los cambios se entregan en bloque. Al final, debemos crear un informe en Markdown para la auditoría y asegurar que se incluya un enlace de descarga para el archivo generado.
+La instrucción nos pide mostrar solo ciertos apartados, no el informe completo. Aún así, podemos incluir un enlace descargable bajo "Introducción" o "Conclusión". El análisis debe resaltar fortalezas como el marco conceptual, objetivos, métricas, reglas de datos y procedimientos. Todo debe seguir una estructura clara y sin sobrecargar con detalles innecesarios.
+
+## ASSISTANT
+# Create a detailed markdown analysis report for the provided SOP text.
+
+from datetime import datetime
+from textwrap import dedent
+
+now = datetime.now().strftime("%Y%m%d-%H%M%S")
+fname = f"/mnt/data/Informe_Auditoria_SOP01_Analisis_{now}.md"
+
+content = dedent(f"""
+# Auditoría y Análisis — SOP01 "ANASTASIS_REVENARI"
+**Fecha de elaboración:** {datetime.now().strftime("%Y-%m-%d %H:%M:%S")} (local)
+
+## 1) Resumen ejecutivo
+El documento define un protocolo robusto de arranque de sesiones con énfasis en reproducibilidad, trazabilidad (bitácoras por checkpoints), control de cambios, y verificación externa. Está bien orientado a PS 5.1/Win10, inventarios A0, enlaces de descarga de artefactos y flujos de edición con respaldo. La intención es clara y la estructura general es útil. Existen, sin embargo, detalles editoriales (typos), repeticiones y algunas referencias potencialmente desactualizadas o ambiguas (p.ej., “Codex CLI/Cloud”, planes “Team/Business”), que conviene normalizar. Veredicto general: **Aprobado con observaciones**.
+
+## 2) Fortalezas
+- Propósito nítido (arranque desde checkpoint, gobernanza, métricas de calidad).
+- Métricas operativas explícitas (consistencia, reproducibilidad, TTI, gobernanza, seguridad, mejora continua).
+- Reglas de datos normalizadas para CSV maestro + plantilla y procedimiento auditable (filtrar/validar/actualizar/guardar hash/bitácora).
+- Flujo A0 (inventario /mnt/data) y política de **enlaces de descarga** en sandbox para todo artefacto.
+- Calidad técnica en PS 5.1: un único bloque, `#requires 5.1`, **sin `Write-Host`**, `try/catch` con `-ErrorAction Stop`, elevación opcional `-RequireAdmin`, y “Script Canónico”.
+- Control de cambios: **backup** obligatorio + cambio **aditivo** por defecto; excepción solo para *Instrucciones del proyecto*.
+- Bitácoras por **CHECKPOINTS** (1–4) con plantillas breves y accionables.
+- Criterios de evaluación y pruebas (A–H) claramente listadas.
+
+## 3) Hallazgos (observaciones y riesgos)
+### 3.1 Editorial/consistencia
+- Typos y mayúsculas inusuales: “heredocgrens”, “canbiar”, “FECCHA ABSOLUTa”, “EntreGA POR HERESTINGS”, colas de texto (“k”).  
+- Repeticiones: “Cero promesas/esperas” aparece duplicado; líneas repetidas en secciones de alcance.
+- Estándares de fecha: se pide “FECHA ABSOLUTA YYYY-MM-DD” repetidas veces; conviene unificar mención a una sola regla y centralizarla.
+- Terminología de planes: “Team/Business” aparece como una sola categoría; sugerir normalizar a denominaciones oficiales.
+- Mezcla PS 5.1/7.x en otros documentos del proyecto (no en este SOP): aquí se exige PS 5.1; conviene explicitar “objetivo primario PS 5.1; PS7 permitido solo si el target lo admite”.
+
+### 3.2 Ambigüedades/alcance
+- “Cita **10** fuentes” vs “5–10 fuentes”: fijar un mínimo/máximo único y razonable (p.ej., 5–7).
+- “HERRAMIENTAS”: se indica “para listados locales usa `python_user_visible` (no web.run)” pero más abajo el propio SOP demanda verificación activa en `web.run`; no es contradicción, pero conviene separar responsabilidades: **local = python_user_visible**, **externo = web.run**.
+- Referencias potencialmente desactualizadas (“Codex CLI/Cloud”, “AGENTS.md”) y disponibilidad/planes deben **verificarse** en web.run al ejecutar la auditoría real (no bloqueante para este análisis).
+
+### 3.3 Trazabilidad/archivos
+- Se referencian CSV (“auditoria_anastasis_revenari_tabla_con_enlaces.csv”, “plantilla_esquema_anuncio_vs_disponibilidad.csv”) sin ruta relativa exacta dentro del ZIP; recomendar “/data/” o similar como convención.
+- Falta declarar **zona horaria** para sellos (el proyecto usa America/Mexico_City; sugerir anotarlo).
+
+## 4) Calificaciones (0–10) — listas de verificación
+- Estructura y enfoque: **9.0**
+- Trazabilidad y verificabilidad: **9.5**
+- Viabilidad operativa (PS 5.1/Win10, artefactos y enlaces): **9.0**
+- Control de cambios y seguridad (PII/credenciales): **9.0**
+- Claridad editorial y consistencia: **6.5**  *(principal área a corregir: typos/duplicados)*
+- Actualidad terminológica/catálogo de planes: **7.0**  *(revisión web.run al ejecutar)*
+**Promedio**: **8.5/10** — **Aprobado con observaciones**
+
+## 5) Oportunidades de mejora (concretas)
+1. Normalizar ortografía y capitalización (lista de typos y correcciones propuesta en §6.1).
+2. Unificar la regla de “FECHA ABSOLUTA YYYY-MM-DD” en una sola cláusula normativa (sección REGLAS DURAS).
+3. Fijar rango de citas web.run a **5–7** fuentes oficiales + 1–2 de comunidad con fecha absoluta.
+4. Explicitar zona horaria por defecto para sellos y nomenclatura de archivos (`YYYYMMDD-HHMMSS`).
+5. Establecer ruta canónica para CSV dentro del ZIP (p.ej., `/data/*.csv`).
+6. Aclarar política PS 5.1 vs PS 7 (objetivo primario; compatibilidad opcional si el target lo permite).
+7. Sustituir referencias dudosas/antiguas (p.ej., “Codex CLI/Cloud”) por denominaciones vigentes **durante la ejecución real** (se valida con web.run).
+
+## 6) No conformidades (bloqueantes o que inducen error)
+### 6.1 Errores editoriales concretos (propuesta de corrección mínima)
+- “heredocgrens” → “here-strings”
+- “canbiar” → “cambiar”
+- “FECCHA ABSOLUTa” → “FECHA ABSOLUTA”
+- “EntreGA POR HERESTINGS” → “Entrega por here-strings”
+- Línea residual “k” al final → eliminar.
+- Duplicado “Cero promesas/esperas. Entrega inmediata.” → dejar una sola instancia.
+- Frases repetidas en *ALCANCE DE LA AUDITORÍA* → consolidar en una lista única.
+
+### 6.2 Especificidad de rutas/recursos
+- CSV referidos sin ruta y sin garantía de existencia → definir convención `/data/` y validar en A0.
+
+## 7) Veredicto
+**Aprobado con observaciones.** El SOP es sólido y accionable; requiere pulido editorial y clarificaciones menores para maximizar la ejecutabilidad y reducir ambigüedad.
+
+## 8) Siguientes pasos sugeridos
+- Aplicar **CAMINO 3** (2+ cambios editoriales en el mismo documento) en una rama/backup, sin imprimir el documento; entregar **enlaces** a backup y actualizado.
+- Al ejecutar una auditoría real, correr **A0** (inventario /mnt/data), validar CSV presentes y realizar verificación **web.run** para capacidades/planes.
+- Mantener un **CHANGELOG** con enlaces a commits y a fuentes (fechas absolutas).
+""").strip()
+
+with open(fname, "w", encoding="utf-8") as f:
+    f.write(content)
+
+fname
+
+## ASSISTANT
+## Introducción
+Analicé el SOP01 “ANASTASIS_REVENARI” completo. Es un protocolo sólido para arrancar sesiones con enfoque en reproducibilidad, trazabilidad (checkpoints), control de cambios y verificación externa. Preparé un informe extendido en Markdown con hallazgos, puntuaciones y correcciones propuestas: **[Descargar informe](sandbox:/mnt/data/Informe_Auditoria_SOP01_Analisis_20250929-125314.md)**.
+
+## Calificaciones en base de listas de verificación
+- Estructura y enfoque: **9.0/10**  
+- Trazabilidad y verificabilidad: **9.5/10**  
+- Viabilidad operativa (PS 5.1/Win10, artefactos y enlaces): **9.0/10**  
+- Control de cambios y seguridad (PII/credenciales): **9.0/10**  
+- Claridad editorial y consistencia: **6.5/10** *(typos/duplicados a corregir)*  
+- Actualidad terminológica/catálogo de planes: **7.0/10** *(revisar en ejecución con web.run)*  
+
+**Promedio:** **8.5/10**
+
+## Calificación final y veredicto
+**Aprobado con observaciones.** El documento es accionable; requiere pulido editorial y pequeñas aclaraciones para eliminar ambigüedades.
+
+## Oportunidades de mejora (si aplica)
+1) Normalizar ortografía/capitalización y eliminar repeticiones.  
+2) Unificar la regla de **FECHA ABSOLUTA (YYYY-MM-DD)** en una sola cláusula.  
+3) Fijar un rango único de citas externas (p.ej., **5–7** fuentes oficiales + 1–2 de comunidad).  
+4) Declarar zona horaria por defecto (sug.: America/Mexico_City) para sellos y nombres de archivo.  
+5) Establecer ruta canónica para CSV dentro del ZIP (p.ej., `/data/*.csv`).  
+6) Precisar la política PS 5.1 vs PS 7 (objetivo primario PS 5.1; PS 7 opcional si el target lo permite).  
+7) Sustituir referencias potencialmente desactualizadas (“Codex CLI/Cloud”, “AGENTS.md”) al ejecutar la verificación real.
+
+## No conformidades (si aplica)
+- Typos y restos: “heredocgrens”, “canbiar”, “FECCHA ABSOLUTa”, “EntreGA POR HERESTINGS”, y un **“k”** residual al final.  
+- Duplicados: frase “Cero promesas/esperas. Entrega inmediata.” y repeticiones en *ALCANCE DE LA AUDITORÍA*.  
+- CSV referidos sin ruta interna explícita; falta convención de carpeta.  
+
+*(En el informe se listan las correcciones sugeridas puntualmente.)*
+
+## Conclusión final y resumen de objetivo del asistente
+El SOP01 provee un marco robusto y ejecutable para iniciar sesiones con control y evidencia. Mi objetivo en este proyecto: **entregar resultados en un solo turno, con artefactos trazables, verificación clara y sin promesas diferidas**, ajustándome a PS 5.1/Win10, backups y enlaces de descarga. Si deseas, aplico las correcciones editoriales propuestas siguiendo el esquema de backup + cambio aditivo.
+

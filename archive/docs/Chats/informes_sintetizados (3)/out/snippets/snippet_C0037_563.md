@@ -1,0 +1,7 @@
+```text
+...contenido previo...
+BEGIN_CANON:INSTRUCCIONES_PROYECTO_V1
+[ AQUÍ el texto canónico ]
+END_CANON:INSTRUCCIONES_PROYECTO_V1
+...contenido posterior...
+```

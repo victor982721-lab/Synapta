@@ -1,0 +1,13 @@
+```
+Actúa como verificador de coherencia. 
+1) Extrae una lista numerada de *cláusulas atómicas* de las Instrucciones del proyecto (una por línea, con ID I-###).
+2) Para cada cláusula, busca evidencia en los archivos del proyecto (cita archivo y sección/página) y determina:
+   - Fuente (Spec/SOP/README/Notas)
+   - Versión/Fecha (ISO si existe; si falta, marca “sin fecha”)
+3) Produce la matriz con columnas:
+   ID | Instrucción | Evidencia | Fuente | Versión/Fecha | Estado (OK/CONFLICTO/FALTA/OBSOLETA/AMBIGUA) | Severidad | Nota/Fix | Due date | Owner
+4) Aplica precedencia: Spec>SOP>README>Notas; desempata por fecha más reciente.
+5) Señala contradicciones y propone la **fuente canónica**.
+6) Sugiere 3 pruebas cortas (golden tests) para validar tras los cambios.
+7) Marca como **OBSOLETA** toda evidencia con >180 días o versión menor que la declarada.
+```

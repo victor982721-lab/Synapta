@@ -1,0 +1,3 @@
+pwsh -File "$env:USERPROFILE\Desktop\PS-Env-Audit.ps1" -IncludeEnvVars -IncludePaths -OpenAfter
+# o en 5.1:
+powershell -File "$env:USERPROFILE\Desktop\PS-Env-Audit.ps1" -IncludeEnvVars -IncludePaths -OpenAfter

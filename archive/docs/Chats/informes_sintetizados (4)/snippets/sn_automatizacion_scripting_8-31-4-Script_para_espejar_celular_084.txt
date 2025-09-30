@@ -1,0 +1,13 @@
+# Verificar dispositivo
+Write-Host "Verificando dispositivo..."
+$adbOutput = & adb devices
+$devices = $adbOutput | Select-String "device$"
+
+if ($devices) {
+    Write-Host "✅ Dispositivo detectado"
+    Write-Host "Iniciando scrcpy..."
+    & scrcpy --max-size 1024 --bit-rate 8M --always-on-top
+} else {
+    Write-Host "⚠️ No se detectó dispositivo. Conecta por USB y acepta la depuración."
+    exit 1
+}

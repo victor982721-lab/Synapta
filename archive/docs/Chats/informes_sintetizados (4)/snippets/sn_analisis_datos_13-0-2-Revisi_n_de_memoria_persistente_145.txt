@@ -1,0 +1,1 @@
+Error: "...exe" is the wrong type (requires a RC file).

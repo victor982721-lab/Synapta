@@ -1,0 +1,1 @@
+Get-Content .\FileList_Users_20250921_020839.jsonl | % { $_ | ConvertFrom-Json } | Select-Object *, @{n='abs_path';e={$r=($_.relpath -replace '/','\'); if($r -match '^[A-Za-z]:\\'){$r} elseif($r -match '^(\\|/).*'){"C:$r"} elseif($r -match '^(Users|ProgramData|Windows|Temp)\\'){"C:\$r"} else {"C:\Users\$r"}}} | Export-Csv .\FileList_abs_raw.csv -NoTypeInformation -Encoding utf8

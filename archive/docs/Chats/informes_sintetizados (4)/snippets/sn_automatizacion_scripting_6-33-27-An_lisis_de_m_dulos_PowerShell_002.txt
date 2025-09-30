@@ -1,0 +1,176 @@
+
+---
+
+## Módulos 2A a 2E – Inicialización del Entorno
+
+- 	**Objetivo general**
+
+	Estos módulos forman la **fase de inicialización del proyecto**, asegurando que el script arranque en un entorno controlado, con configuración coherente, rutas estándar garantizadas y logging centralizado.  
+	Su función es preparar todo antes de que se ejecute cualquier lógica de negocio.
+	
+	---
+
+	### Módulo 2A – INIT-ENV
+
+	Establece el **modo de ejecución** (`Real` o `Prueba`) y ajusta las preferencias globales de PowerShell.
+
+	- Auto-detecta el modo desde parámetros o variables de entorno.  
+	- En *Real*: detiene al primer error, `DryRun = False`.  
+	- En *Prueba*: continúa ante errores, `DryRun = True`, muestra advertencia.  
+	- Silencia mensajes innecesarios (`Warning`, `Information`, `Verbose`, `Progress`).  
+	- Fuerza la codificación de consola a **UTF-8 sin BOM**.  
+	- Expone versión del INIT y el modo efectivo.
+
+	~~~~~
+## [BEGIN MODULE: 2A-INIT-ENV]
+
+param(
+  [string]$Modo = $null
+)
+
+Set-StrictMode -Version 3.0
+
+# --- Auto-detección de modo ---
+if ([string]::IsNullOrWhiteSpace($Modo)) {
+  if ($env:REPO_AR_MODE -eq 'Prueba' -or $env:DEBUG -or $env:DRY_RUN) {
+    $Modo = 'Prueba'
+  } else {
+    $Modo = 'Real'
+  }
+}
+$Modo = @('Real','Prueba') | Where-Object { $_ -ieq $Modo } | Select-Object -First 1
+if (-not $Modo) { $Modo = 'Real' }
+
+# --- Preferencias globales + DRY-RUN ---
+switch ($Modo) {
+  'Real' {
+    $PSDefaultParameterValues['*:ErrorAction'] = 'Stop'
+    $ErrorActionPreference = 'Stop'
+    $Global:IsDryRun = $false
+  }
+  'Prueba' {
+    $PSDefaultParameterValues['*:ErrorAction'] = 'Continue'
+    $ErrorActionPreference = 'Continue'
+    $Global:IsDryRun = $true
+    Write-Warning "Modo PRUEBA activo → se simularán operaciones (dry-run)."
+  }
+}
+$PSDefaultParameterValues['*:WarningAction']      = 'SilentlyContinue'
+$PSDefaultParameterValues['*:InformationAction']  = 'SilentlyContinue'
+$VerbosePreference  = 'SilentlyContinue'
+$ProgressPreference = 'SilentlyContinue'
+
+# --- UTF-8 sin BOM ---
+try {
+  [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false)
+  [Console]::InputEncoding  = New-Object System.Text.UTF8Encoding($false)
+  $OutputEncoding           = New-Object System.Text.UTF8Encoding($false)
+} catch { }
+
+$Global:InitModuleVersion = '2.1.0'
+$Global:InitModo          = $Modo
+
+## [END MODULE: 2A-INIT-ENV]
+	~~~~~
+
+	---
+
+	### Módulo 2B – INIT-LOG
+
+	Define `Write-Log`, el **sistema de logging unificado**.
+
+	- Soporta niveles: `Info`, `Warn`, `Error`, `DryRun`, `Debug`, `Verbose`.  
+	- Colorea salida según severidad.  
+	- Respeta `-Verbose` y `-Debug` de PowerShell.  
+	- Registra en archivo `init_<timestamp>.log` dentro de `VERIFICATION` si está habilitado.  
+	- Centraliza los mensajes para todo el proyecto.
+
+	~~~~~
+## [BEGIN MODULE: 2B-INIT-LOG]
+
+function Write-Log {
+  [CmdletBinding()]
+  param(
+    [Parameter(Mandatory)][ValidateSet('Info','Warn','Error','DryRun','Debug','Verbose')]
+    [string]$Level,
+    [Parameter(Mandatory)][ValidateNotNullOrEmpty()][string]$Message,
+    [switch]$NoFile
+  )
+
+  # Normaliza para registro en archivo (una sola línea)
+  $msg = [string]$Message
+  $msgOneline = ($msg -replace '\s+', ' ').Trim()
+
+  $prefix = switch ($Level) {
+    'Info'    { '[INFO] ' }
+    'Warn'    { '[WARN] ' }
+    'Error'   { '[ERROR] ' }
+    'DryRun'  { '[DRY-RUN] ' }
+    'Debug'   { '[DEBUG] ' }
+    'Verbose' { '[VERBOSE] ' }
+  }
+  $text = "$prefix$msg"
+
+  # Salida a consola (Debug/Verbose respetan preferencias nativas)
+  switch ($Level) {
+    'Info'    { Write-Host $text }
+    'Warn'    { Write-Warning $msg }
+    'Error'   { Write-Error $msg -ErrorAction Stop }
+    'DryRun'  { Write-Host $text -ForegroundColor Yellow }
+    'Debug'   {
+      if ($DebugPreference -ne 'SilentlyContinue') {
+        Write-Host $text -ForegroundColor DarkGray
+      }
+    }
+    'Verbose' {
+      if ($VerbosePreference -ne 'SilentlyContinue') {
+        Write-Host $text
+      }
+    }
+  }
+
+  # Log a archivo (independiente del gating de consola)
+  $shouldFileLog = $false
+  if (-not $NoFile -and $Global:InitConfig -and
+      $Global:InitConfig.PSObject.Properties.Name -contains 'LogToFile' -and
+      $Global:InitConfig.LogToFile -and
+      -not $Global:IsDryRun) {
+    $shouldFileLog = $true
+  }
+
+  if ($shouldFileLog) {
+    $verifyDir = $null
+    if ($Global:InitConfig.PSObject.Properties.Name -contains 'VerifyDir') {
+      $verifyDir = $Global:InitConfig.VerifyDir
+    }
+
+    if (-not [string]::IsNullOrWhiteSpace($verifyDir)) {
+      # Asegura carpeta (usa Ensure-Dir si existe; fallback básico si no)
+      if (Get-Command -Name Ensure-Dir -ErrorAction SilentlyContinue) {
+        try { Ensure-Dir -Path $verifyDir | Out-Null } catch { }
+      } else {
+        if (-not (Test-Path -LiteralPath $verifyDir)) {
+          try { New-Item -ItemType Directory -Path $verifyDir -Force | Out-Null } catch { }
+        }
+      }
+
+      # Timestamp de ejecución si no existe
+      if (-not $Global:ExecTS) {
+        $Global:ExecTS = (Get-Date).ToString('yyyyMMdd_HHmmssfff')
+      }
+
+      $logFile   = Join-Path $verifyDir "init_$($Global:ExecTS).log"
+      $timestamp = Get-Date -Format s
+      try {
+        Add-Content -LiteralPath $logFile -Value ("{0} {1}{2}" -f $timestamp, $prefix, $msgOneline) -Encoding utf8
+      } catch {
+        Write-Warning ("Write-Log: no se pudo escribir en archivo de log: {0}" -f $logFile)
+      }
+    }
+  }
+}
+
+## [END MODULE: 2B-INIT-LOG]
+	~~~~~
+
+---

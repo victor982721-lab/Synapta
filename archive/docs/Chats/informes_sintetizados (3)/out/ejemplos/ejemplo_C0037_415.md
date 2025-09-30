@@ -1,0 +1,34 @@
+```xml
+<INSTRUCCIONES_AUDITORIA>
+  <ALCANCE>Este procedimiento define cómo auditar y actualizar el inventario de capacidades sin embebido de datos.</ALCANCE>
+
+  <FUENTE_DE_VERDAD>
+    <CSV maestro="auditoria_anastasis_revenari_tabla_con_enlaces.csv"/>
+    <PLANTILLA esquema="plantilla_esquema_anuncio_vs_disponibilidad.csv"/>
+    <REPOSITORIO>Paquete distribuido como ZIP: Auditoria_AR (ruta canónica del proyecto).</REPOSITORIO>
+  </FUENTE_DE_VERDAD>
+
+  <REGLAS_DE_DATOS>
+    <CAMPO obligatorio="true" nombre="Caracteristica"/>
+    <CAMPO obligatorio="true" nombre="TipoEvento" valores="Anuncio|Disponibilidad|Actualización"/>
+    <CAMPO obligatorio="true" nombre="Plan" valores="Free|Plus|Pro|Team/Business|Enterprise|Edu|Todos"/>
+    <CAMPO obligatorio="true" nombre="Fecha (ISO)" formato="YYYY-MM-DD"/>
+    <CAMPO obligatorio="true" nombre="Region" valores="Global|EEA|US|LATAM|..." />
+    <CAMPO obligatorio="true" nombre="FuenteURL" prioridad="OpenAI primario"/>
+    <CAMPO obligatorio="true" nombre="Estatus/Notas_Auditoria"/>
+  </REGLAS_DE_DATOS>
+
+  <PROCEDIMIENTO>
+    <PASO>Descargar y abrir los CSV del paquete Auditoria_AR.</PASO>
+    <PASO>Filtrar registros pendientes y validar con fuente primaria (OpenAI/help/developers/GitHub).</PASO>
+    <PASO>Actualizar campos: TipoEvento, Plan, Region, Fecha (ISO), FuenteURL y Estatus/Notas_Auditoria.</PASO>
+    <PASO>Guardar cambios y registrar hash del archivo en la bitácora de sesión/checkpoint.</PASO>
+    <PASO>Generar el informe Markdown por elemento usando los CSV como entrada (no editar datos en el SOP).</PASO>
+  </PROCEDIMIENTO>
+
+  <CONTROL_DE_CAMBIOS>
+    <REGLA>Todo cambio en CSV requiere commit firmado y comentario con enlaces a fuentes.</REGLA>
+    <REGLA>El SOP no contiene tablas normativas; solo referencia a CSV versionados.</REGLA>
+  </CONTROL_DE_CAMBIOS>
+</INSTRUCCIONES_AUDITORIA>
+```

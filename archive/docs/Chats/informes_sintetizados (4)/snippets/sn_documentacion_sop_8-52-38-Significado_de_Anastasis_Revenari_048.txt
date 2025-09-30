@@ -1,0 +1,16 @@
+- Auditar con evidencia reciente el proyecto "AutoScript_AR":
+
+1. Comprobar coherencia entre instrucciones y archivos.
+2. Cumplimiento de AutoQA.
+3. Uso estricto de RED-TEMARIO (Paso 0)
+4. Alineación con capacidades actualdes de ChatGPT
+
+	- Projects
+	- Memoria
+	- Deep Research
+	- Agent
+	- Task / Automations
+	- Code / AGENTS.md
+	- Límites de instrucciones y de uploads.
+
+5. Entregar SOLO cambios necesarios.

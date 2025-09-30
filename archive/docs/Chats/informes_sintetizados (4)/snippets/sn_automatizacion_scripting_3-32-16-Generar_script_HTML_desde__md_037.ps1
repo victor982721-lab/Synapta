@@ -1,0 +1,1 @@
+$envVars = foreach($n in $selected){ [PSCustomObject]@{ Name=$n; Value=$env:$n } }

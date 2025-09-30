@@ -1,0 +1,3 @@
+```
+- Prioriza la solución sobre la conversación innecesaria.
+```

@@ -1,0 +1,69 @@
+{
+  "run_id": "20250929164220-4dbb9afa",
+  "totales": {
+    "archivos": 168,
+    "md": 84,
+    "json": 84,
+    "bytes": 18242721
+  },
+  "grupos": [
+    {
+      "slug": "grupo-01_analisis-de-datos",
+      "informes": 1,
+      "conversaciones": 5
+    },
+    {
+      "slug": "grupo-02_automatizacion-scripting",
+      "informes": 1,
+      "conversaciones": 23
+    },
+    {
+      "slug": "grupo-03_documentacion-sop",
+      "informes": 1,
+      "conversaciones": 1
+    },
+    {
+      "slug": "grupo-04_gestion-de-proyectos",
+      "informes": 1,
+      "conversaciones": 1
+    },
+    {
+      "slug": "grupo-05_investigacion-sintesis",
+      "informes": 1,
+      "conversaciones": 1
+    },
+    {
+      "slug": "grupo-06_otros",
+      "informes": 1,
+      "conversaciones": 3
+    },
+    {
+      "slug": "grupo-07_prompts-plantillas",
+      "informes": 1,
+      "conversaciones": 47
+    },
+    {
+      "slug": "grupo-08_ux-ui",
+      "informes": 1,
+      "conversaciones": 3
+    }
+  ],
+  "cobertura": {
+    "promedio_pct": 68.25,
+    "min_pct": 0.0,
+    "max_pct": 100.0
+  },
+  "duplicates": {
+    "exactos": 0,
+    "neardups": 0,
+    "fusionados": 0
+  },
+  "integridad": {
+    "con_sha256_pct": 100,
+    "ejemplos_truncados_en_texto": 0,
+    "archivos_ilegibles": [],
+    "encabezados_duplicados": 0
+  },
+  "aprobacion_para_depurar": false,
+  "motivos_no_aprobacion": []
+}

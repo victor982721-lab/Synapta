@@ -1,0 +1,6 @@
+```csv
+relpath,ext,sha256_8,origen,nota
+4535435.ysd,.ysd,5f57927f,"4535435.ysd + temp2.dcy","keep .ysd; temp2.dcy eliminado"
+YSD_2024-08-21.ysd,.ysd,baaaa57f,"╝├─╧*.ysd (nombres corruptos)","fecha detectada 240821 → 2024-08-21; duplicado eliminado"
+YSD_a8608cf0.dcy,.dcy,a8608cf0,"temp0.dcy + temp1.dcy","renombrado para evitar 'temp*'; duplicado eliminado"
+```

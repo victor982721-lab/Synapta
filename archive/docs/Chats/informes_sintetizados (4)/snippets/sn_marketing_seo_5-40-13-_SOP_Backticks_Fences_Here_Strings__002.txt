@@ -1,0 +1,53 @@
+# Backticks, Fences y Here-Strings — **Protocolo Oficial v2**
+
+> **Objetivo:** evitar render mal y errores de sintaxis en **SmartDAMP**, **Markdown** y **PowerShell (.ps1/.psm1/.psd1)**, con y sin bloques anidados.  
+> **Ámbito  :** chat, documentación (.md) y generación de archivos desde PowerShell.
+
+---
+
+## 1) Principios y convenciones (obligatorias)
+
+- **En el chat o cuando haya bloques anidados:** envuelve con **valla externa de tildes** (~~~ o **~~~~~**) cualquier contenido que **contenga ``` internamente**. Estándar del proyecto: **5 tildes** (~~~~~) como fence externo para anidación.
+- **Prohibido usar 4 backticks**. No existe en el estándar del proyecto.
+- **En `.md`:** usa ``` por defecto; si necesitas mostrar literalmente ``` dentro, cambia la valla externa a **tildes**.
+- **En `.ps1/.psm1/.psd1`:**
+  - Para texto literal (sin expandir `$`, ``` o `{}`), usa **here-string literal** `@' ... '@`.
+  - Si requieres variables, concatena un **footer expandible** con `"@ ... "@` o usa un bloque expandible separado.
+  - El cierre `'@` o `"@` debe ir **solo** y en **columna 1** (sin espacios ni tabs).
+  - Evita `-f` cuando el texto contenga `{}` (JSON/plantillas). Si es inevitable, **duplica llaves** `{{` y `}}`.
+- **Lenguaje en fences:** especifica el lenguaje siempre que aplique (` ```powershell`, ` ```json`, ` ```text`, etc.).
+- **Saltos de línea y codificación:** normaliza a **CRLF** (`"`r"`n"`) cuando generes archivos Windows desde PowerShell. Escribe en **UTF‑8 sin BOM** de forma **portátil** (ver helper en Apéndice A).
+
+---
+
+## 2) Árbol de decisión (rápido)
+
+```text
+¿El bloque contiene ``` internas?
+ ├─ Sí → Usa valla EXTERNA de TILDES (~~~~~) en el chat o en .md de ejemplo
+ │        └─ ¿Además es archivo desde PowerShell?
+ │             ├─ Sí → Here-string LITERAL (@'... '@) + (opcional) footer EXPANDIBLE ("@ ... "@)
+ │             └─ No → Mantén valla de tildes en el .md
+ └─ No → ¿Es archivo desde PowerShell?
+          ├─ Sí → ¿Hay interpolación compleja?
+          │        ├─ Sí → Here-string EXPANDIBLE ("@ ... "@) y escapa lo literal
+          │        └─ No → Here-string LITERAL (@'... '@)
+          └─ No → Usa ``` normales con lenguaje
+```
+
+**Matriz de decisión (resumen):**
+
+| Escenario | Fence externo | Interior | Nota |
+|---|---|---|---|
+| Chat con ``` internas | **~~~~~** | ``` | Evita cierres accidentales |
+| `.md` con ejemplo que contiene ``` | **~~~~~** | ``` | Documentación de patrones |
+| Script PowerShell (literal) | n/a | `@' ... '@` | No expande `$` ni ``` ni `{}` |
+| Script PowerShell con variables | n/a | `"@ ... "@` | Expande `$` y subexpresiones |
+| Uso de `-f` + `{}` | n/a | `'{{ ... }}' -f ...` | Duplica `{}` o evita `-f` |
+
+---
+
+## 3) Patrones canónicos
+
+**3.1 — Chat (bloque con backticks internos)**  
+*(Se muestra con valla externa de 5 tildes)*

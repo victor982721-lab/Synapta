@@ -1,0 +1,18 @@
+#!/bin/bash
+# Script para transmitir pantalla de celular Android a la PC usando scrcpy
+
+# Configuración: resolución y bitrate opcional
+RESOL="1024"
+BITRATE="8M"
+
+# Detectar dispositivo conectado
+DEVICE=$(adb devices | awk 'NR==2 {print $1}')
+
+if [ -z "$DEVICE" ]; then
+    echo "⚠️ No se detectó dispositivo. Conecta por USB y habilita la depuración."
+    exit 1
+fi
+
+echo "✅ Dispositivo detectado: $DEVICE"
+echo "📡 Iniciando scrcpy con resolución ${RESOL} y bitrate ${BITRATE}..."
+scrcpy --max-size $RESOL --bit-rate $BITRATE --always-on-top

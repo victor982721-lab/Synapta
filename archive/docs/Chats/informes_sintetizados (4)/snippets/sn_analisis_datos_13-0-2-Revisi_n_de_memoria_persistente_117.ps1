@@ -1,0 +1,3 @@
+Get-PnpDevice -Class Ports -ErrorAction SilentlyContinue |
+  Where-Object FriendlyName -match 'CH3(40|41)' |
+  Select-Object Status, Class, FriendlyName, InstanceId

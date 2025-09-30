@@ -1,0 +1,62 @@
+TARGET="${TMPDIR:-$HOME}/screen_menu.sh"; mkdir -p "$(dirname "$TARGET")"
+cat >"$TARGET" <<'SH'
+#!/system/bin/sh
+# Menu captura/grabación para Android (ADB o Termux)
+
+# -------- util --------
+ts() { date +%Y%m%d_%H%M%S; }
+have() { command -v "$1" >/dev/null 2>&1; }
+
+# Detectar OUTDIR escribible (ADB -> /sdcard; Termux -> $HOME/storage/shared)
+pick_outdir() {
+  if [ -w /sdcard ]; then
+    echo "/sdcard/DCIM/Camera"; return
+  fi
+  if [ -d "$HOME/storage/shared" ] && [ -w "$HOME/storage/shared" ]; then
+    echo "$HOME/storage/shared/DCIM/Camera"; return
+  fi
+  # última opción: Descargas del usuario o cwd
+  if [ -d "$HOME/Download" ] && [ -w "$HOME/Download" ]; then
+    echo "$HOME/Download"; return
+  fi
+  echo "$PWD"
+}
+
+OUTDIR="$(pick_outdir)"
+mkdir -p "$OUTDIR" 2>/dev/null || {
+  echo "ERROR: no puedo crear '$OUTDIR'."
+  echo "• Si usas Termux: ejecuta 'termux-setup-storage' una vez y reintenta."
+  exit 1
+}
+
+# Comprobaciones de binarios del sistema
+SCREENCAP="/system/bin/screencap"
+SCREENREC="/system/bin/screenrecord"
+[ -x "$SCREENCAP" ] || { echo "ERROR: no encuentro $SCREENCAP"; exit 1; }
+[ -x "$SCREENREC" ] || { echo "ERROR: no encuentro $SCREENREC"; exit 1; }
+
+echo "[1] Captura de pantalla"
+echo "[2] Grabar pantalla (Ctrl+C para parar)"
+printf "Elige opción [1-2]: "
+read -r opt
+
+case "$opt" in
+  1)
+    FILE="$OUTDIR/captura_$(ts).png"
+    "$SCREENCAP" -p "$FILE" || { echo "Fallo en screencap"; exit 1; }
+    echo "Captura guardada en: $FILE"
+    ;;
+  2)
+    FILE="$OUTDIR/video_$(ts).mp4"
+    echo "Grabando... pulsa Ctrl+C para detener"
+    # Puedes ajustar bit rate o resolucion si lo necesitas
+    "$SCREENREC" "$FILE"
+    echo "Video guardado en: $FILE"
+    ;;
+  *)
+    echo "Opción inválida"
+    exit 1
+    ;;
+esac
+SH
+chmod +x "$TARGET"; "$TARGET"

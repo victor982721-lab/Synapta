@@ -1,0 +1,42 @@
+# Detectar Escritorio del usuario actual y ubicar Entorno.ps1
+$desktop = [Environment]::GetFolderPath('Desktop')
+$script  = Join-Path $desktop 'Entorno.ps1'
+Set-Location -Path $desktop
+
+if (-not (Test-Path -LiteralPath $script)) { Write-Warning "No se encontró: $script"; return }
+
+# Construir parámetros: si el primer argumento NO empieza con '-', se toma como mensaje
+$paramList = @()
+if ($args.Count -gt 0 -and ($args[0] -is [string]) -and ($args[0] -notmatch '^\s*-')) {
+  $paramList += '-Text'
+  $paramList += $args[0]
+  if ($args.Count -gt 1) { $paramList += $args[1..($args.Count-1)] }
+} else {
+  $paramList += $args
+}
+
+# Asegurar pantalla completa y sin duración
+if (-not ($paramList -contains '-Stay')) { $paramList += '-Stay' }
+if (-not ($paramList -contains '-Full')) { $paramList += '-Full' }
+
+# Intentar PS7, luego PS5, sin ruido si uno falla
+$ran = $false
+try {
+  $pwsh = Get-Command pwsh -ErrorAction SilentlyContinue
+  if ($pwsh) {
+    & $pwsh.Source -NoProfile -ExecutionPolicy Bypass -File $script @paramList 2>$null
+    $ran = $true
+  }
+} catch { }
+
+if (-not $ran) {
+  try {
+    $ps5 = Get-Command powershell -ErrorAction SilentlyContinue
+    if ($ps5) {
+      & $ps5.Source -NoProfile -ExecutionPolicy Bypass -File $script @paramList 2>$null
+      $ran = $true
+    }
+  } catch { }
+}
+
+if (-not $ran) { Write-Warning "No se encontró ni pwsh (PS7) ni powershell (PS5)." }

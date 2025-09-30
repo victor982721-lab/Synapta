@@ -1,0 +1,13 @@
+import traceback, time
+
+def log_checkpoint(fp, step, **kwargs):
+    rec = {"ts": time.time(), "step": step, **kwargs}
+    fp.write(json.dumps(rec, ensure_ascii=False) + "\n")
+
+# En cada paso del pipeline:
+try:
+    # work...
+    log_checkpoint(f, step, status="updated", path=str(p), link=mk_link(p), sha256=sha(path))
+except Exception as e:
+    log_checkpoint(f, step, status="error", error=str(e), exception_type=type(e).__name__, traceback=traceback.format_exc())
+    raise

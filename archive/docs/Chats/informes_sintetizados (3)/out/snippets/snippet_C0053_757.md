@@ -1,0 +1,3 @@
+```powershell
+& "$env:USERPROFILE\Desktop\Entorno.ps1" -Stay
+```

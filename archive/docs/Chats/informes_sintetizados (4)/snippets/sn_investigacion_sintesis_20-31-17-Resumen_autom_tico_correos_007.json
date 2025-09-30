@@ -1,0 +1,14 @@
+{
+  "remitente": "Juan Pérez",
+  "asunto": "Reunión de seguimiento",
+  "fecha": "2025-09-15",
+  "resumen": {
+    "acción_requerida": "Confirmar asistencia a la reunión del jueves a las 10 AM.",
+    "plazo": "2025-09-18",
+    "información_clave": [
+      "Reunión de seguimiento sobre el proyecto X.",
+      "Preparar informe de avances.",
+      "Confirmar asistencia antes del 18 de septiembre."
+    ]
+  }
+}

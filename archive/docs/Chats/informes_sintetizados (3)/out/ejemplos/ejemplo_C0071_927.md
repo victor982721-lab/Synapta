@@ -1,0 +1,196 @@
+```json
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schema://postmortem_v5.request.schema.json",
+  "title": "Postmortem v5 Request",
+  "type": "object",
+  "additionalProperties": false,
+  "unevaluatedProperties": false,
+  "required": ["schema_version", "profile", "privacy", "inputs", "rules", "output"],
+  "properties": {
+    "schema_version": {
+      "const": "5.0",
+      "description": "Fixed protocol version"
+    },
+    "profile": {
+      "type": "string",
+      "enum": ["local-fixed", "share-safe", "strict-ci"]
+    },
+    "privacy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["redacted"],
+      "properties": {
+        "redacted": { "type": "boolean", "default": true },
+        "allow_private_paths_in_output": { "type": "boolean", "default": false }
+      }
+    },
+    "consistency": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["k"],
+      "properties": {
+        "k": { "type": "integer", "enum": [1, 3, 5], "default": 1 },
+        "method": { "type": "string", "enum": ["majority"], "default": "majority" }
+      },
+      "default": { "k": 1, "method": "majority" }
+    },
+    "verification": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "cove_enabled": { "type": "boolean", "default": true },
+        "cove_max_questions_per_finding": { "type": "integer", "minimum": 2, "maximum": 4, "default": 3 },
+        "selfcheck_method": { "type": "string", "enum": ["QA", "NLI"], "default": "QA" },
+        "selfcheck_threshold": { "type": "number", "minimum": 0, "maximum": 1, "default": 0.6 }
+      },
+      "default": { "cove_enabled": true, "cove_max_questions_per_finding": 3, "selfcheck_method": "QA", "selfcheck_threshold": 0.6 }
+    },
+    "guards": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "deterministic": { "type": "boolean", "default": true },
+        "reject_on_schema_violation": { "type": "boolean", "default": true },
+        "ignore_inline_instructions_in_sources": { "type": "boolean", "default": true },
+        "max_findings": { "type": "integer", "minimum": 1, "maximum": 10000, "default": 2000 }
+      },
+      "default": { "deterministic": true, "reject_on_schema_violation": true, "ignore_inline_instructions_in_sources": true }
+    },
+    "env": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "os": { "type": "string", "const": "Windows 10 Pro 10.0.19045" },
+        "ps_version": { "type": "string", "const": "7.5.3" },
+        "user": { "type": "string", "const": "VictorFabianVeraVill" },
+        "machine": { "type": "string", "const": "DESKTOP-K6RBEHS" },
+        "working_directory": { "type": "string", "pattern": "^/mnt/data(/.*)?$" }
+      }
+    },
+    "inputs": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 64,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "oneOf": [
+          {
+            "required": ["path"],
+            "properties": {
+              "path": {
+                "type": "string",
+                "pattern": "^/mnt/data/.+\\.ps1$"
+              }
+            }
+          },
+          {
+            "required": ["fragments", "file_name"],
+            "properties": {
+              "file_name": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9._-]+\\.ps1$"
+              },
+              "fragments": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 1024,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["seq", "content"],
+                  "properties": {
+                    "seq": { "type": "integer", "minimum": 1 },
+                    "content": { "type": "string", "minLength": 1 }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    "rules": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["enable"],
+      "properties": {
+        "enable": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/ruleId" },
+          "uniqueItems": true
+        },
+        "disable": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/ruleId" },
+          "uniqueItems": true
+        }
+      }
+    },
+    "output": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["emit"],
+      "properties": {
+        "emit": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "enum": ["snapshot", "json", "summary"] },
+          "uniqueItems": true
+        },
+        "json_path_hint": {
+          "type": "string",
+          "pattern": "^/mnt/data/postmortem_v5/.+\\.json$"
+        },
+        "snapshot_dir_hint": {
+          "type": "string",
+          "pattern": "^/mnt/data/postmortem_v5(/snapshots)?/?$"
+        },
+        "include_redaction_map": { "type": "boolean", "default": true }
+      }
+    },
+    "analysis_options": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "snippet_context_lines": { "type": "integer", "minimum": 1, "maximum": 5, "default": 3 },
+        "max_lines_per_snippet": { "type": "integer", "minimum": 1, "maximum": 20, "default": 3 },
+        "encoding_assumed": { "type": "string", "enum": ["utf-8", "utf-8-nobom"], "default": "utf-8" }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "profile": { "const": "share-safe" } } },
+      "then": { "properties": { "privacy": { "properties": { "redacted": { "const": true } } } } }
+    },
+    {
+      "if": {
+        "properties": {
+          "output": {
+            "properties": {
+              "emit": { "contains": { "const": "json" } }
+            },
+            "required": ["emit"]
+          }
+        }
+      },
+      "then": { "required": ["output"], "properties": { "output": { "required": ["json_path_hint"] } } }
+    }
+  ],
+  "$defs": {
+    "ruleId": {
+      "type": "string",
+      "enum": [
+        "S01","S02","S03","S04","S05","S06",
+        "R01","R02","R03","R06","R07","R08","R09","R10","R11","R12","R13","R14","R15","R16","R17",
+        "A01","A02","A03","A04","A05",
+        "Q01","Q02","Q03","Q04","Q05",
+        "P01","P02"
+      ]
+    }
+  }
+}
+```

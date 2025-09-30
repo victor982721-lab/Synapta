@@ -1,0 +1,19 @@
+
+---
+
+# 2D – [INIT-PATHS]
+
+<Objetivo>
+- Resolver RepoRoot por parámetro o autodetección (PSScriptRoot/PSCommandPath/Location).
+- Importar settings opcionales (.psd1) y aplicar overrides seguros.
+- Garantizar estructura estándar: SCRIPTS, SCRIPTS\BACKUPS, VERIFICATION.
+- Normalizar rutas y validar escritura en modo Real (fail-fast).
+- Exponer rutas, settings, flags y ExecTS al resto del flujo.
+</Objetivo>
+
+<Resumen>
+- Autonomía total: crea o simula carpetas según dry-run.
+- Overrides declarativos desde RepoSettings.psd1 si no hubo parámetro.
+- Verifica writability en Real; reporta omisión en Prueba.
+- Publica _RepoRoot/_ScriptsDir/_BackupsDir/_VerifyDir/_Settings/_RunVerification + ExecTS.
+</Resumen>

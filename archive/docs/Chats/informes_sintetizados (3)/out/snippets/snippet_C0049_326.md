@@ -1,0 +1,5 @@
+```
+
+$($report.proxies.WinHTTP)
+
+```

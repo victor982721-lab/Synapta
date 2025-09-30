@@ -1,0 +1,666 @@
+#requires -Version 7.0
+<#
+.SYNOPSIS
+Limpieza segura de metadatos residuales de imágenes y videos en Android vía ADB sin afectar archivos de usuario ni del sistema.
+
+.DESCRIPTION
+Escanea el almacenamiento externo del dispositivo (/sdcard, /storage/emulated/0) y elimina:
+- Miniaturas y bases de datos de thumbnails (DCIM/.thumbnails, thumbdata*).
+- Archivos de metadatos “huérfanos” (sin su archivo base): .xmp, .json, .aae, .thm, .xml, .info, .exif, .orig, etc.
+- Papelera y residuos comunes: LOST.DIR, .Trash-*, .RecycleBin, .pending, .trashed, caches obvias de galerías.
+- Opcional: reinicia el índice de MediaStore (pm clear del proveedor de medios) y dispara reescaneos seguros.
+
+No toca archivos de usuario (jpg, png, heic, webp, mp4, mov, mkv, etc.) ni rutas del sistema (/system, /data).
+Incluye validaciones, preflight (simulación), reintentos, progreso, logging, reportes y límites.
+
+REQUISITOS
+- Windows 10/11 con PowerShell 7+.
+- ADB (Android Platform-Tools). El script intenta instalarlo con winget si falta.
+- Depuración USB habilitada y dispositivo autorizado.
+
+PARA QUIÉN
+- Entornos sin root. Si hay root, se habilitan pasos “agresivos” opcionales.
+
+SEGURIDAD
+- Todas las operaciones destructivas usan ShouldProcess (-WhatIf / -Confirm).
+- Filtros estrictos de ruta para no salir de /sdcard|/storage/emulated/0.
+
+#>
+
+[CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
+param(
+    ############################################################################
+    ## SEED01: PARÁMETROS Y VALIDACIONES — PARTE 1: ACCIÓN PRINCIPAL         ##
+    ############################################################################
+    # Acción solicitada
+    [Parameter(Mandatory, Position = 0,
+               HelpMessage = 'Acción: Scan, Clean, Rescan, ResetIndex, All')]
+    [ValidateSet('Scan','Clean','Rescan','ResetIndex','All')]
+    [string]$Action = 'All',  # fileciteturn0file2
+
+    ############################################################################
+    ## PARTE 2: ENTRADAS/SALIDAS (adaptado a ADB)                             ##
+    ############################################################################
+    # Id del dispositivo ADB (serial). Si hay uno conectado se autodetecta.
+    [Parameter(HelpMessage='Serial del dispositivo ADB. Use "adb devices" para ver.')]
+    [ValidateNotNullOrEmpty()]
+    [string]$DeviceId,
+
+    # Directorios base a procesar en el teléfono (rutas POSIX). Deben estar bajo /sdcard|/storage/emulated/0
+    [Parameter(HelpMessage='Rutas remotas a procesar. Por defecto, /sdcard y /storage/emulated/0')]
+    [string[]]$RemoteRoot = @('/sdcard','/storage/emulated/0'),  # fileciteturn0file3
+
+    # Directorio local para logs/reportes
+    [Parameter(HelpMessage='Directorio local de salida para reportes/logs.')]
+    [ValidateScript({
+        if ($_){
+            if (-not (Test-Path -LiteralPath $_ -PathType Container)) { throw "OutputDir no existe: $_" }
+        }
+        $true
+    })]
+    [string]$OutputDir = (Join-Path ([Environment]::GetFolderPath('Desktop')) 'ADB_Metadata_Clean'),
+
+    ############################################################################
+    ## PARTE 3: OPCIONES Y CONTROL                                            ##
+    ############################################################################
+    # Simulación previa (no elimina nada). Respeta -WhatIf también.
+    [Parameter(HelpMessage='Solo validar y listar acciones, sin borrar en el dispositivo.')]
+    [Alias('DryRun','PreflightOnly')]
+    [switch]$Simulate,  # fileciteturn0file4
+
+    # No interactivo (ideal CI)
+    [Parameter(HelpMessage='Modo no interactivo, sin prompts.')]
+    [switch]$NonInteractive,  # fileciteturn0file4
+
+    # Fuerza algunas operaciones cuando aplique (por ejemplo, limpieza agresiva)
+    [Parameter(HelpMessage='Sobrescribe/omite confirmaciones donde aplique. Úsese con criterio.')]
+    [switch]$Force,  # fileciteturn0file4
+
+    # Reinicio agresivo del índice de medios (MediaStore). Limpia base de datos del proveedor de medios. Requiere reconteo posterior.
+    [Parameter(HelpMessage='Ejecuta pm clear sobre el proveedor de medios. Solo si entiende el impacto.')]
+    [switch]$AggressiveReset,
+
+    # ADB: instalar Platform-Tools con winget si falta
+    [Parameter(HelpMessage='Instalar ADB automáticamente con winget si no se encuentra.')]
+    [switch]$AutoInstallAdb,
+
+    # Borrado de papeleras (LOST.DIR y equivalentes)
+    [Parameter(HelpMessage='Habilitar limpieza de carpetas tipo papelera (LOST.DIR, .Trash-*, .RecycleBin).')]
+    [switch]$PurgeTrash,
+
+    # Limpieza de miniaturas y bases thumbdata*
+    [Parameter(HelpMessage='Eliminar miniaturas y bases de miniaturas.')]
+    [switch]$PurgeThumbnails,
+
+    # Limpieza de sidecars huérfanos (.xmp, .json, .aae, .thm, etc.)
+    [Parameter(HelpMessage='Eliminar sidecars de metadatos sin archivo “base”.')]
+    [switch]$PurgeOrphanSidecars,
+
+    # Limpieza de residuos “.pending/.trashed” accesibles en almacenamiento externo
+    [Parameter(HelpMessage='Eliminar marcadores .pending/.trashed cuando sea posible sin root.')]
+    [switch]$PurgePending,
+
+    # Disparar reescaneo de medios al final
+    [Parameter(HelpMessage='Emitir intents de reescaneo de medios tras la limpieza.')]
+    [switch]$DoRescan,
+
+    ############################################################################
+    ## PARTE 4: LOGS Y REPORTES                                               ##
+    ############################################################################
+    [Parameter(HelpMessage='Ruta del log (.log/.txt).')]
+    [ValidateScript({
+        if ($_){
+            if ($_ -notmatch '(?i)\.(log|txt)$') { throw 'LogPath debe terminar en .log o .txt' }
+            $d = Split-Path -LiteralPath $_ -Parent
+            if ($d -and -not (Test-Path -LiteralPath $d -PathType Container)) { throw "Directorio no existe: $d" }
+        }
+        $true
+    })]
+    [string]$LogPath = (Join-Path $OutputDir 'adb_metadata_clean.log'),
+
+    [Parameter(HelpMessage='Formato de reporte: txt, json, csv o all.')]
+    [ValidateSet('txt','json','csv','all')]
+    [string]$ReportFormat = 'txt',
+
+    [Parameter(HelpMessage='Ruta de reporte de salida. Extensión debe coincidir salvo ReportFormat=all.')]
+    [ValidateScript({
+        if ($_){
+            if ($_ -notmatch '(?i)\.(txt|json|csv)$') { throw 'ReportPath debe terminar en .txt, .json o .csv' }
+            $d = Split-Path -LiteralPath $_ -Parent
+            if ($d -and -not (Test-Path -LiteralPath $d -PathType Container)) { throw "Directorio no existe: $d" }
+        }
+        $true
+    })]
+    [string]$ReportPath = (Join-Path $OutputDir 'adb_metadata_clean.txt'),
+
+    ############################################################################
+    ## PARTE 5: UMBRALES Y LÍMITES                                            ##
+    ############################################################################
+    [Parameter(HelpMessage='Tiempo máximo por operación (s). 1..86400')]
+    [ValidateRange(1,86400)]
+    [int]$TimeoutSec = 300,
+
+    [Parameter(HelpMessage='Máximo de elementos a borrar. 0 = sin límite.')]
+    [ValidateScript({ if ($_ -eq 0 -or ($_ -is [int] -and $_ -ge 1 -and $_ -le 1000000)) { $true } else { throw 'MaxItems 0..1,000,000' } })]
+    [int]$MaxItems = 0,
+
+    [Parameter(HelpMessage='Reintentos en fallos transitorios ADB. 0..10')]
+    [ValidateRange(0,10)]
+    [int]$RetryCount = 2,
+
+    [Parameter(HelpMessage='Segundos entre reintentos. 1..3600')]
+    [ValidateRange(1,3600)]
+    [int]$RetryDelaySec = 3,
+
+    ############################################################################
+    ## PARTE 6: NORMALIZACIÓN Y CRUCES                                        ##
+    ############################################################################
+    # Directorio de trabajo inicial (se cambia al inicio)
+    [Parameter(HelpMessage='Directorio local donde ejecutar. Si no existe se crea.')]
+    [string]$StartDirectory = (Join-Path ([Environment]::GetFolderPath('Desktop')) 'Scripts'),
+
+    # Nivel de log básico en consola
+    [Parameter(HelpMessage='Nivel de verbosidad: Quiet, Normal, Debug')]
+    [ValidateSet('Quiet','Normal','Debug')]
+    [string]$Verbosity = 'Normal'
+)
+
+############################################################################
+# VALIDACIONES CRUZADAS Y NORMALIZACIÓN (post-bind)                        #
+############################################################################
+# Basado en tu SEED01: coherencias y normalización de rutas. fileciteturn0file7
+if ($ReportPath -and $ReportFormat -ne 'all') {
+    $ext = ([IO.Path]::GetExtension($ReportPath)).TrimStart('.').ToLowerInvariant()
+    if ($ext -ne $ReportFormat) { throw "ReportFormat '$ReportFormat' no coincide con extensión '.$ext'." }
+}
+$null = New-Item -ItemType Directory -Path $OutputDir -Force -ErrorAction SilentlyContinue
+$LogPath    = [IO.Path]::GetFullPath($LogPath)
+$ReportPath = [IO.Path]::GetFullPath($ReportPath)
+$Timeout    = [TimeSpan]::FromSeconds($TimeoutSec)
+if (-not (Test-Path -LiteralPath $StartDirectory -PathType Container)) { New-Item -ItemType Directory -Path $StartDirectory -Force | Out-Null }
+Set-Location -LiteralPath $StartDirectory
+
+# Predeterminados razonables
+if (-not $PurgeTrash -and -not $PurgeThumbnails -and -not $PurgeOrphanSidecars -and -not $PurgePending) {
+    $PurgeTrash = $true; $PurgeThumbnails = $true; $PurgeOrphanSidecars = $true; $PurgePending = $true
+}
+
+# ConfirmPreference según modo
+if ($NonInteractive -or $Force) { $ConfirmPreference = 'None' }
+
+############################################################################
+# LOGGING BÁSICO                                                            #
+############################################################################
+function Write-Log {
+    param([string]$Message, [ValidateSet('INFO','WARN','ERROR','DEBUG')] [string]$Level = 'INFO')
+    $ts = (Get-Date).ToString('yyyy-MM-dd HH:mm:ss')
+    if ($Verbosity -eq 'Quiet' -and $Level -in 'INFO','DEBUG') { return }
+    if ($Verbosity -ne 'Debug' -and $Level -eq 'DEBUG') { return }
+    $line = "[$ts][$Level] $Message"
+    Write-Host $line
+    if ($LogPath) { Add-Content -LiteralPath $LogPath -Value $line -Encoding UTF8 }
+}
+
+############################################################################
+# UTILIDADES                                                                #
+############################################################################
+function Invoke-Retry {
+    param([scriptblock]$Script, [int]$Retries = $RetryCount, [int]$DelaySec = $RetryDelaySec, [string]$Name = "op")
+    $attempt = 0
+    while ($true) {
+        try {
+            $attempt++
+            return & $Script
+        } catch {
+            if ($attempt -gt $Retries) { throw }
+            Write-Log "Reintentando $Name ($attempt/$Retries): $($_.Exception.Message)" 'WARN'
+            Start-Sleep -Seconds $DelaySec
+        }
+    }
+}
+
+function Get-AdbPath {
+    $adb = Get-Command adb -ErrorAction SilentlyContinue
+    if ($adb) { return $adb.Source }
+    if ($AutoInstallAdb) {
+        try {
+            Write-Log "ADB no encontrado. Intentando instalar con winget..." 'WARN'
+            $ids = @('Google.Android.Sdk.PlatformTools','Microsoft.AndroidSDK.PlatformTools')
+            foreach($id in $ids){
+                try {
+                    winget install --id $id -e --silent --accept-source-agreements --accept-package-agreements | Out-Null
+                    $adb = Get-Command adb -ErrorAction SilentlyContinue
+                    if ($adb) { return $adb.Source }
+                } catch { }
+            }
+        } catch { Write-Log "Fallo al instalar ADB con winget: $($_.Exception.Message)" 'ERROR' }
+    }
+    throw "ADB no disponible. Instale Platform-Tools o ejecute con -AutoInstallAdb."
+}
+
+$script:AdbExe = Get-AdbPath
+
+function Invoke-Adb {
+    param(
+        [Parameter(Mandatory)][string]$ArgsLine,
+        [int]$TimeoutSec = $TimeoutSec,
+        [switch]$Shell    # si se requiere "adb shell"
+    )
+    $psi = New-Object System.Diagnostics.ProcessStartInfo
+    $psi.FileName = $script:AdbExe
+    $argList = @()
+    if ($DeviceId) { $argList += @('-s', $DeviceId) }
+    if ($Shell)    { $argList += 'shell' }
+    $argList += $ArgsLine
+    $psi.Arguments = ($argList | ForEach-Object {
+        if ($_ -match '\s') { '"{0}"' -f ($_ -replace '"','\"') } else { $_ }
+    }) -join ' '
+    $psi.CreateNoWindow = $true
+    $psi.RedirectStandardOutput = $true
+    $psi.RedirectStandardError  = $true
+    $psi.UseShellExecute = $false
+    $p = [System.Diagnostics.Process]::Start($psi)
+    if (-not $p.WaitForExit($TimeoutSec * 1000)) {
+        try { $p.Kill() } catch { }
+        throw "adb timeout: $ArgsLine"
+    }
+    $out = $p.StandardOutput.ReadToEnd().Trim()
+    $err = $p.StandardError.ReadToEnd().Trim()
+    if ($p.ExitCode -ne 0 -and $err) { throw "adb error ($($p.ExitCode)): $err" }
+    return $out
+}
+
+function Get-AdbDevices {
+    $txt = Invoke-Adb -ArgsLine 'devices' -TimeoutSec 30
+    $list = @()
+    foreach($line in ($txt -split "`n")){
+        if ($line -match '^\s*(\S+)\s+device\s*$' -and $line -notmatch '^List of devices') {
+            $list += $Matches[1]
+        }
+    }
+    return $list
+}
+
+function Ensure-Device {
+    if ($DeviceId) {
+        $all = Get-AdbDevices
+        if (-not ($all -contains $DeviceId)) {
+            throw "Dispositivo '$DeviceId' no está en estado 'device'. Autorice la depuración y vuelva a intentar."
+        }
+        return
+    }
+    $devs = Get-AdbDevices
+    if ($devs.Count -eq 0) { throw "Sin dispositivos ADB en estado 'device'. Revise cable, drivers y autorización." }
+    if ($devs.Count -gt 1 -and -not $NonInteractive) {
+        Write-Host "Seleccione dispositivo:"
+        for($i=0;$i -lt $devs.Count;$i++){ Write-Host " [$i] $($devs[$i])" }
+        $idx = Read-Host "Índice"
+        if ($idx -notmatch '^\d+$' -or [int]$idx -ge $devs.Count) { throw "Índice inválido." }
+        $script:DeviceId = $devs[[int]$idx]
+    } else {
+        $script:DeviceId = $devs[0]
+    }
+    Write-Log "Usando dispositivo: $script:DeviceId"
+}
+
+function Test-RemotePathSafe {
+    param([string]$Path)
+    # Solo permite /sdcard y /storage/emulated/0
+    return ($Path -like '/sdcard*' -or $Path -like '/storage/emulated/0*')
+}
+
+function Assert-RemotePathSafe {
+    param([string]$Path)
+    if (-not (Test-RemotePathSafe -Path $Path)) {
+        throw "Ruta fuera de almacenamiento externo permitido: $Path"
+    }
+}
+
+function Test-RemoteAnyExists {
+    param([string]$Base, [string[]]$ExtList)
+    # shell: comprueba si existe Base.Ext en alguna extensión
+    $exts = ($ExtList | ForEach-Object { $_.ToLower() }) -join ' '
+    $cmd = "sh -c 'for e in $exts; do if [ -e ""$Base.$e"" ]; then echo yes; exit 0; fi; done; echo no; exit 1'"
+    try {
+        $o = Invoke-Adb -Shell -ArgsLine $cmd -TimeoutSec 30
+        return ($o -match 'yes')
+    } catch {
+        return $false
+    }
+}
+
+function Remove-RemoteItems {
+    param([string[]]$Paths, [switch]$Recurse, [switch]$ForceRm)
+    $deleted = @()
+    foreach($p in $Paths){
+        Assert-RemotePathSafe $p
+        if ($PSCmdlet.ShouldProcess($p,"Eliminar en dispositivo")) {
+            $opt = if ($Recurse) { '-rf' } else { '-f' }
+            if ($Simulate) {
+                Write-Log "[SIM] rm $opt -- $p" 'INFO'
+                $deleted += $p
+            } else {
+                Invoke-Retry -Name "rm $p" -Script {
+                    Invoke-Adb -Shell -ArgsLine "rm $opt ""$p"" 2>/dev/null || true" -TimeoutSec 60 | Out-Null
+                } | Out-Null
+                $deleted += $p
+            }
+        }
+    }
+    return $deleted
+}
+
+############################################################################
+# INVENTARIO Y REGLAS DE LIMPIEZA                                           #
+############################################################################
+# Extensiones de archivos “base” (que NO se tocan)
+$BaseMediaExt = @('jpg','jpeg','png','heic','heif','webp','bmp','gif','tiff','dng','cr2','nef','arw',
+                  'mp4','m4v','mov','3gp','3g2','mkv','avi','wmv','webm')
+
+# Sidecars típicos de metadatos
+$SidecarExt   = @('xmp','json','aae','thm','xml','exif','info','txt','orig')
+
+# Rutas a purgar (miniaturas, papeleras, residuos)
+$ThumbDirs = @(
+    '/sdcard/DCIM/.thumbnails',
+    '/sdcard/Pictures/.thumbnails',
+    '/sdcard/Movies/.thumbnails',
+    '/sdcard/.thumbnails'
+)
+$ThumbFiles = @('/sdcard/DCIM/.thumbnails/thumbdata*')
+
+$TrashDirs = @(
+    '/sdcard/LOST.DIR',
+    '/sdcard/.Trash-1000',
+    '/sdcard/.Trash-*',
+    '/sdcard/.RecycleBin',
+    '/sdcard/RecycleBin'
+)
+$PendingPatterns = @('*.pending*','*.trashed*')
+
+############################################################################
+# ESCANEO: enumerar candidatos a borrar                                     #
+############################################################################
+function Find-RemoteMatches {
+    param([string]$Root, [string[]]$Globs, [switch]$Dirs)
+    Assert-RemotePathSafe $Root
+    $type = if ($Dirs) { '-type d' } else { '-type f' }
+    $pat  = ($Globs | ForEach-Object { "-iname ""$_""" }) -join ' -o '
+    $cmd  = "sh -c 'if [ -d ""$Root"" ]; then find ""$Root"" $type \( $pat \) 2>/dev/null; fi'"
+    try {
+        $o = Invoke-Adb -Shell -ArgsLine $cmd -TimeoutSec 120
+        if ([string]::IsNullOrWhiteSpace($o)) { @() } else { $o -split "`n" | ForEach-Object { $_.Trim() } }
+    } catch { @() }
+}
+
+function Find-ThumbTargets {
+    $targets = @()
+    foreach($r in $RemoteRoot){
+        $targets += Find-RemoteMatches -Root $r -Dirs -Globs @('.thumbnails')
+        $targets += Find-RemoteMatches -Root $r -Globs @('thumbdata*')
+    }
+    $targets | Select-Object -Unique
+}
+
+function Find-TrashTargets {
+    $targets = @()
+    foreach($r in $RemoteRoot){
+        $targets += Find-RemoteMatches -Root $r -Dirs -Globs @('LOST.DIR','.Trash-*','.RecycleBin','RecycleBin')
+    }
+    $targets | Select-Object -Unique
+}
+
+function Find-PendingTargets {
+    $targets = @()
+    foreach($r in $RemoteRoot){
+        foreach($p in $PendingPatterns){ $targets += Find-RemoteMatches -Root $r -Globs @($p) }
+    }
+    $targets | Select-Object -Unique
+}
+
+function Find-OrphanSidecars {
+    $targets = @()
+    foreach($r in $RemoteRoot){
+        $sidecarPat = ($SidecarExt | ForEach-Object { "*.$_" })
+        $files = Find-RemoteMatches -Root $r -Globs $sidecarPat
+        foreach($f in $files){
+            $base = [Regex]::Replace($f,'\.[^.\/]+$','')  # quita última extensión
+            if (-not (Test-RemoteAnyExists -Base $base -ExtList $BaseMediaExt)) {
+                $targets += $f
+            }
+        }
+    }
+    $targets | Select-Object -Unique
+}
+
+############################################################################
+# OPERACIONES                                                               #
+############################################################################
+function Action-Scan {
+    [OutputType([hashtable])]
+    param()
+    Write-Progress -Activity "Escaneo" -Status "Enumerando candidatos" -PercentComplete 5
+
+    $thumbs  = if ($PurgeThumbnails)    { Find-ThumbTargets }   else { @() }
+    Write-Progress -Activity "Escaneo" -Status "Miniaturas" -PercentComplete 25
+
+    $trash   = if ($PurgeTrash)         { Find-TrashTargets }   else { @() }
+    Write-Progress -Activity "Escaneo" -Status "Papeleras" -PercentComplete 45
+
+    $pending = if ($PurgePending)       { Find-PendingTargets } else { @() }
+    Write-Progress -Activity "Escaneo" -Status "Pendientes/Trashed" -PercentComplete 65
+
+    $sidecar = if ($PurgeOrphanSidecars){ Find-OrphanSidecars } else { @() }
+    Write-Progress -Activity "Escaneo" -Status "Sidecars huérfanos" -PercentComplete 85
+
+    $all = @($thumbs+$trash+$pending+$sidecar | Select-Object -Unique)
+    if ($MaxItems -gt 0 -and $all.Count -gt $MaxItems) {
+        $all = $all | Select-Object -First $MaxItems
+        Write-Log "Se limitará la limpieza a los primeros $MaxItems elementos por MaxItems." 'WARN'
+    }
+    Write-Progress -Activity "Escaneo" -Completed
+    return @{
+        Thumbnails = $thumbs
+        Trash      = $trash
+        Pending    = $pending
+        Orphans    = $sidecar
+        All        = $all
+    }
+}
+
+function Action-Clean {
+    param([hashtable]$ScanResult)
+    if (-not $ScanResult) { $ScanResult = Action-Scan }
+    $toDelete = @($ScanResult.All)
+    Write-Log "Objetos a eliminar: $($toDelete.Count)"
+    $deleted = @()
+
+    $i=0
+    foreach($p in $toDelete){
+        $i++
+        $pct = if ($toDelete.Count) { [int](($i*100)/$toDelete.Count) } else { 100 }
+        Write-Progress -Activity "Eliminando" -Status $p -PercentComplete $pct
+        try {
+            $del = Remove-RemoteItems -Paths @($p) -Recurse
+            $deleted += $del
+        } catch {
+            Write-Log "No se pudo eliminar '$p': $($_.Exception.Message)" 'WARN'
+        }
+    }
+    Write-Progress -Activity "Eliminando" -Completed
+    return $deleted
+}
+
+function Action-Rescan {
+    param()
+    # Dispara varias señales de reescaneo “harmless”
+    $cmds = @(
+        'am broadcast -a android.intent.action.MEDIA_SCANNER_SCAN_FILE -d file:///sdcard 2>/dev/null',
+        'am broadcast -a android.intent.action.MEDIA_SCANNER_SCAN_FILE -d file:///sdcard/DCIM 2>/dev/null',
+        'am broadcast -a android.intent.action.MEDIA_SCANNER_SCAN_FILE -d file:///storage/emulated/0 2>/dev/null',
+        'cmd media rescan --all 2>/dev/null || true'
+    )
+    foreach($c in $cmds){
+        if ($PSCmdlet.ShouldProcess("device:$DeviceId",$c)) {
+            if ($Simulate) { Write-Log "[SIM] $c" 'INFO' }
+            else { Invoke-Adb -Shell -ArgsLine $c -TimeoutSec 60 | Out-Null }
+        }
+    }
+}
+
+function Action-ResetIndex {
+    param()
+    if (-not $AggressiveReset) {
+        Write-Log "ResetIndex requiere -AggressiveReset. Omitido." 'WARN'
+        return
+    }
+    $pkgs = @('com.android.providers.media.module','com.android.providers.media','com.google.android.providers.media.module')
+    foreach($p in $pkgs){
+        if ($PSCmdlet.ShouldProcess("device:$DeviceId","pm clear $p")) {
+            if ($Simulate) { Write-Log "[SIM] pm clear $p" 'INFO' }
+            else {
+                try {
+                    $o = Invoke-Adb -Shell -ArgsLine "pm clear $p 2>/dev/null || true" -TimeoutSec 60
+                    Write-Log "pm clear $p => $o" 'INFO'
+                } catch {
+                    Write-Log "pm clear $p falló: $($_.Exception.Message)" 'WARN'
+                }
+            }
+        }
+    }
+    # Tras limpiar, conviene reescanear
+    Action-Rescan
+}
+
+############################################################################
+# PERSISTENCIA DE REPORTE                                                   #
+############################################################################
+function Save-Report {
+    param(
+        [hashtable]$ScanResult,
+        [string[]]$Deleted
+    )
+    $summary = [ordered]@{
+        Timestamp = (Get-Date).ToString('s')
+        DeviceId  = $DeviceId
+        Simulate  = [bool]$Simulate
+        Roots     = $RemoteRoot
+        Counts    = [ordered]@{
+            Thumbnails = $ScanResult.Thumbnails.Count
+            Trash      = $ScanResult.Trash.Count
+            Pending    = $ScanResult.Pending.Count
+            Orphans    = $ScanResult.Orphans.Count
+            All        = $ScanResult.All.Count
+            Deleted    = ($Deleted | Measure-Object).Count
+        }
+    }
+    switch ($ReportFormat) {
+        'txt' {
+            $lines = @()
+            $lines += "ADB Metadata Cleanup Report"
+            $lines += "Date: $($summary.Timestamp)"
+            $lines += "Device: $DeviceId"
+            $lines += "Simulate: $Simulate"
+            $lines += "Roots: $(($RemoteRoot -join ', '))"
+            $lines += "Counts: Thumbnails=$($summary.Counts.Thumbnails) Trash=$($summary.Counts.Trash) Pending=$($summary.Counts.Pending) Orphans=$($summary.Counts.Orphans) All=$($summary.Counts.All) Deleted=$($summary.Counts.Deleted)"
+            $lines += ""
+            $lines += "[Deleted]"
+            $Deleted | ForEach-Object { $lines += $_ }
+            Set-Content -LiteralPath $ReportPath -Encoding UTF8 -Value ($lines -join [Environment]::NewLine)
+        }
+        'json' {
+            $obj = [ordered]@{
+                Summary = $summary
+                Deleted = $Deleted
+                Thumbnails = $ScanResult.Thumbnails
+                Trash   = $ScanResult.Trash
+                Pending = $ScanResult.Pending
+                Orphans = $ScanResult.Orphans
+            }
+            $json = $obj | ConvertTo-Json -Depth 6
+            Set-Content -LiteralPath $ReportPath -Encoding UTF8 -Value $json
+        }
+        'csv' {
+            $rows = @()
+            foreach($k in 'Thumbnails','Trash','Pending','Orphans'){
+                foreach($p in $ScanResult[$k]){ $rows += [PSCustomObject]@{ Category=$k; Path=$p; Selected = $true } }
+            }
+            foreach($p in $Deleted){ $rows += [PSCustomObject]@{ Category='Deleted'; Path=$p; Selected=$true } }
+            $rows | Export-Csv -LiteralPath $ReportPath -NoTypeInformation -Encoding UTF8
+        }
+        'all' {
+            # Guardar TXT + JSON
+            $base = [IO.Path]::Combine((Split-Path -Parent $ReportPath), [IO.Path]::GetFileNameWithoutExtension($ReportPath))
+            $tmp1 = "$base.txt"; $tmp2 = "$base.json"
+            $of1 = $ReportFormat; $ReportFormat = 'txt';  Save-Report -ScanResult $ScanResult -Deleted $Deleted; $ReportFormat = $of1
+            $ReportPath = $tmp2;   $ReportFormat = 'json'; Save-Report -ScanResult $ScanResult -Deleted $Deleted
+        }
+    }
+    Write-Log "Reporte guardado en: $ReportPath"
+}
+
+############################################################################
+# FLUJO PRINCIPAL                                                           #
+############################################################################
+try {
+    Write-Log "Iniciando limpieza de metadatos ADB"
+    Ensure-Device
+
+    # 1) Escaneo
+    if ($Action -in 'Scan','All') {
+        Write-Log "Escaneando..."
+        $scan = Action-Scan
+        Write-Log ("Candidatos: thumbs={0} trash={1} pending={2} orphans={3} total={4}" -f `
+            $scan.Thumbnails.Count, $scan.Trash.Count, $scan.Pending.Count, $scan.Orphans.Count, $scan.All.Count)
+    }
+
+    # 2) Limpieza
+    $deleted = @()
+    if ($Action -in 'Clean','All') {
+        Write-Log "Limpiando..."
+        $deleted = Action-Clean -ScanResult $scan
+        Write-Log "Eliminados: $($deleted.Count)"
+    }
+
+    # 3) Reescaneo
+    if ($Action -in 'Rescan','All' -or $DoRescan) {
+        Write-Log "Disparando reescaneo..."
+        Action-Rescan
+    }
+
+    # 4) Reset agresivo del índice
+    if ($Action -eq 'ResetIndex' -or ($Action -eq 'All' -and $AggressiveReset)) {
+        Write-Log "Reset del índice de medios..."
+        Action-ResetIndex
+    }
+
+    # 5) Reporte
+    if (-not $scan) { $scan = Action-Scan }
+    Save-Report -ScanResult $scan -Deleted $deleted
+
+    Write-Log "Proceso finalizado." 'INFO'
+}
+catch {
+    Write-Log "Error: $($_.Exception.Message)" 'ERROR'
+    throw
+}
+
+############################################################################
+# EJEMPLOS
+############################################################################
+<#
+# Simular limpieza completa con log y reporte TXT:
+.\ADB-Metadata-Clean.ps1 -Action All -Simulate -ReportFormat txt -ReportPath "$env:USERPROFILE\Desktop\ADB_Clean\reporte.txt"
+
+# Limpiar thumbnails y sidecars huérfanos, con reescaneo, en modo no interactivo:
+.\ADB-Metadata-Clean.ps1 -Action Clean -PurgeThumbnails -PurgeOrphanSidecars -DoRescan -NonInteractive
+
+# Reset agresivo del índice y reescaneo posterior:
+.\ADB-Metadata-Clean.ps1 -Action ResetIndex -AggressiveReset -DoRescan -Force
+
+# Limitar a los primeros 500 elementos y crear reporte JSON:
+.\ADB-Metadata-Clean.ps1 -Action All -MaxItems 500 -ReportFormat json -ReportPath "$env:USERPROFILE\Desktop\ADB_Clean\reporte.json"
+
+# Forzar instalación de ADB con winget si no está:
+.\ADB-Metadata-Clean.ps1 -AutoInstallAdb -Action Scan
+#>

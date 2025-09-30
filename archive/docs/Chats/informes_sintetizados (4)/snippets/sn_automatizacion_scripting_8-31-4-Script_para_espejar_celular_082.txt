@@ -1,0 +1,50 @@
+# Script PowerShell para instalar dependencias y transmitir Android con scrcpy
+# Requiere PowerShell 7 (ejecutar como usuario con permisos de instalación)
+
+$ErrorActionPreference = "Stop"
+
+# Rutas locales
+$toolsDir = "$env:USERPROFILE\android-tools"
+$scrcpyDir = "$toolsDir\scrcpy"
+$adbDir = "$toolsDir\platform-tools"
+
+# Crear carpeta base
+if (!(Test-Path $toolsDir)) {
+    New-Item -ItemType Directory -Path $toolsDir | Out-Null
+}
+
+# Descargar e instalar platform-tools si no existe
+if (!(Test-Path $adbDir)) {
+    Write-Host "Descargando platform-tools..."
+    $adbZip = "$toolsDir\platform-tools.zip"
+    Invoke-WebRequest -Uri "https://dl.google.com/android/repository/platform-tools-latest-windows.zip" -OutFile $adbZip
+    Expand-Archive $adbZip -DestinationPath $toolsDir -Force
+    Remove-Item $adbZip
+}
+
+# Descargar e instalar scrcpy si no existe
+if (!(Test-Path $scrcpyDir)) {
+    Write-Host "Descargando scrcpy..."
+    $scrcpyZip = "$toolsDir\scrcpy.zip"
+    Invoke-WebRequest -Uri "https://github.com/Genymobile/scrcpy/releases/download/v2.6.1/scrcpy-win64-v2.6.1.zip" -OutFile $scrcpyZip
+    Expand-Archive $scrcpyZip -DestinationPath $toolsDir -Force
+    Rename-Item -Path "$toolsDir\scrcpy-win64-v2.6.1" -NewName "scrcpy"
+    Remove-Item $scrcpyZip
+}
+
+# Agregar rutas al PATH de la sesión
+$env:PATH = "$adbDir;$scrcpyDir;$env:PATH"
+
+# Verificar dispositivo
+Write-Host "Verificando dispositivo..."
+$devices = & adb devices | Select-String "device$"
+if ($devices.Count -eq 0) {
+    Write-Host "⚠️ No se detectó dispositivo. Conecta por USB y acepta la depuración."
+    exit 1
+} else {
+    Write-Host "✅ Dispositivo detectado"
+}
+
+# Ejecutar scrcpy con configuración estándar
+Write-Host "Iniciando scrcpy..."
+& scrcpy --max-size 1024 --bit-rate 8M --always-on-top

@@ -1,0 +1,3 @@
+```powershell
+pwsh -ExecutionPolicy Bypass -File .\New-FileMap.GUI.ps1
+```

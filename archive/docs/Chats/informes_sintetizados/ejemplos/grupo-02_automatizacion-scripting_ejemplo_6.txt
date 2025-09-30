@@ -1,0 +1,12 @@
+
+# Protocolo de realización de parches a documentos y scripts.
+
+---
+
+## Módulo 1 – INFO
+
+- **Objetivo**
+
+Encabezado documental del script: define **nombre, sinopsis, propósito, compatibilidad, autor, versión y fecha**.  
+Sirve como bloque de **identidad y trazabilidad**, útil para documentación, control de cambios y auditoría.
+

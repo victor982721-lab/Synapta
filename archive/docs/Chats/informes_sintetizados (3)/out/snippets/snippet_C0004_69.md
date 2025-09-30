@@ -1,0 +1,8 @@
+```python
+USER_CONTENT = "Hola Mundo"
+run_module("ps1", USER_CONTENT, stem="ejemplo")        # Guarda .ps1
+run_module("md", USER_CONTENT, stem="ejemplo")         # Guarda .md
+run_module("json", USER_CONTENT, stem="ejemplo")       # Guarda .json
+run_module("bundle", USER_CONTENT, stem="ejemplo")     # Crea el ZIP final
+print(make_canvas_markdown(stem="ejemplo"))            # Imprime enlaces en Markdown
+```

@@ -1,0 +1,3 @@
+```plaintext
+Analiza mis hojas de cálculo en Dropbox y extrae información sobre áreas donde podemos ahorrar.
+```

@@ -1,0 +1,11 @@
+[2m2025-09-25T22:12:58.969341Z[0m [31mERROR[0m Failed to read auth.json: The system cannot find the file specified. (os error 2)
+[2m2025-09-25T22:16:32.248324Z[0m [32m INFO[0m interrupt received: abort current task, if any
+[2m2025-09-25T22:16:46.597168Z[0m [32m INFO[0m Shutting down Codex instance
+[2m2025-09-25T22:17:30.467215Z[0m [32m INFO[0m Shutting down Codex instance
+[2m2025-09-25T22:19:36.129810Z[0m [32m INFO[0m Shutting down Codex instance
+[2m2025-09-25T22:21:07.752945Z[0m [32m INFO[0m New model: gpt-5, New effort: high, Current model: gpt-5-codex, Current effort: none
+[2m2025-09-25T22:21:40.849491Z[0m [32m INFO[0m New model: gpt-5, New effort: high, Current model: gpt-5, Current effort: high
+[2m2025-09-25T22:28:00.300653Z[0m [32m INFO[0m Shutting down Codex instance
+[2m2025-09-25T23:02:20.609367Z[0m [32m INFO[0m Shutting down Codex instance
+[2m2025-09-25T23:08:50.726699Z[0m [32m INFO[0m Shutting down Codex instance
+[2m2025-09-28T23:12:32.012625Z[0m [32m INFO[0m Shutting down Codex instance

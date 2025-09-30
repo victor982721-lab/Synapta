@@ -1,0 +1,8 @@
+{
+  "stem": "workspace-wizard-ps5-7",
+  "base_dir": "/mnt/data",
+  "status_counts": { "created": 2, "updated": 7, "unchanged": 3, "unknown": 3 },
+  "have_chart_png": true,
+  "release_zip": "sandbox:/mnt/data/_releases/2025-09-29T08-14-04Z.zip",
+  "checkpoints_file": "sandbox:/mnt/data/checkpoints.jsonl"
+}

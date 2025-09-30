@@ -1,0 +1,25 @@
+```text
+Set-StrictMode -Version Latest; $ErrorActionPreference='Stop'
+$root = "$env:USERPROFILE\Desktop\TBEA"
+$norm = Join-Path $root 'normalized'
+New-Item -ItemType Directory -Force -Path $norm | Out-Null
+
+$map = @(
+  @{ src = 'Guía rapida operación detector de impactos.docx';  dst = 'Guia_rapida_operacion_detector_de_impactos.docx' },
+  @{ src = 'Manual de operación del impactógrafo.pdf';         dst = 'Manual_de_operacion_del_impactografo.pdf' },
+  @{ src = '读我 (README).txt';                                 dst = 'README_cn.txt' },
+  @{ src = '01_Software\YSD-300AN上位机软件绿色setup.ini';        dst = '01_Software\YSD-300AN_green_setup.ini' },
+  @{ src = '01_Software\300AN\user1\济南.ysd';                  dst = '01_Software\300AN\user1\Jinan.ysd' },
+  @{ src = '01_Software\300AN\user1\济南西门子240821.ysd';       dst = '01_Software\300AN\user1\Jinan_Siemens_240821.ysd' }
+)
+
+foreach($m in $map){
+  $srcAbs = Join-Path $root $m.src
+  $dstAbs = Join-Path $norm $m.dst
+  $dstDir = Split-Path $dstAbs -Parent
+  if(-not (Test-Path -LiteralPath $srcAbs)){ Write-Host "[WARN] No existe: $srcAbs"; continue }
+  New-Item -ItemType Directory -Force -Path $dstDir | Out-Null
+  Copy-Item -LiteralPath $srcAbs -Destination $dstAbs -Force
+  Write-Host "[OK] Copiado ASCII  ->  $dstAbs"
+}
+```

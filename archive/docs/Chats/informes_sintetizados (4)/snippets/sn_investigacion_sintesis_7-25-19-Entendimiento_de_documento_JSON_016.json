@@ -1,0 +1,21 @@
+{
+  "tools": {
+    "psscriptanalyzer": { "version": "x.y.z", "rules_run": ["..."] }
+  },
+  "metrics": {
+    "complexity": { "per_function": [], "max": 0, "mean": 0.0 },
+    "help_coverage_pct": 0,
+    "shouldprocess_coverage_pct": 0
+  },
+  "hygiene": {
+    "cwd_changes": [],
+    "write_host_calls": [],
+    "invoke_expression_calls": []
+  },
+  "security": {
+    "authenticode": [{ "file": "...", "status": "Valid|NotSigned" }],
+    "execution_policy": "RemoteSigned"
+  },
+  "portability": { "windows_only_calls": [] },
+  "artifacts": { "sarif_path": "..." }
+}

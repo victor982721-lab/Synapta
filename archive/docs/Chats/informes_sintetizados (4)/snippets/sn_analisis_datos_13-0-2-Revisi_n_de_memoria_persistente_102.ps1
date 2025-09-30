@@ -1,0 +1,1 @@
+pwsh -File "$env:USERPROFILE\Desktop\TBEA\TBEA_AuditDriverExe.ps1"

@@ -1,0 +1,25 @@
+Contexto de workspace
+- root = C:\Users\VictorFabianVeraVill\mnt
+- Abreviaturas: "docs/chatgpt" = <root>\docs\chatgpt
+- Nuevo proyecto "X": crear en <root>\data\proyectos\X con subcarpetas {docs, src, config, results}
+- No escribes en disco: solo dame comandos/archivos listos para copiar/pegar
+
+Preferencias de salida
+- Sistema: Windows 10/11, PowerShell 7 preferido (acepto PS5 si aplica)
+- Formato: SOLO bloques de código con los comandos, sin prosa
+- Encoding: UTF-8
+- Evita rutas relativas fuera de <root>
+
+Límites de seguridad (duros)
+- Máx. profundidad: 8 niveles
+- Máx. nodos a crear por operación: 200
+- No proponer cambios fuera de <root>
+- Validar nombres Windows (sin <>:"/\|?*, sin punto/espacio final; sin nombres reservados)
+
+Convenciones
+- Nombres proyecto: kebab-case (ej. proyecto-ejemplo)
+- Fechas en archivos: YYYY-MM-DD (ej. 2025-09-28)
+- Logs en <root>\logs cuando aplique
+
+Plantilla por defecto (si no digo lo contrario)
+- Para “nuevo proyecto X”: crear {docs/, src/, config/, results/} y README.md con título y fecha

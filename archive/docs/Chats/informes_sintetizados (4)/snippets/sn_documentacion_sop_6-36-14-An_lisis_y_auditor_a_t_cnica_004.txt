@@ -1,0 +1,18 @@
+
+---
+
+# 2B – [INIT-LOG]
+
+<Objetivo>
+- Proveer logger unificado con niveles (Info/Warn/Error/DryRun/Debug).
+- Integrarse con -Verbose/-Debug sin romper el output.
+- Registrar opcionalmente a archivo en VERIFICATION (UTF-8 sin BOM).
+- Operar en modo simulación sin escribir a disco.
+</Objetivo>
+
+<Resumen>
+- Consola con prefijos y colores; Error corta ejecución de forma controlada.
+- Archivo: init_<ExecTS>.log en VerifyDir cuando LogToFile=True.
+- Crea (o simula) carpeta de logs; robusto ante fallas de I/O.
+- Interface mínima y estable: Write-Log -Level ... -Message "…".
+</Resumen>

@@ -1,0 +1,3 @@
+```
+Get-PnpDevice: No Win32_PnPEntity objects found with property 'PNPClass' equal to 'Ports'.  Verify the value of the property and retry.
+```

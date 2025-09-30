@@ -1,0 +1,3 @@
+```powershell
+pwsh -File .\move_duplicates_by_hash.ps1 -Csv .\filemap_sha256.csv -DryRun
+```

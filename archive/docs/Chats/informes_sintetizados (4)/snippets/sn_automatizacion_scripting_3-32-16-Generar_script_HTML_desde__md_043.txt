@@ -1,0 +1,631 @@
+#requires -Version 5.1
+<#
+.SYNOPSIS
+Audita versión de PowerShell y el entorno requerido para generar scripts correctamente en PS 5.1 y 7+.
+
+.DESCRIPTION
+Recolecta: versión/edición de PowerShell, SO y build, arquitectura de proceso y SO, políticas de ejecución,
+cultura y codificaciones, protocolos TLS, herramientas clave, módulos recomendados y opcionalmente inventario
+de módulos, variables de entorno seleccionadas y rutas (PATH/PSModulePath). Incluye:
+- Versión de esquema ($SchemaVersion) y RunId únicos por ejecución.
+- Registro de sesión ($SessionInfo) con escritura a archivo.
+- Logging con buffer y niveles (Error/Warn/Info/Debug), umbral de volcado y archivo de log.
+- Cancelación cooperativa y manejo de errores determinista (-ErrorAction Stop).
+- Fuerza cultura invariante y habilita TLS 1.2 cuando aplique.
+- Progreso visual y reporte en Markdown/JSON/TXT. Compatible con PS 5.1 y 7+.
+
+.PARAMETER StartDirectory
+Directorio donde ejecutar. Si no existe se crea y se establece como ubicación de trabajo.
+
+.PARAMETER ReportPath
+Ruta del reporte. Por defecto: Desktop\PS_Env_Report.md
+
+.PARAMETER ReportFormat
+Formato del reporte: markdown | json | txt. Si no se indica, se deduce por extensión de ReportPath.
+
+.PARAMETER IncludeModuleInventory
+Incluye inventario detallado de módulos instalados.
+
+.PARAMETER IncludeEnvVars
+Incluye variables de entorno seleccionadas.
+
+.PARAMETER IncludePaths
+Incluye PATH y PSModulePath.
+
+.PARAMETER IncludeHardware
+Incluye datos básicos de hardware vía CIM/WMI (Windows).
+
+.PARAMETER LogPath
+Ruta del log de sesión. Si se omite, se genera en %LOCALAPPDATA%\PS-Env-Audit\Logs\.
+
+.PARAMETER LogLevel
+Nivel mínimo a registrar: Error | Warn | Info | Debug. Predeterminado: Info.
+
+.PARAMETER OpenAfter
+Abre el reporte al finalizar.
+
+.EXAMPLE
+.\PS-Env-Audit.ps1 -OpenAfter
+
+.EXAMPLE
+.\PS-Env-Audit.ps1 -ReportPath "$env:USERPROFILE\Desktop\PS_Env_Report.json" -ReportFormat json -IncludeModuleInventory -IncludePaths
+
+.EXAMPLE
+.\PS-Env-Audit.ps1 -IncludeEnvVars -IncludeHardware -LogLevel Debug -Verbose
+#>
+
+[CmdletBinding(SupportsShouldProcess=$true, ConfirmImpact='Low')]
+param(
+    [Parameter()]
+    [ValidateScript({
+        if ($_ -and -not (Test-Path -LiteralPath $_ -PathType Container)) {
+            New-Item -ItemType Directory -Path $_ -Force | Out-Null
+        }
+        $true
+    })]
+    [string]$StartDirectory = [Environment]::GetFolderPath('Desktop'),
+
+    [Parameter()]
+    [ValidateScript({
+        if ($_){
+            $dir = Split-Path -LiteralPath $_ -Parent
+            if ($dir -and -not (Test-Path -LiteralPath $dir -PathType Container)) {
+                New-Item -ItemType Directory -Path $dir -Force | Out-Null
+            }
+        }
+        $true
+    })]
+    [string]$ReportPath = (Join-Path ([Environment]::GetFolderPath('Desktop')) 'PS_Env_Report.md'),
+
+    [Parameter()]
+    [ValidateSet('markdown','json','txt')]
+    [string]$ReportFormat,
+
+    [Parameter()]
+    [switch]$IncludeModuleInventory,
+
+    [Parameter()]
+    [switch]$IncludeEnvVars,
+
+    [Parameter()]
+    [switch]$IncludePaths,
+
+    [Parameter()]
+    [switch]$IncludeHardware,
+
+    [Parameter()]
+    [ValidateSet('Error','Warn','Info','Debug')]
+    [string]$LogLevel = 'Info',
+
+    [Parameter()]
+    [string]$LogPath,
+
+    [Parameter()]
+    [switch]$OpenAfter
+)
+
+###############################################################################
+## SEED3: Versión de esquema, RunId, sesión y cancelación cooperativa
+###############################################################################
+# Versión de esquema de datos persistentes
+$SchemaVersion = '1.0.0'
+
+# Identificador único de ejecución
+$RunId = '{0}_{1}' -f (Get-Date -Format 'yyyyMMdd_HHmmss'), ([guid]::NewGuid().ToString('N'))
+
+# Registro de eventos de sesión en memoria
+$SessionInfo = New-Object System.Collections.Generic.List[psobject]
+function Add-SessionInfo {
+    param(
+        [Parameter(Mandatory)][string]$Message,
+        [ValidateSet('Error','Warn','Info','Debug')] [string]$Level = 'Info',
+        [hashtable]$Extra
+    )
+    $obj = [pscustomobject]@{
+        Timestamp = Get-Date
+        Level     = $Level
+        Message   = $Message
+        Extra     = $Extra
+    }
+    $SessionInfo.Add($obj) | Out-Null
+}
+
+# Cancelación cooperativa
+$Script:CancelRequested = $false
+trap [System.Management.Automation.PipelineStoppedException] {
+    $Script:CancelRequested = $true
+    Write-Warning "Cancelación solicitada por el usuario. Finalizando…"
+    continue
+}
+function Check-Cancel([string]$Where){
+    if ($Script:CancelRequested) { throw "Cancelado por el usuario. $Where" }
+}
+
+###############################################################################
+## SEED4: Logging con buffer, niveles y arranque de log
+###############################################################################
+# Buffer y estado del log
+$LogSb               = New-Object System.Text.StringBuilder
+$FlushThresholdBytes = 128KB
+$SessionLogPath      = $null
+
+function Initialize-Log {
+    param([string]$Path)
+    if ([string]::IsNullOrWhiteSpace($Path)) {
+        $base = Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) "PS-Env-Audit\Logs"
+        if (-not (Test-Path -LiteralPath $base)) { New-Item -ItemType Directory -Path $base -Force | Out-Null }
+        $Path = Join-Path $base ("PS_Env_Audit_{0}.log" -f (Get-Date -Format 'yyyyMMdd_HHmmss'))
+    } else {
+        $dir = Split-Path -LiteralPath $Path -Parent
+        if ($dir -and -not (Test-Path -LiteralPath $dir)) { New-Item -ItemType Directory -Path $dir -Force | Out-Null }
+    }
+    $header = "[{0}] LOG START  RunId={1}  PS={2}  Host={3}  User={4}  PID={5}" -f `
+        (Get-Date -Format 'yyyy-MM-dd HH:mm:ss'), $RunId, $PSVersionTable.PSVersion, $env:COMPUTERNAME, $env:USERNAME, $PID
+    Set-Content -Path $Path -Value $header -Encoding UTF8 -Force
+    $script:SessionLogPath = $Path
+    Write-Verbose ("Log inicializado: {0}" -f $Path)
+    return $Path
+}
+
+function Get-LogLevelRank {
+    param([string]$Level)
+    switch ($Level) {
+        'Error' { 3 }
+        'Warn'  { 2 }
+        'Info'  { 1 }
+        'Debug' { 0 }
+        default { 1 }
+    }
+}
+
+function Write-Log {
+    param(
+        [Parameter(Mandatory)][string]$Message,
+        [ValidateSet('Error','Warn','Info','Debug')][string]$Level = 'Info',
+        [switch]$AddToSession
+    )
+    $minRank = Get-LogLevelRank -Level $LogLevel
+    $msgRank = Get-LogLevelRank -Level $Level
+    if ($msgRank -lt $minRank) { return }
+
+    $stamp = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
+    $line  = "[{0}] [{1}] {2}" -f $stamp, $Level.ToUpper(), $Message
+    [void]$LogSb.AppendLine($line)
+
+    if ($AddToSession) { Add-SessionInfo -Message $Message -Level $Level }
+
+    switch ($Level) {
+        'Error' { Write-Error   $Message }
+        'Warn'  { Write-Warning $Message }
+        'Debug' { Write-Verbose $Message }
+        default { Write-Verbose $Message }
+    }
+
+    if ($LogSb.Length -ge $FlushThresholdBytes) { Flush-Log }
+}
+
+function Flush-Log {
+    if ($SessionLogPath -and $LogSb.Length -gt 0) {
+        $chunk = $LogSb.ToString()
+        Add-Content -Path $SessionLogPath -Value $chunk -Encoding UTF8
+        [void]$LogSb.Clear()
+    }
+}
+
+###############################################################################
+## Inicio seguro: errores, cultura, TLS, directorios
+###############################################################################
+begin {
+    $ErrorActionPreference = 'Stop'
+
+    # Directorio de trabajo
+    try {
+        if ($StartDirectory) { Set-Location -LiteralPath $StartDirectory }
+        Add-SessionInfo -Message "StartDirectory: $((Get-Location).Path)" -Level Info
+    } catch {
+        Add-SessionInfo -Message "No se pudo establecer StartDirectory" -Level Warn -Extra @{ Error = $_.Exception.Message }
+        throw
+    }
+
+    # Cultura invariante
+    try {
+        $script:PrevCulture   = [System.Threading.Thread]::CurrentThread.CurrentCulture
+        $script:PrevUICulture = [System.Threading.Thread]::CurrentThread.CurrentUICulture
+        [System.Threading.Thread]::CurrentThread.CurrentCulture   = [System.Globalization.CultureInfo]::InvariantCulture
+        [System.Threading.Thread]::CurrentThread.CurrentUICulture = [System.Globalization.CultureInfo]::InvariantCulture
+        Add-SessionInfo -Message "Cultura Invariant aplicada" -Level Debug
+    } catch {
+        Add-SessionInfo -Message "No se pudo establecer cultura invariante" -Level Warn -Extra @{ Error = $_.Exception.Message }
+    }
+
+    # TLS 1.2
+    try {
+        if ([type]::GetType('System.Net.ServicePointManager')) {
+            [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
+            Add-SessionInfo -Message "TLS 1.2 habilitado" -Level Debug
+        }
+    } catch {
+        Add-SessionInfo -Message "No se pudo habilitar TLS 1.2" -Level Warn -Extra @{ Error = $_.Exception.Message }
+    }
+
+    # SessionRoot y archivo de sesión (para SessionInfo)
+    function Test-WriteAccess([string]$Path) {
+        try {
+            if (-not (Test-Path -LiteralPath $Path)) { New-Item -ItemType Directory -Path $Path -Force | Out-Null }
+            $tmp = Join-Path $Path ("_write_test_{0}.tmp" -f ([guid]::NewGuid().ToString('N')))
+            Set-Content -LiteralPath $tmp -Value 'ok' -Encoding UTF8 -Force
+            Remove-Item -LiteralPath $tmp -Force
+            return $true
+        } catch { return $false }
+    }
+    function Get-SafeSessionRoot {
+        $candidates = @(
+            (Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) "PS-Env-Audit\Runs\$RunId"),
+            (Join-Path ([Environment]::GetFolderPath('Desktop')) "PS-Env-Audit\Runs\$RunId")
+        )
+        foreach($c in $candidates){ if (Test-WriteAccess $c) { return $c } }
+        throw "No hay ubicación con permisos de escritura para la sesión."
+    }
+    $script:SessionRoot = Get-SafeSessionRoot
+    if (-not $LogPath) { $LogPath = Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) ("PS-Env-Audit\Logs\PS_Env_Audit_{0}.log" -f (Get-Date -Format 'yyyyMMdd_HHmmss')) }
+    Initialize-Log -Path $LogPath | Out-Null
+    Add-SessionInfo -Message "SessionRoot: $SessionRoot" -Level Info
+}
+
+process {
+    function Write-Step($t,$p){ Write-Progress -Activity "Auditoría de entorno" -Status $t -PercentComplete $p }
+
+    ###########################################################################
+    # Recolección
+    ###########################################################################
+    Check-Cancel "Inicio"
+    Write-Step "Datos base" 5
+    Write-Log -Level Info -Message "Inicio de auditoría" -AddToSession
+
+    # DotNet / Runtime
+    function Get-DotNetRuntimeInfo {
+        $info = [ordered]@{
+            FrameworkDescription = $null
+            RuntimeIdentifier    = $null
+            Version              = $null
+            ClrVersionLegacy     = $null
+        }
+        try {
+            $info.FrameworkDescription = [System.Runtime.InteropServices.RuntimeInformation]::FrameworkDescription
+            $info.RuntimeIdentifier    = [System.Runtime.InteropServices.RuntimeInformation]::RuntimeIdentifier
+        } catch { }
+        try {
+            if ($PSVersionTable.ContainsKey('CLRVersion') -and $PSVersionTable.CLRVersion) {
+                $info.ClrVersionLegacy = $PSVersionTable.CLRVersion.ToString()
+            }
+        } catch { }
+        try { $info.Version = [System.Environment]::Version.ToString() } catch { }
+        [PSCustomObject]$info
+    }
+
+    # ExecPolicy
+    function Get-ExecutionPolicyInfo {
+        try { Get-ExecutionPolicy -List | Select-Object Scope, ExecutionPolicy }
+        catch { [PSCustomObject]@{ Scope='CurrentUser'; ExecutionPolicy=(Get-ExecutionPolicy) } }
+    }
+
+    # Herramientas
+    function Test-Cmd([string]$name){
+        $c = Get-Command $name -ErrorAction SilentlyContinue
+        [PSCustomObject]@{
+            Name=$name
+            Found=[bool]$c
+            Path= $c.Path
+            FileVersion = (try { if($c -and $c.Source){ (Get-Item $c.Source).VersionInfo.FileVersion } } catch { $null })
+        }
+    }
+
+    # Módulos recomendados
+    function Get-ModuleSummary {
+        param([string[]]$Names)
+        foreach($n in $Names){
+            $m = Get-Module -ListAvailable -Name $n | Sort-Object Version -Descending | Select-Object -First 1
+            [PSCustomObject]@{
+                Name    = $n
+                Found   = [bool]$m
+                Version = if ($m){ $m.Version.ToString() } else { $null }
+                Path    = $m.Path
+            }
+        }
+    }
+
+    # Hardware básico (Windows)
+    function Get-HwBasic {
+        $hw = [ordered]@{}
+        try { $hw.OSCaption = (Get-CimInstance -ClassName Win32_OperatingSystem).Caption } catch { }
+        try { $hw.CPU      = (Get-CimInstance -ClassName Win32_Processor   | Select-Object -First 1 -ExpandProperty Name) } catch { }
+        try { $mem = (Get-CimInstance -ClassName Win32_ComputerSystem).TotalPhysicalMemory; if($mem){ $hw.RAM_GB = [math]::Round($mem/1GB,2) } } catch { }
+        try { $bios = Get-CimInstance -ClassName Win32_BIOS | Select-Object -First 1; if($bios){ $hw.BIOS_Version = ($bios.SMBIOSBIOSVersion); $hw.BIOS_ReleaseDate = $bios.ReleaseDate } } catch { }
+        [PSCustomObject]$hw
+    }
+
+    $hostInfo = [ordered]@{
+        PSVersion           = $PSVersionTable.PSVersion.ToString()
+        PSEdition           = $PSVersionTable.PSEdition
+        PSCompatible        = ($PSVersionTable.PSCompatibleVersions | ForEach-Object { $_.ToString() }) -join ', '
+        PSRemotingProtocol  = $PSVersionTable.PSRemotingProtocolVersion
+        Serialization       = $PSVersionTable.SerializationVersion
+        WSManStack          = $PSVersionTable.WSManStackVersion
+        Platform            = $PSVersionTable.Platform
+        OS                  = $PSVersionTable.OS
+        PSHome              = $PSHOME
+        ProcessArch         = $env:PROCESSOR_ARCHITECTURE
+        Is64BitProcess      = [Environment]::Is64BitProcess
+        Is64BitOS           = [Environment]::Is64BitOperatingSystem
+        HostName            = $Host.Name
+        HostVersion         = $Host.Version.ToString()
+        UserName            = [Environment]::UserName
+        MachineName         = [Environment]::MachineName
+        CurrentDirectory    = (Get-Location).Path
+        PSExecutable        = (try { (Get-Process -Id $PID).Path } catch { $null })
+    }
+
+    Write-Step "SO y runtime" 20
+    $osInfo = [ordered]@{
+        OSVersionString     = [Environment]::OSVersion.VersionString
+        OSMajorMinorBuild   = [Environment]::OSVersion.Version.ToString()
+        SystemDirectory     = [Environment]::SystemDirectory
+        TempPath            = [IO.Path]::GetTempPath()
+    }
+    $dotnet = Get-DotNetRuntimeInfo
+
+    Write-Step "Políticas y seguridad" 35
+    $execPol = Get-ExecutionPolicyInfo
+    $tlsInfo = try { [Net.ServicePointManager]::SecurityProtocol.ToString() } catch { $null }
+
+    Write-Step "Cultura y encodings" 50
+    $culture = [ordered]@{
+        CurrentCulture      = [System.Threading.Thread]::CurrentThread.CurrentCulture.Name
+        CurrentUICulture    = [System.Threading.Thread]::CurrentThread.CurrentUICulture.Name
+        ConsoleOutputEnc    = (try { [Console]::OutputEncoding.WebName } catch { $null })
+        ConsoleInputEnc     = (try { [Console]::InputEncoding.WebName } catch { $null })
+        DefaultEncoding     = (try { [Text.Encoding]::Default.WebName } catch { $null })
+    }
+
+    Write-Step "Herramientas y módulos" 70
+    $tools = @('winget','git','pwsh','powershell.exe') | ForEach-Object { Test-Cmd $_ }
+    $modulesWanted = @('PSReadLine','PSResourceGet','Pester','PSScriptAnalyzer','PlatyPS','ThreadJob','Microsoft.PowerShell.SecretManagement','Microsoft.PowerShell.SecretStore')
+    $modSummary = Get-ModuleSummary -Names $modulesWanted
+
+    $envVars = $null
+    if ($IncludeEnvVars) {
+        $selected = 'PATH','PSModulePath','TEMP','TMP','HOME','USERPROFILE','ProgramFiles','ProgramData'
+        $envVars = foreach($n in $selected){ [PSCustomObject]@{ Name=$n; Value=${env:$n} } }  # acceso dinámico correcto
+    }
+
+    $pathsDump = $null
+    if ($IncludePaths) {
+        $pathsDump = [PSCustomObject]@{
+            PathList = ($env:PATH -split ';') | Where-Object { $_ }
+            PSModulePathList = ($env:PSModulePath -split ';') | Where-Object { $_ }
+        }
+    }
+
+    $hw = $null
+    if ($IncludeHardware) { $hw = Get-HwBasic }
+
+    if ($IncludeModuleInventory) {
+        Write-Step "Inventariando módulos" 85
+        $modulesInventory = Get-Module -ListAvailable | Sort-Object Name, Version | Select-Object Name, Version, Path, ModuleBase
+    }
+
+    Write-Step "Construyendo reporte" 95
+    $report = [ordered]@{
+        SchemaVersion       = $SchemaVersion
+        RunId               = $RunId
+        Timestamp           = (Get-Date).ToString('s')
+        Summary             = [ordered]@{
+            PSVersion      = $hostInfo.PSVersion
+            Edition        = $hostInfo.PSEdition
+            OSVersion      = $osInfo.OSVersionString
+            Runtime        = $dotnet.FrameworkDescription
+            TLSProtocols   = $tlsInfo
+            Culture        = $culture.CurrentCulture
+        }
+        Host                = $hostInfo
+        OS                  = $osInfo
+        DotNet              = $dotnet
+        ExecutionPolicy     = $execPol
+        CultureAndEncoding  = $culture
+        TLS                 = $tlsInfo
+        Tools               = $tools
+        ModulesRecommended  = $modSummary
+        EnvVars             = $envVars
+        Paths               = $pathsDump
+        Hardware            = $hw
+        ModulesInventory    = $modulesInventory
+    }
+
+    ###########################################################################
+    # Serialización del reporte
+    ###########################################################################
+    if (-not $ReportFormat) {
+        $ext = ([IO.Path]::GetExtension($ReportPath)).TrimStart('.').ToLowerInvariant()
+        $ReportFormat = switch ($ext) { 'json'{'json'} 'txt'{'txt'} default {'markdown'} }
+    }
+
+    $outDir = Split-Path -LiteralPath $ReportPath -Parent
+    if ($outDir -and -not (Test-Path -LiteralPath $outDir -PathType Container)) { New-Item -ItemType Directory -Path $outDir -Force | Out-Null }
+
+    switch ($ReportFormat) {
+        'json' {
+            $json = $report | ConvertTo-Json -Depth 6
+            if ($PSCmdlet.ShouldProcess($ReportPath,"Escribir JSON")) {
+                Set-Content -LiteralPath $ReportPath -Value $json -Encoding UTF8
+            }
+            Write-Log -Level Info -Message "Reporte JSON escrito: $ReportPath" -AddToSession
+        }
+        'txt' {
+            $lines = @()
+            $lines += "PS Environment Report"
+            $lines += "RunId: $RunId   Schema: $SchemaVersion"
+            $lines += "Generated: $($report.Timestamp)"
+            $lines += ""
+            $lines += "PowerShell: $($hostInfo.PSEdition) $($hostInfo.PSVersion)  Host: $($hostInfo.HostName) $($hostInfo.HostVersion)"
+            $lines += "OS: $($osInfo.OSVersionString)  ArchOS: $(if($hostInfo.Is64BitOS){'x64'}else{'x86'})  ProcArch: $($hostInfo.ProcessArch)"
+            $lines += "Runtime: $($dotnet.FrameworkDescription)  CLR(legacy): $($dotnet.ClrVersionLegacy)"
+            $lines += "TLS: $tlsInfo"
+            $lines += "Culture: $($culture.CurrentCulture)  EncodingOut: $($culture.ConsoleOutputEnc)"
+            $lines += ""
+            $lines += "ExecutionPolicy:"
+            foreach($ep in $execPol){ $lines += "  {0,-14} {1}" -f $ep.Scope, $ep.ExecutionPolicy }
+            $lines += ""
+            $lines += "Tools:"
+            foreach($t in $tools){ $lines += "  {0,-14} {1}  {2}" -f $t.Name, (if ($t.Found) { 'Found' } else { 'Missing' }), $t.Path }
+            $lines += ""
+            $lines += "Recommended modules:"
+            foreach($m in $modSummary){ $lines += "  {0,-30} {1}  {2}" -f ($m.Name + (if($m.Found){''}else{' (missing)'})), $m.Version, $m.Path }
+            if ($IncludeEnvVars -and $envVars){
+                $lines += ""
+                $lines += "Env Vars:"
+                foreach($e in $envVars){ $lines += "  {0}={1}" -f $e.Name, $e.Value }
+            }
+            if ($IncludePaths -and $pathsDump){
+                $lines += ""
+                $lines += "PATH:"
+                foreach($p in $pathsDump.PathList){ $lines += "  $p" }
+                $lines += ""
+                $lines += "PSModulePath:"
+                foreach($p in $pathsDump.PSModulePathList){ $lines += "  $p" }
+            }
+            if ($IncludeHardware -and $hw){
+                $lines += ""
+                $lines += "Hardware:"
+                foreach($kv in $hw.psobject.Properties){ $lines += "  {0}: {1}" -f $kv.Name, $kv.Value }
+            }
+            if ($IncludeModuleInventory -and $modulesInventory){
+                $lines += ""
+                $lines += "Modules Inventory (top 200):"
+                foreach($mi in ($modulesInventory | Select-Object -First 200)){ $lines += "  {0} {1}  {2}" -f $mi.Name, $mi.Version, $mi.Path }
+                if ($modulesInventory.Count -gt 200) { $lines += "...otros $($modulesInventory.Count-200) módulos no listados" }
+            }
+            if ($PSCmdlet.ShouldProcess($ReportPath,"Escribir TXT")) {
+                Set-Content -LiteralPath $ReportPath -Value ($lines -join [Environment]::NewLine) -Encoding UTF8
+            }
+            Write-Log -Level Info -Message "Reporte TXT escrito: $ReportPath" -AddToSession
+        }
+        default { # markdown
+            $md = @()
+            $md += "# PowerShell Environment Report"
+            $md += ""
+            $md += "- **RunId**: $RunId"
+            $md += "- **SchemaVersion**: $SchemaVersion"
+            $md += "- **Generated**: $((Get-Date).ToString('s'))"
+            $md += "- **PowerShell**: $($hostInfo.PSEdition) $($hostInfo.PSVersion) — Host: $($hostInfo.HostName) $($hostInfo.HostVersion)"
+            $md += "- **OS**: $($osInfo.OSVersionString)  | **ArchOS**: $(if($hostInfo.Is64BitOS){'x64'}else{'x86'})  | **ProcArch**: $($hostInfo.ProcessArch)"
+            $md += "- **Runtime**: $($dotnet.FrameworkDescription)  | **CLR(legacy)**: $($dotnet.ClrVersionLegacy)"
+            $md += "- **TLS**: $tlsInfo"
+            $md += "- **Culture**: $($culture.CurrentCulture)  | **EncodingOut**: $($culture.ConsoleOutputEnc)"
+            $md += ""
+            $md += "## ExecutionPolicy"
+            $md += ""
+            $md += "| Scope | Policy |"
+            $md += "|---|---|"
+            foreach($ep in $execPol){ $md += "| $($ep.Scope) | $($ep.ExecutionPolicy) |" }
+            $md += ""
+            $md += "## Tools"
+            $md += ""
+            $md += "| Tool | Found | Version | Path |"
+            $md += "|---|:---:|---|---|"
+            foreach($t in $tools){ $md += "| $($t.Name) | $(if($t.Found){'Yes'}else{'No'}) | $([string]$t.FileVersion) | $([string]$t.Path) |" }
+            $md += ""
+            $md += "## Recommended modules"
+            $md += ""
+            $md += "| Module | Found | Version | Path |"
+            $md += "|---|:---:|---|---|"
+            foreach($m in $modSummary){ $md += "| $($m.Name) | $(if($m.Found){'Yes'}else{'No'}) | $([string]$m.Version) | $([string]$m.Path) |" }
+            if ($IncludeEnvVars -and $envVars){
+                $md += ""
+                $md += "## Env Vars"
+                $md += ""
+                foreach($e in $envVars){ $md += "- **$($e.Name)** = `$($e.Value)`" }
+            }
+            if ($IncludePaths -and $pathsDump){
+                $md += ""
+                $md += "## PATH"
+                $md += ""
+                foreach($p in $pathsDump.PathList){ $md += "- $p" }
+                $md += ""
+                $md += "## PSModulePath"
+                $md += ""
+                foreach($p in $pathsDump.PSModulePathList){ $md += "- $p" }
+            }
+            if ($IncludeHardware -and $hw){
+                $md += ""
+                $md += "## Hardware"
+                $md += ""
+                foreach($kv in $hw.psobject.Properties){ $md += "- **$($kv.Name)**: $($kv.Value)" }
+            }
+            if ($IncludeModuleInventory -and $modulesInventory){
+                $md += ""
+                $md += "## Modules Inventory (top 200)"
+                $md += ""
+                $md += ($modulesInventory | Select-Object -First 200 | ForEach-Object { "- {0} {1}  `{2}`" -f $_.Name, $_.Version, $_.Path })
+                if ($modulesInventory.Count -gt 200) { $md += ""; $md += "_…otros $($modulesInventory.Count-200) módulos no listados…_" }
+            }
+            $text = $md -join [Environment]::NewLine
+            if ($PSCmdlet.ShouldProcess($ReportPath,"Escribir Markdown")) {
+                Set-Content -LiteralPath $ReportPath -Value $text -Encoding UTF8
+            }
+            Write-Log -Level Info -Message "Reporte Markdown escrito: $ReportPath" -AddToSession
+        }
+    }
+
+    Write-Step "Completado" 100
+    Write-Progress -Activity "Auditoría de entorno" -Completed
+    Add-SessionInfo -Message "Auditoría completada" -Level Info
+    Flush-Log
+}
+
+end {
+    # Guardar SessionInfo en archivo
+    try {
+        $sessionFile = Join-Path $SessionRoot 'SessionInfo.log'
+        $builder = New-Object System.Text.StringBuilder
+        $builder.AppendLine("SESSION INFO  RunId=$RunId  SchemaVersion=$SchemaVersion") | Out-Null
+        foreach ($entry in $SessionInfo) {
+            $line = "[{0}] [{1}] {2}" -f $entry.Timestamp.ToString('yyyy-MM-dd HH:mm:ss'), $entry.Level, $entry.Message
+            $builder.AppendLine($line) | Out-Null
+            if ($entry.Extra) {
+                $kv = ($entry.Extra.GetEnumerator() | ForEach-Object { "{0}={1}" -f $_.Key, $_.Value }) -join '; '
+                if ($kv) { $builder.AppendLine('  + ' + $kv) | Out-Null }
+            }
+        }
+        Set-Content -Path $sessionFile -Value $builder.ToString() -Encoding UTF8 -Force
+        Write-Log -Level Info -Message "SessionInfo escrito: $sessionFile"
+    } catch {
+        Write-Warning "No se pudo escribir SessionInfo: $($_.Exception.Message)"
+    }
+
+    # Cierre del log
+    try {
+        if ($SessionLogPath) {
+            Add-Content -Path $SessionLogPath -Value ("[{0}] LOG END" -f (Get-Date -Format 'yyyy-MM-dd HH:mm:ss')) -Encoding UTF8
+        }
+    } catch { }
+
+    # Restaurar cultura
+    try {
+        if ($script:PrevCulture) {
+            [System.Threading.Thread]::CurrentThread.CurrentCulture   = $script:PrevCulture
+            [System.Threading.Thread]::CurrentThread.CurrentUICulture = $script:PrevUICulture
+        }
+    } catch { }
+
+    if ($OpenAfter) { Start-Process -FilePath $ReportPath }
+
+    # Salida útil al pipeline
+    [PSCustomObject]@{
+        ReportPath      = $ReportPath
+        ReportFormat    = $ReportFormat
+        SessionRoot     = $SessionRoot
+        SessionLogPath  = $SessionLogPath
+        RunId           = $RunId
+        SchemaVersion   = $SchemaVersion
+    }
+}

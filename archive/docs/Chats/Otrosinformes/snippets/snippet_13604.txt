@@ -1,0 +1,41 @@
+```lang ... ``` y `~~~`), listas, citas y párrafos (evita regex frágil). Permite **backticks/tildes extendidos** para anidar ejemplos.
+
+- `.json`: extrae `role`, `content`, `timestamp`, `title` (si existen).
+
+- Une MD+JSON de una misma conversación (heurística por nombre base y similitud).
+
+
+
+# Agrupamiento y deduplicación
+
+- Clasifica por reglas en: prompts/plantillas; análisis de datos; automatización/scripting; documentación/SOP; gestión de proyectos; investigación/síntesis; legal/compliance; marketing/SEO; UX/UI; otros.
+
+- **Near-dups**: shingles de 5 palabras + **Jaccard**:
+
+  - `>= 0.85` → duplicado (descarta no canónicos),
+
+  - `0.70–0.85` → **near-dup** → **fusiona**.
+
+- Heurística adicional: `difflib.SequenceMatcher.quick_ratio` para prefiltrar y `ratio` para confirmar en fronteras.
+
+- Canónico por: (1) completitud, (2) actualidad coherente, (3) ejemplos ejecutables.
+
+- **Registro de descarte**: todo lo no usado → `excluidos.md` con motivo y evidencias mínimas (sha256 + 2 citas cortas).
+
+
+
+# Extracción de valor
+
+- **Procedimiento paso a paso**; **prompts canónicos** (variables `{así}`), **ejemplos completos** (archivados si son largos), **snippets** (valida sintaxis), **checklists**, **errores+mitigaciones**, **métricas** de calidad.
+
+- No inventes contenido. Si no existe en ninguna fuente, marca `⚠️ FALTA: <qué falta> (sin evidencia)`.
+
+
+
+# Estándares de salida
+
+- **Fechas**: ISO-8601 UTC (`YYYY-MM-DDTHH:MM:SSZ`) y fija `SOURCE_DATE_EPOCH` si está disponible; si no, usa el **máximo mtime** de las fuentes.
+
+- **CSV seguro**: usa `csv.QUOTE_ALL` y si una celda empieza con `= + - @ |`, **prefija** `'`. Escapa comillas correctamente.
+
+- **Markdown**: CommonMark/GFM compatible, con identificador de lenguaje en ```

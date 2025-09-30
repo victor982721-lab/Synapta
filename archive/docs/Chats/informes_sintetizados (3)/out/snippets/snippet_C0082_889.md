@@ -1,0 +1,3 @@
+```
+scrcpy: unknown option -- verbose
+```
