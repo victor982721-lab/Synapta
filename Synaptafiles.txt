@@ -1,0 +1,48 @@
+𝑺𝒚𝒏𝒂𝒑𝒕𝒂/
+├─ 01_docs/
+│  ├─ 01_external/
+│  │  ├─ 01_ghidra/
+│  │  │  ├─ B3-Scripting.md
+│  │  │  └─ BSimTutorial_Scripting.md
+│  │  └─ 02_misc/
+│  ├─ Reglamento_Scripting.md
+│  └─ Ws-Studio.md
+├─ 02_src/
+│  ├─ 01_assets/
+│  │  ├─ 01_icons/
+│  │  └─ 02_xaml-snippets/
+│  ├─ 02_templates/
+│  └─ Ws-Studio.ps1
+├─ 03_tools/
+│  ├─ 01_Guardrails/
+│  │  └─ Invoke-WsStudioGuard.ps1
+│  ├─ 02_dev/
+│  │  ├─ Format-All.ps1
+│  │  └─ New-Baseline.ps1
+│  └─ 03_pack/
+│     └─ Publish-WsStudio.ps1
+├─ 04_tests/
+│  ├─ Guardrails.Tests.ps1
+│  └─ Ws-Studio.Tests.ps1
+├─ 05_pssa/
+│  └─ Settings.psd1
+├─ 06_config/
+│  ├─ 01_policies/
+│  └─ defaults.json
+├─ 07_examples/
+│  └─ demo-usage.ps1
+├─ 08_legacy/
+│  └─ WorkSpace_Wizard_v2.0.0.ps1
+├─ 09_logs/                 # gitignored
+├─ 10_out/                  # gitignored
+├─ .github/
+│  └─ workflows/
+│     └─ ci.yml
+├─ .githooks/
+│  └─ pre-commit.ps1
+├─ .editorconfig
+├─ .gitattributes
+├─ .gitignore
+├─ AGENTS.md
+├─ CODEOWNERS
+└─ README.md
