@@ -1,0 +1,34 @@
+# Builds/artefactos temporales
+out/
+dist/
+bin/
+obj/
+.cache/
+*.log
+*.jsonl
+
+# QA temporales
+coverage.cobertura.xml
+testresults.junit.xml
+
+# Entornos locales
+.vscode/
+.idea/
+*.local.*
+# --- Sandbox rules (auto-generated) ---
+.codex/.Sandbox/*
+!.codex/.Sandbox/*.ps1
+!.codex/.Sandbox/*.psd1
+!.codex/.Sandbox/*.md
+.codex/.Sandbox/*.bak
+.codex/.Sandbox/*.log
+.codex/.Sandbox/*.tmp
+.codex/.Sandbox/~$*
+.codex/.Sandbox/__pycache__/
+.codex/.Sandbox/.cache/
+.codex/.Sandbox/.history/
+.codex/.Sandbox/*.zip
+.codex/.Sandbox/*.exe
+.codex/.Sandbox/*.dll
+.codex/.Sandbox/*.pdb
+# --- end ---
