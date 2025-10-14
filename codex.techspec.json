@@ -1,0 +1,178 @@
+{
+  "meta": {
+    "name": "Codex Tech Spec",
+    "version": "1.3",
+    "purpose": "Instrucciones técnicas operativas para el Codex CLI real dentro del repo (no para validar TOML).",
+    "audience": [
+      "Codex CLI",
+      "maintainers",
+      "CI"
+    ],
+    "notes": [
+      "Este archivo es declarativo; describe políticas, defaults y mapeos.",
+      "El contrato de diseño se define en PROMPT.md + project.toml de este proyecto."
+    ]
+  },
+  "compatibility": {
+    "os_target": "Windows 10",
+    "runtime_default": "PowerShell 7.x",
+    "architecture": "x64",
+    "min_versions": {
+      "powershell": "7.0",
+      "dotnet": "6.0"
+    }
+  },
+  "formats": {
+    "canonical": [
+      "json",
+      "md",
+      "csv"
+    ],
+    "aliases": {
+      "markdown": "md"
+    }
+  },
+  "logging": {
+    "format": "jsonl",
+    "rotate": {
+      "strategy": "size",
+      "size_mb": 10,
+      "keep": 7
+    },
+    "mask_sensitive": true,
+    "fields_canonic": [
+      "timestamp_utc",
+      "level",
+      "event",
+      "run_id",
+      "op_id",
+      "context",
+      "result",
+      "message",
+      "duration_ms",
+      "bytes"
+    ],
+    "accept_abbrev": true,
+    "aliases": {
+      "ts": "timestamp_utc",
+      "lvl": "level",
+      "ctx": "context",
+      "data": "result",
+      "dur_ms": "duration_ms",
+      "msg": "message"
+    },
+    "progress_rate_limit_per_s": 10
+  },
+  "io_encoding": {
+    "text_encoding": "UTF-8",
+    "eol_policy": "CRLF",
+    "unicode_norm": "NFC",
+    "json_strict": true,
+    "culture_invariant": true,
+    "timestamps": "UTC"
+  },
+  "limits": {
+    "max_input_bytes": 10000000,
+    "max_lines": 250000,
+    "rate_limit_events_per_s": 20,
+    "max_file_bytes": 100000000,
+    "max_memory_mb": 1024,
+    "throttle_ui_updates_ms": 100
+  },
+  "policies": {
+    "root_required": true,
+    "write_within_root_only": true,
+    "idempotent": true,
+    "atomic_writes": true,
+    "sha256_after_write": true,
+    "backups_before_overwrite": true,
+    "dry_run_supported": true,
+    "whatif_supported": true,
+    "plan_preview_required": true,
+    "confirm_interactive": true
+  },
+  "ux": {
+    "wizard_on_no_args": true,
+    "no_prompts_in_non_interactive": true,
+    "headless_require": [
+      "--yes",
+      "--force"
+    ],
+    "support_flags": [
+      "--dry-run",
+      "--yes",
+      "--force"
+    ],
+    "tty_detection": true
+  },
+  "security": {
+    "least_privilege": true,
+    "disallow_eval_or_shell_expansion": true,
+    "sandbox_fs": true,
+    "clean_shutdown": true,
+    "log_secret_names_only": true,
+    "secrets_provider_hint": "Windows Credential Manager / Azure Key Vault"
+  },
+  "supply_chain": {
+    "lockfiles_enabled": true,
+    "verify_integrity": true,
+    "check_licenses": true,
+    "sbom": [
+      "CycloneDX",
+      "SPDX"
+    ],
+    "sign_artifacts": true,
+    "reproducible_builds": true,
+    "record_dependency_versions": true
+  },
+  "concurrency": {
+    "dop_default": "cpu_minus_one",
+    "avoid_ui_thread_work": true
+  },
+  "errors": {
+    "taxonomy": [
+      "fatal",
+      "recoverable",
+      "warning"
+    ],
+    "exit_codes": {
+      "ok": 0,
+      "usage": 1,
+      "validation": 2,
+      "io": 3,
+      "network": 4,
+      "timeout": 5,
+      "permission": 6,
+      "state": 7,
+      "canceled": 8
+    },
+    "retry_with_backoff": {
+      "enabled": true,
+      "attempts": 3,
+      "base_ms": 250
+    }
+  },
+  "testing": {
+    "manual_cases": [
+      "Arranque: abrir wizard por omisión y ejecutar TEST (sin errores, logs JSONL creados).",
+      "RUN sobre carpeta bajo ROOT; repetir RUN (idempotencia: hashes iguales; backups si hubo overwrite).",
+      "Headless con --yes/--force y --dry-run (salidas deterministas; confirmaciones suprimidas)."
+    ]
+  },
+  "annex_powershell": {
+    "right_click_launch": true,
+    "sta_required_gui": true,
+    "headless_flags": [
+      "--yes",
+      "--force",
+      "--dry-run"
+    ]
+  },
+  "coherence_contract": {
+    "invariants": [
+      "Los formatos producidos deben pertenecer a formats.canonical (o sus aliases).",
+      "Si se emiten campos abreviados de log, aplicar logging.aliases para equivaler a los canónicos.",
+      "No escribir fuera de ROOT; toda ruta debe honrar write_within_root_only."
+    ]
+  }
+}
