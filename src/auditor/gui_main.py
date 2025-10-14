@@ -35,7 +35,6 @@ from .auditor_core import (
     build_markdown,
     build_powershell_script,
     create_runtime_context,
-    ensure_within_directory,
     generate_op_id,
 )
 
@@ -61,11 +60,7 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Environment Auditor")
         self.resize(1100, 700)
         self.context: RuntimeContext = create_runtime_context()
-        try:
-            self.auditor = EnvironmentAuditor(self.context.paths.root)
-        except ValueError as exc:
-            QMessageBox.critical(self, "Configuration error", str(exc))
-            raise
+        self.auditor = EnvironmentAuditor()
         self.latest_options = AuditOptions()
         self.latest_report: Optional[Dict[str, Any]] = None
         self._full_markdown: str = ""
@@ -236,16 +231,7 @@ class MainWindow(QMainWindow):
             return None
         candidate = Path(path)
         try:
-            absolute = candidate if candidate.is_absolute() else (self.context.paths.root / candidate)
-            return ensure_within_directory(
-                absolute,
-                root=self.context.paths.root,
-                directory=self.context.paths.out_dir,
-                label=str(self.context.paths.out_dir),
-            )
-        except ValueError as exc:
-            QMessageBox.critical(self, "Ruta inválida", str(exc))
-            return None
+            return candidate if candidate.is_absolute() else (self.context.paths.root / candidate)
         except Exception:
             return None
 
@@ -315,10 +301,7 @@ class MainWindow(QMainWindow):
 
 def main() -> int:
     app = QApplication(sys.argv)
-    try:
-        window = MainWindow()
-    except ValueError:
-        return 2
+    window = MainWindow()
     icon_path = Path(__file__).resolve().parent / "icon.ico"
     if icon_path.exists():
         window.setWindowIcon(QIcon(str(icon_path)))

@@ -195,16 +195,6 @@ def ensure_within_root(candidate: Path, root: Path) -> Path:
     return resolved_path
 
 
-def ensure_within_directory(candidate: Path, *, root: Path, directory: Path, label: str) -> Path:
-    """Validate that *candidate* stays under *directory* within ROOT."""
-    target = ensure_within_root(candidate, root)
-    try:
-        target.relative_to(directory)
-    except ValueError as exc:
-        raise ValueError(f"Destination must reside under {label}") from exc
-    return target
-
-
 def compute_sha256_from_bytes(data: bytes) -> str:
     digest = hashlib.sha256()
     digest.update(data)
@@ -316,31 +306,25 @@ def safe_expandvars(value: str) -> str:
         return value
 
 
-def _load_config_candidates(root: Path, explicit_path: Optional[Path] = None) -> Iterable[Path]:
+def _load_config_candidates(explicit_path: Optional[Path] = None) -> Iterable[Path]:
     if explicit_path:
         yield explicit_path
     env_override = os.environ.get("ENV_AUDITOR_CONFIG")
     if env_override:
         yield Path(env_override)
-    yield root / "config" / "env_auditor.config.json"
+    cwd_candidate = Path.cwd() / "config" / "env_auditor.config.json"
+    yield cwd_candidate
     module_dir = Path(__file__).resolve().parent
     yield module_dir / "env_auditor.config.json"
     yield module_dir.parent / "config" / "env_auditor.config.json"
 
 
-def load_configuration(root: Path, config_path: Optional[str] = None) -> Tuple[set[str], set[str]]:
-    try:
-        explicit = ensure_within_root(Path(config_path), root) if config_path else None
-    except ValueError as exc:
-        raise ValueError("Configuration path must reside within ROOT") from exc
-    for candidate in _load_config_candidates(root, explicit):
-        try:
-            normalized = ensure_within_root(candidate, root)
-        except ValueError:
-            continue
-        if normalized.is_file():
+def load_configuration(config_path: Optional[str] = None) -> Tuple[set[str], set[str]]:
+    explicit = Path(config_path) if config_path else None
+    for candidate in _load_config_candidates(explicit):
+        if candidate.is_file():
             try:
-                with normalized.open("r", encoding="utf-8") as handle:
+                with candidate.open("r", encoding="utf-8") as handle:
                     payload = json.load(handle)
                 well_known = set(payload.get("well_known", DEFAULT_WELL_KNOWN))
                 essential = set(payload.get("essential", DEFAULT_ESSENTIAL))
@@ -360,9 +344,8 @@ class AuditOptions:
 
 
 class EnvironmentAuditor:
-    def __init__(self, root: Path, config_path: Optional[str] = None) -> None:
-        self._root = root
-        self.well_known, self.essential = load_configuration(root, config_path)
+    def __init__(self, config_path: Optional[str] = None) -> None:
+        self.well_known, self.essential = load_configuration(config_path)
 
     def run(self, options: AuditOptions) -> Dict[str, Any]:
         env_map = dict(os.environ)

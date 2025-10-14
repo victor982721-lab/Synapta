@@ -6,7 +6,7 @@ import json
 import sys
 import time
 from pathlib import Path
-from typing import Any, Dict, Iterable, Optional
+from typing import Iterable, Optional
 
 from .auditor_core import (
     AuditOptions,
@@ -15,7 +15,6 @@ from .auditor_core import (
     atomic_write_text,
     build_markdown,
     create_runtime_context,
-    ensure_within_directory,
     generate_op_id,
 )
 
@@ -49,12 +48,7 @@ def _build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def _write_output(
-    content: str,
-    target: Optional[Path],
-    context: RuntimeContext,
-    format_label: str,
-) -> Dict[str, Any]:
+def _write_output(content: str, target: Optional[Path], context: RuntimeContext, format_label: str) -> None:
     op_id = generate_op_id()
     payload_bytes = content.encode("utf-8")
     if target is None:
@@ -68,16 +62,10 @@ def _write_output(
             message=f"Emitted {format_label} report to stdout",
             bytes_count=len(payload_bytes),
         )
-        return {"destination": "stdout", "bytes": len(payload_bytes)}
+        return
     candidate = target
     if not candidate.is_absolute():
         candidate = context.paths.root / candidate
-    candidate = ensure_within_directory(
-        candidate,
-        root=context.paths.root,
-        directory=context.paths.out_dir,
-        label=str(context.paths.out_dir),
-    )
     start = time.perf_counter()
     info = atomic_write_text(
         content=content,
@@ -97,7 +85,6 @@ def _write_output(
         duration_ms=duration,
         bytes_count=info.get("bytes"),
     )
-    return info
 
 
 def run_cli(argv: Optional[Iterable[str]] = None) -> int:
@@ -114,16 +101,7 @@ def run_cli(argv: Optional[Iterable[str]] = None) -> int:
         include_custom=args.include_custom,
         include_diagnostics=args.include_diagnostics,
     )
-    try:
-        auditor = EnvironmentAuditor(context.paths.root, config_path=args.config)
-    except ValueError as exc:
-        context.logger.log_event(
-            level="error",
-            event="cli.config_invalid",
-            op_id=generate_op_id(),
-            message=str(exc),
-        )
-        return 2
+    auditor = EnvironmentAuditor(config_path=args.config)
     report = auditor.run(options)
     format_label = "json" if args.json_output else "markdown"
     if args.json_output:
@@ -131,7 +109,7 @@ def run_cli(argv: Optional[Iterable[str]] = None) -> int:
     else:
         output = build_markdown(report, options)
     try:
-        output_info = _write_output(output, args.output, context, format_label)
+        _write_output(output, args.output, context, format_label)
     except ValueError as exc:
         context.logger.log_event(
             level="error",
@@ -156,7 +134,6 @@ def run_cli(argv: Optional[Iterable[str]] = None) -> int:
         result={
             "format": format_label,
             "diagnostics": report["summary"].get("diagnostic_counts", {}),
-            "output": output_info,
         },
     )
     return 0
