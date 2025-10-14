@@ -1,1 +1,0 @@
-adb pull /sdcard/demo.mp4 C:\Users\VictorFabianVeraVill\Desktop\

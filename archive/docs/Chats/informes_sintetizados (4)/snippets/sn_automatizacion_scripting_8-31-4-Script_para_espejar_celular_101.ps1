@@ -1,1 +1,0 @@
-adb shell screenrecord /sdcard/demo.mp4

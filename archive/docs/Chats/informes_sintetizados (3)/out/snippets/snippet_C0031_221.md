@@ -1,3 +1,0 @@
-```plaintext
-"Resume los correos electrónicos no leídos de hoy y destaca los que requieren acción urgente."
-```

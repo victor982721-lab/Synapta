@@ -1,9 +1,0 @@
-$baseUsers = 'C:\Users\VictorFabianVeraVill'
-Get-Content .\FileList_Users_20250921_020839.jsonl | % { $_ | ConvertFrom-Json } | 
-  Where-Object { 
-    $p = $_.abs_path
-    $p -like "$baseUsers\*" -and (Test-Path -LiteralPath $p -PathType Leaf) `
-      -and ($p -notlike "*\.venv\*") -and ($p -notlike "*\site-packages\*") `
-      -and ($p -notlike "*\node_modules\*") -and ($p -notlike "*\.git\*")
-  } |
-  Export-Csv .\FileList_abs.csv -NoTypeInformation -Encoding utf8

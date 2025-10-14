@@ -1,1 +1,0 @@
-.\PS-Env-Audit-Min.ps1 -ReportPath "C:\Temp\PS_Env_Report.md" -ReportFormat markdown

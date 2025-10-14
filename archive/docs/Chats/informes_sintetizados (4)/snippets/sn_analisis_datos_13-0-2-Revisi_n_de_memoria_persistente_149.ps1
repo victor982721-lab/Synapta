@@ -1,5 +1,0 @@
-& $RH -open "$dst\YSD300AN.rc" -save "$dst\YSD300AN.res" -action compile
-& $RH -open "$dst\YSD300AN-P2406.rc" -save "$dst\YSD300AN-P2406.res" -action compile
-
-& $RH -open $src1 -save $out1 -action addoverwrite -res "$dst\YSD300AN.res"
-& $RH -open $src2 -save $out2 -action addoverwrite -res "$dst\YSD300AN-P2406.res"

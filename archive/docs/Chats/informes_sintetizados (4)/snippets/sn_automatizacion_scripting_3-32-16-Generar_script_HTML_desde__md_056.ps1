@@ -1,2 +1,0 @@
-pwsh -NoProfile -ExecutionPolicy Bypass -File "$env:USERPROFILE\Desktop\PS-Env-Audit-SAFE.ps1" -ReportPath "$env:USERPROFILE\Desktop\PS_Env_Report.json"
-pwsh -NoProfile -ExecutionPolicy Bypass -File "$env:USERPROFILE\Desktop\PS-Env-Audit-SAFE.ps1" -ReportPath "$env:USERPROFILE\Desktop\PS_Env_Report.md"

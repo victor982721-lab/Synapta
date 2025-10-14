@@ -1,9 +1,0 @@
-# === Compilar recursos traducidos en copias *.es.exe (no toca originales) ===
-$root = "$env:USERPROFILE\Desktop\TBEA"; $work = Join-Path $root 'i18n_work'; $tools = Join-Path $root 'tools'
-$rh = Join-Path $tools 'ResourceHacker.exe'
-
-& $rh -open "$work\YSD300AN.orig.exe"       -save "$work\YSD300AN.es.exe"       -action compile -res "$work\YSD300AN.rc"
-& $rh -open "$work\YSD300AN-P2406.orig.exe" -save "$work\YSD300AN-P2406.es.exe" -action compile -res "$work\YSD300AN-P2406.rc"
-
-Get-FileHash "$work\YSD300AN*.exe","$work\YSD300AN-P2406*.exe" -Algorithm SHA256 | Format-Table -Auto
-"Listo: ejecutables traducidos en $work (usar solo esos para pruebas)."

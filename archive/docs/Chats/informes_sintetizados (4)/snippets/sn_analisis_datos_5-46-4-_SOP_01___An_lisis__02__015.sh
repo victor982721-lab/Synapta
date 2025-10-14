@@ -1,9 +1,0 @@
-#!/usr/bin/env bash
-set -euo pipefail
-dir="${1:-/mnt/data}"
-manifest="$dir/manifest.json"
-jq -r '.artifacts[] | [.path, .sha256] | @tsv' "$manifest" | while IFS=$'\t' read -r p h; do
-  calc=$(sha256sum "$p" | awk '{print $1}')
-  [[ "$calc" == "$h" ]] || { echo "Mismatch: $p"; exit 1; }
-done
-echo "OK"

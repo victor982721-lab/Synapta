@@ -1,1 +1,0 @@
-pwsh -ExecutionPolicy Bypass -File "C:\Users\VictorFabianVeraVill\Desktop\PowerShell\New-FileMap.GUI.v4.ps1"

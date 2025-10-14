@@ -1,3 +1,0 @@
-```powershell
-Import-Csv .\FileList_abs_raw.csv | ? { $_.abs_path -like "C:\Users\VictorFabianVeraVill\*" -and (Test-Path -LiteralPath $_.abs_path -PathType Leaf) -and ($_.abs_path -notlike "*\.venv\*") -and ($_.abs_path -notlike "*\site-packages\*") -and ($_.abs_path -notlike "*\node_modules\*") -and ($_.abs_path -notlike "*\.git\*") } | Export-Csv .\FileList_abs.csv -NoTypeInformation -Encoding utf8
-```

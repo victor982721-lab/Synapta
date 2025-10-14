@@ -1,3 +1,0 @@
-```bash
-python3 SecPhoto.py -Sid nombreUsuarioChat
-```

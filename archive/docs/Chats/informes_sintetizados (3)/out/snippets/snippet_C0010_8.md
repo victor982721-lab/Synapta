@@ -1,5 +1,0 @@
-```
-
-
-Responde siempre en **español*.
-```

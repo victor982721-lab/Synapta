@@ -1,3 +1,0 @@
-```json
-{ "temperature": 0.2, "top_p": 0.2, "max_tokens": 2048 }
-```

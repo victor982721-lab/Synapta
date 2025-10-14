@@ -1,1 +1,0 @@
-pwsh -NoProfile -ExecutionPolicy Bypass -File "C:\Users\VictorFabianVeraVill\Desktop\TBEA\01_Software\extract_strings_from_md.ps1"
