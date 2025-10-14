@@ -1,3 +1,0 @@
-```
-ERROR: --bit-rate has been removed, use --video-bit-rate or --audio-bit-rate.
-```

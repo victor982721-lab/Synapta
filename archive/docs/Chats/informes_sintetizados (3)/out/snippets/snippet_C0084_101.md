@@ -1,3 +1,0 @@
-```bash
-screenrecord /sdcard/video_$(date +%s).mp4
-```

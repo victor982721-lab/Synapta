@@ -1,8 +1,0 @@
-
-Resultados esperados:
-- Artefactos: .ps1, .md, .txt, .json, .csv, .html, .png (chart), explanation.md
-- verify scripts, inventory.json, hashes.txt, REPORT.md, manifest.json
-- Bundle: <stem>_bundle.zip
-- Release UTC en carpeta `_releases`
-- Link-check sin errores
-- Archivo `checkpoints.jsonl` con el log de pasos

@@ -1,7 +1,0 @@
-```text
-C:\Users\VictorFabianVeraVill\Desktop\TBEA\user1_zip_extracted\
-├─ 4535435.ysd                       # hash 5f57927f…  (keeper del grupo A; duplicado: temp2.dcy → eliminado)
-├─ YSD_2024-08-21.ysd                # hash baaaa57f…  (keeper del grupo B; duplicado con nombre corrupto → eliminado)
-├─ YSD_a8608cf0.dcy                  # hash a8608cf0…  (keeper del grupo C; renombrado desde temp0.dcy; duplicado temp1.dcy → eliminado)
-└─ actions_dedup_YYYYMMDD_HHMMSS.csv # log de acciones (RENAME/DELETE/PLAN_*)
-```

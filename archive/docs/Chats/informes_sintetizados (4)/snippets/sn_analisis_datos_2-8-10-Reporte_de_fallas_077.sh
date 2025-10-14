@@ -1,8 +1,0 @@
-# Ejecución básica con validación de enlaces
-python orquestador.py --stem demo --input demo.txt --link-check --debug
-
-# Vía STDIN
-python orquestador.py --stem demo --link-check --debug --input - < demo.txt
-
-# Ejecutar solo md y html, sin release.zip
-python orquestador.py --stem demo --input demo.txt --only md,html --no-release

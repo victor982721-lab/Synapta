@@ -1,3 +1,0 @@
-python /mnt/data/orquestador.py --stem workspace-wizard-ps5-7 --input-file - <<'PSCODE'
-# (Pega aquí el PowerShell a procesar)
-PSCODE

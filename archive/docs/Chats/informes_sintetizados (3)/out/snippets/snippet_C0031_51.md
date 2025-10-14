@@ -1,3 +1,0 @@
-```plaintext
-Gmail → OpenAI (GPT-4o Mini) → Slack / Google Sheets
-```

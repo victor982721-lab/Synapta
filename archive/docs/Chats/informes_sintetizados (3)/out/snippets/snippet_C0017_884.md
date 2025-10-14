@@ -1,6 +1,0 @@
-```
-Loading personal and system profiles took 1791ms. 
- VictorFabianVeraVill    7   0ms⠀   Get-Item 'C:\Windows\System32\dcy.ufo' -ErrorAction SilentlyContinue | Select Name, Length, LastWriteTime
->
- VictorFabianVeraVill    7   5ms⠀  
-```

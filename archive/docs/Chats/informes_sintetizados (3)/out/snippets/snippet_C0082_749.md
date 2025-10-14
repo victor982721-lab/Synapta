@@ -1,3 +1,0 @@
-```powershell
-$opts = @("--no-control", "--max-size", $MaxSize, "--video-bit-rate", $Bitrate, "--window-title", "Android Mirror (read-only)")
-```

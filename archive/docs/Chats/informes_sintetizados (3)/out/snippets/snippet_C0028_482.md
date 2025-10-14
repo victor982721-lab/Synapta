@@ -1,3 +1,0 @@
-```powershell
-pwsh -ExecutionPolicy Bypass -File .\move_duplicates_by_hash.ps1 -Csv .\filemap_sha256.csv
-```

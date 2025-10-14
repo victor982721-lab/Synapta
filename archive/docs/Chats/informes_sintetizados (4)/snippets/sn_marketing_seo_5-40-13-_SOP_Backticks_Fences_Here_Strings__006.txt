@@ -1,8 +1,0 @@
-
-**3.5 — Si DEBES usar `-f` con llaves** *(no recomendado)*
-
-```powershell
-'{ "key": "{{value}}" }' -f @()
-```
-
-**3.6 — Cierre de here-strings en columna 1** *(incorrecto vs correcto)*

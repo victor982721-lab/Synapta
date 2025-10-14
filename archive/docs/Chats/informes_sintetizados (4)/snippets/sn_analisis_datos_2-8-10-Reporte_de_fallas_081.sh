@@ -1,1 +1,0 @@
-python orquestador.py --stem smoke --input - --no-release --link-check <<<'hola'

@@ -1,3 +1,0 @@
-```
-your_command_here "%d" "%r"
-```
