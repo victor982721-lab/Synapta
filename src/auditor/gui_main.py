@@ -1,10 +1,11 @@
-"""PySide6 GUI for the environment auditor."""
+"""PySide6 GUI for EnvAuditor with deterministic exports under ROOT."""
 from __future__ import annotations
 
 import json
-import logging
 import os
 import sys
+import time
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from PySide6.QtCore import Qt
@@ -26,9 +27,18 @@ from PySide6.QtWidgets import (
     QDialog,
 )
 
-from .auditor_core import AuditOptions, EnvironmentAuditor, build_markdown, build_powershell_script
+from .auditor_core import (
+    AuditOptions,
+    EnvironmentAuditor,
+    RuntimeContext,
+    atomic_write_text,
+    build_markdown,
+    build_powershell_script,
+    create_runtime_context,
+    ensure_within_directory,
+    generate_op_id,
+)
 
-logger = logging.getLogger(__name__)
 MAX_PREVIEW_LINES = 800
 
 
@@ -50,7 +60,12 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle("Environment Auditor")
         self.resize(1100, 700)
-        self.auditor = EnvironmentAuditor()
+        self.context: RuntimeContext = create_runtime_context()
+        try:
+            self.auditor = EnvironmentAuditor(self.context.paths.root)
+        except ValueError as exc:
+            QMessageBox.critical(self, "Configuration error", str(exc))
+            raise
         self.latest_options = AuditOptions()
         self.latest_report: Optional[Dict[str, Any]] = None
         self._full_markdown: str = ""
@@ -145,7 +160,18 @@ class MainWindow(QMainWindow):
     def _run_audit(self) -> None:
         options = self._collect_options()
         self.latest_options = options
+        op_id = generate_op_id()
+        start = time.perf_counter()
         report = self.auditor.run(options)
+        elapsed = (time.perf_counter() - start) * 1000
+        self.context.logger.log_event(
+            level="info",
+            event="gui.audit_completed",
+            op_id=op_id,
+            message="GUI audit run finished",
+            result={"diagnostics": report["summary"].get("diagnostic_counts", {})},
+            duration_ms=elapsed,
+        )
         self.latest_report = report
 
         summary_lines: List[str] = [
@@ -203,73 +229,99 @@ class MainWindow(QMainWindow):
         dialog = MarkdownDialog(self, self._full_markdown)
         dialog.exec()
 
+    def _prompt_save_path(self, title: str, default_name: str, filter_mask: str) -> Optional[Path]:
+        default_path = str(self.context.paths.out_dir / default_name)
+        path, _ = QFileDialog.getSaveFileName(self, title, default_path, filter_mask)
+        if not path:
+            return None
+        candidate = Path(path)
+        try:
+            absolute = candidate if candidate.is_absolute() else (self.context.paths.root / candidate)
+            return ensure_within_directory(
+                absolute,
+                root=self.context.paths.root,
+                directory=self.context.paths.out_dir,
+                label=str(self.context.paths.out_dir),
+            )
+        except ValueError as exc:
+            QMessageBox.critical(self, "Ruta inválida", str(exc))
+            return None
+        except Exception:
+            return None
+
+    def _write_file(self, content: str, target: Path, description: str) -> bool:
+        op_id = generate_op_id()
+        try:
+            atomic_write_text(
+                content=content,
+                target=target,
+                root=self.context.paths.root,
+                logger=self.context.logger,
+                op_id=op_id,
+            )
+            return True
+        except ValueError as exc:
+            QMessageBox.critical(self, "Ruta inválida", str(exc))
+            self.context.logger.log_event(
+                level="error",
+                event="gui.validation_failed",
+                op_id=op_id,
+                message=f"{description} validation failed",
+                context={"error": str(exc)},
+            )
+        except OSError as exc:
+            QMessageBox.critical(self, "Error al guardar", str(exc))
+            self.context.logger.log_event(
+                level="error",
+                event="gui.io_failed",
+                op_id=op_id,
+                message=f"{description} write failed",
+                context={"error": str(exc)},
+            )
+        return False
+
     def _export_markdown(self) -> None:
         if not self._ensure_report():
             return
-        path, _ = QFileDialog.getSaveFileName(
-            self,
-            "Save Markdown Report",
-            os.path.join(os.path.expanduser("~"), "Desktop", "env-report.md"),
-            "Markdown (*.md)",
-        )
-        if not path:
+        target = self._prompt_save_path("Save Markdown Report", "env-report.md", "Markdown (*.md)")
+        if not target:
             return
         content = build_markdown(self.latest_report, self.latest_options)
-        try:
-            with open(path, "w", encoding="utf-8") as fh:
-                fh.write(content)
-            QMessageBox.information(self, "Export complete", f"Markdown report saved to\n{path}")
-            logger.info(json.dumps({"event": "export_markdown", "path": path}))
-        except OSError as exc:
-            QMessageBox.critical(self, "Error al guardar", str(exc))
-            logger.error(json.dumps({"event": "export_markdown_failed", "path": path, "error": str(exc)}))
+        if self._write_file(content, target, "Markdown export"):
+            QMessageBox.information(self, "Export complete", f"Markdown report saved to\n{target}")
 
     def _export_json(self) -> None:
         if not self._ensure_report():
             return
-        path, _ = QFileDialog.getSaveFileName(
-            self,
-            "Save JSON Report",
-            os.path.join(os.path.expanduser("~"), "Desktop", "env-report.json"),
-            "JSON (*.json)",
-        )
-        if not path:
+        target = self._prompt_save_path("Save JSON Report", "env-report.json", "JSON (*.json)")
+        if not target:
             return
-        try:
-            with open(path, "w", encoding="utf-8") as fh:
-                json.dump(self.latest_report, fh, indent=2)
-            QMessageBox.information(self, "Export complete", f"JSON report saved to\n{path}")
-            logger.info(json.dumps({"event": "export_json", "path": path}))
-        except OSError as exc:
-            QMessageBox.critical(self, "Error al guardar", str(exc))
-            logger.error(json.dumps({"event": "export_json_failed", "path": path, "error": str(exc)}))
+        content = json.dumps(self.latest_report, indent=2, ensure_ascii=False)
+        if self._write_file(content, target, "JSON export"):
+            QMessageBox.information(self, "Export complete", f"JSON report saved to\n{target}")
 
     def _export_powershell(self) -> None:
-        path, _ = QFileDialog.getSaveFileName(
-            self,
+        target = self._prompt_save_path(
             "Save PowerShell Script",
-            os.path.join(os.path.expanduser("~"), "Desktop", "env-auditor.psm1"),
+            "env-auditor.psm1",
             "PowerShell Module (*.psm1);;PowerShell Script (*.ps1)",
         )
-        if not path:
+        if not target:
             return
-        script = build_powershell_script()
-        try:
-            with open(path, "w", encoding="utf-8") as fh:
-                fh.write(script)
-            QMessageBox.information(self, "Export complete", f"PowerShell script saved to\n{path}")
-            logger.info(json.dumps({"event": "export_powershell", "path": path}))
-        except OSError as exc:
-            QMessageBox.critical(self, "Error al guardar", str(exc))
-            logger.error(json.dumps({"event": "export_powershell_failed", "path": path, "error": str(exc)}))
+        content = build_powershell_script()
+        if self._write_file(content, target, "PowerShell export"):
+            QMessageBox.information(self, "Export complete", f"PowerShell script saved to\n{target}")
 
 
 def main() -> int:
     app = QApplication(sys.argv)
-    window = MainWindow()
-    icon_path = os.path.join(os.path.dirname(__file__), "icon.ico")
-    if os.path.exists(icon_path):
-        window.setWindowIcon(QIcon(icon_path))
+    try:
+        window = MainWindow()
+    except ValueError:
+        return 2
+    icon_path = Path(__file__).resolve().parent / "icon.ico"
+    if icon_path.exists():
+        window.setWindowIcon(QIcon(str(icon_path)))
     window.show()
     return app.exec()
 
