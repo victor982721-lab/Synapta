@@ -1,0 +1,209 @@
+# DeDupe.Pipeline - Orquesta: Enumeración → Hashing (con progreso) → Dedupe → Cuarentena → Resumen
+# Depende de módulos:
+#  - DeDupe.Metrics.Ultra       (métricas, JSONL rápido, canal/backpressure)
+#  - DeDupe.Logging             (adaptador Write-Jsonl -Logger/-Data)
+#  - DeDupe.Hashing.MetricsAdapter (hashing con progreso por bloque)
+#  - DeDupe.Grouping            (agrupación por tamaño/hash)
+#  - DeDupe.DedupeByHash        (elimina duplicados exactos)
+#  - DeDupe.Quarantine          (mueve mismo tamaño distinto hash)
+using namespace System.IO
+using namespace System.Collections.Generic
+Set-StrictMode -Version Latest
+
+function Resolve-LogPathSafe {
+  [CmdletBinding()]
+  param([Parameter(Mandatory)][string]$Requested)
+  try {
+    $dir = Split-Path -Parent $Requested
+    if ([string]::IsNullOrWhiteSpace($dir)) { $dir = '.' }
+    if (-not (Test-Path -LiteralPath $dir)) { [void][Directory]::CreateDirectory($dir) }
+    return $Requested
+  } catch {
+    $fallback = Join-Path $env:LOCALAPPDATA 'DeDupe\logs\actions.jsonl'
+    $fbDir = Split-Path -Parent $fallback
+    if (-not (Test-Path -LiteralPath $fbDir)) { [void][Directory]::CreateDirectory($fbDir) }
+    return $fallback
+  }
+}
+
+function Get-DeDupeFiles {
+  <#
+    .SYNOPSIS
+      Enumera archivos rápido, calcula totales y candidatos (por colisión de tamaño).
+    .OUTPUTS
+      PSCustomObject: Files (List[FileInfo]), TotalCount, TotalBytes, CandidateFiles (List[FileInfo]),
+                      CandidateCount, CandidateBytes, GroupsBySize
+  #>
+  [CmdletBinding()]
+  param(
+    [Parameter(Mandatory)][string]$Path,
+    [switch]$Recurse = $true,
+    [switch]$IncludeHidden,
+    [switch]$AllowZeroByte
+  )
+  if (-not (Test-Path -LiteralPath $Path)) { throw "Ruta no encontrada: $Path" }
+
+  $opt = [System.IO.EnumerationOptions]::new()
+  $opt.RecurseSubdirectories = [bool]$Recurse
+  $opt.AttributesToSkip = [System.IO.FileAttributes]::System
+  $all = [System.Collections.Generic.List[System.IO.FileInfo]]::new()
+  $sizeCounts = [System.Collections.Generic.Dictionary[int64,int]]::new()
+  $totalBytes = 0L
+
+  foreach ($p in [System.IO.Directory]::EnumerateFiles($Path, '*', $opt)) {
+    try {
+      $fi = [System.IO.FileInfo]::new($p)
+      if (-not $IncludeHidden -and ($fi.Attributes.HasFlag([System.IO.FileAttributes]::Hidden))) { continue }
+      if (-not $AllowZeroByte -and $fi.Length -eq 0) { continue }
+      $all.Add($fi)
+      $totalBytes += [int64]$fi.Length
+      $len = [int64]$fi.Length
+      if ($sizeCounts.ContainsKey($len)) { $sizeCounts[$len] = $sizeCounts[$len] + 1 } else { $sizeCounts[$len] = 1 }
+    } catch { }
+  }
+
+  $collisionSizes = [System.Collections.Generic.HashSet[int64]]::new()
+  $groupsBySize = 0
+  foreach ($kv in $sizeCounts.GetEnumerator()) {
+    if ($kv.Value -gt 1) { if ($collisionSizes.Add($kv.Key)) { $groupsBySize++ } }
+  }
+
+  $candidates = [System.Collections.Generic.List[System.IO.FileInfo]]::new()
+  $candidateBytes = 0L
+  foreach ($f in $all) {
+    if ($collisionSizes.Contains([int64]$f.Length)) { $candidates.Add($f); $candidateBytes += [int64]$f.Length }
+  }
+
+  [pscustomobject]@{
+    Files           = $all
+    TotalCount      = $all.Count
+    TotalBytes      = $totalBytes
+    CandidateFiles  = $candidates
+    CandidateCount  = $candidates.Count
+    CandidateBytes  = $candidateBytes
+    GroupsBySize    = $groupsBySize
+  }
+}
+
+function Format-ProgressLine {
+  [CmdletBinding()]
+  param([Parameter(Mandatory)][pscustomobject]$S, [int]$TotalCount)
+  $eta = if ($S.ETA -ne $null) { ("{0}s" -f $S.ETA) } else { '—' }
+  "{0} MB/s | {1}/{2} archivos | {3}/{4} MB | ETA {5}" -f `
+    $S.MBps, $S.ItemsDone, $TotalCount, [int]([double]$S.BytesDone/1MB), [int]([double]$S.TotalBytes/1MB), $eta
+}
+
+function Invoke-DeDupePipeline {
+  <#
+    .SYNOPSIS
+      Pipeline completo con métricas: enumeración → hashing → dedupe → cuarentena → resumen.
+  #>
+  [CmdletBinding(SupportsShouldProcess=$true, ConfirmImpact='High')]
+  param(
+    [Parameter(Mandatory)][ValidateNotNullOrEmpty()][string]$Path,
+    [switch]$Recurse = $true,
+    [switch]$IncludeHidden,
+    [switch]$AllowZeroByte,
+    [ValidateSet('Oldest','Newest','ShortestPath')][string]$Keep='Oldest',
+    [string]$QuarantinePath = (Join-Path $PSScriptRoot 'quarantine'),
+    [string]$LogPath        = (Join-Path $PSScriptRoot 'logs\actions.jsonl'),
+    [ValidateSet('Flat','BySize')][string]$QuarantineLayout='Flat',
+    [int]$DegreeOfParallelism = 0,
+    [int]$BlockSizeKB = 1024,
+    [int]$ReportIntervalMs = 750,
+    [switch]$Verify,
+    [switch]$Run
+  )
+
+  $policyTag = if ($Run) { 'pdp:run' } else { 'pdp:test' }
+  $logEffective = Resolve-LogPathSafe -Requested $LogPath
+  $logger = DeDuPe.Logging\New-JsonlLogger -Path $logEffective -RotateAtMB 768
+
+  DeDuPe.Logging\Write-Jsonl -Logger $logger -Data @{ ts_utc=(Get-Date).ToUniversalTime().ToString('o'); policy=$policyTag; action='start'; root=$Path }
+
+  # Enumeración
+  $enum = Get-DeDupeFiles -Path $Path -Recurse:$Recurse -IncludeHidden:$IncludeHidden -AllowZeroByte:$AllowZeroByte
+  DeDuPe.Logging\Write-Jsonl -Logger $logger -Data @{
+    ts_utc=(Get-Date).ToUniversalTime().ToString('o'); policy=$policyTag; action='enumeration';
+    total_files=$enum.TotalCount; total_bytes=$enum.TotalBytes; groups_by_size=$enum.GroupsBySize;
+    candidates=$enum.CandidateCount; candidate_bytes=$enum.CandidateBytes
+  }
+
+  # DOP
+  if ($DegreeOfParallelism -le 0) {
+    $DegreeOfParallelism = DeDupe.Metrics.Ultra\Get-RecommendedDOP -Path $Path
+  }
+  DeDupe.Metrics.Ultra\Optimize-ThreadPool -Workers $DegreeOfParallelism -IOCP ($DegreeOfParallelism*2) | Out-Null
+  DeDupe.Metrics.Ultra\Use-BackgroundMode -Enable | Out-Null
+
+  # Métricas: totales para hashing de candidatos
+  DeDupe.Metrics.Ultra\Initialize-HiResMetrics -TotalBytes $enum.CandidateBytes -TotalItems $enum.CandidateCount -WindowSeconds 2
+  DeDupe.Metrics.Ultra\Start-ProgressTicker -IntervalMs $ReportIntervalMs -OnTick {
+    param($s)
+    $pct = if ($s.Percent) { [int][math]::Floor($s.Percent) } else { 0 }
+    $status = Format-ProgressLine -S $s -TotalCount $enum.CandidateCount
+    Write-Progress -Id 1 -Activity "Hashing" -PercentComplete $pct -Status $status
+  }
+
+  # Hashing con progreso por bloque
+  $records = @()
+  if ($enum.CandidateCount -gt 0) {
+    $records = Get-HashRecordsParallelWithMetrics -Files $enum.CandidateFiles -AllowZeroByte:$AllowZeroByte -DegreeOfParallelism $DegreeOfParallelism -BlockSizeKB $BlockSizeKB
+  }
+
+  DeDupe.Metrics.Ultra\Stop-ProgressTicker
+  Write-Progress -Id 1 -Activity "Hashing" -Completed
+
+  # Agrupación por tamaño+hash
+  $grouped = Group-BySizeHash -HashRecords $records
+  DeDuPe.Logging\Write-Jsonl -Logger $logger -Data @{
+    ts_utc=(Get-Date).ToUniversalTime().ToString('o'); policy=$policyTag; action='grouping';
+    groups_by_hash=$grouped.GroupsByHash; unique_sizes=$grouped.UniqueSizes; records=$grouped.TotalRecords
+  }
+
+  # Dedupe (borra duplicados exactos)
+  $dedupe = Remove-DuplicatesByHash -Map $grouped.Map -Keep $Keep -Verify:$Verify -Run:$Run -Policy $policyTag -Logger $logger
+  DeDuPe.Logging\Write-Jsonl -Logger $logger -Data @{
+    ts_utc=(Get-Date).ToUniversalTime().ToString('o'); policy=$policyTag; action='dedupe_result';
+    duplicates_deleted=$dedupe.DuplicatesDeleted; bytes_deleted=$dedupe.BytesDeleted; errors=$dedupe.Errors
+  }
+
+  # Cuarentena (mismo tamaño, distinto hash)
+  $quar = Move-ToQuarantine -SurvivorsBySize $dedupe.SurvivorsBySize -Keep $Keep -QuarantinePath $QuarantinePath -Layout $QuarantineLayout -Run:$Run -Policy $policyTag -Logger $logger
+  Write-Jsonl -Logger $logger -Data @{
+    ts_utc=(Get-Date).ToUniversalTime().ToString('o'); policy=$policyTag; action='quarantine_result';
+    quarantined=$quar.Quarantined; bytes_quarantined=$quar.BytesQuarantined; errors=$quar.Errors; layout=$quar.Layout; root=$quar.QuarantineRoot
+  }
+
+  # Resumen final
+  $summary = [ordered]@{
+    ts_utc                 = (Get-Date).ToUniversalTime().ToString('o')
+    policy                 = $policyTag
+    path                   = (Resolve-Path -LiteralPath $Path).Path
+    groups_by_size         = $enum.GroupsBySize
+    groups_by_hash         = $grouped.GroupsByHash
+    duplicates_deleted     = $dedupe.DuplicatesDeleted
+    bytes_deleted          = $dedupe.BytesDeleted
+    quarantined            = $quar.Quarantined
+    bytes_quarantined      = $quar.BytesQuarantined
+    keep_strategy          = $Keep
+    recurse                = [bool]$Recurse
+    include_hidden         = [bool]$IncludeHidden
+    quarantine_path        = (Resolve-Path -LiteralPath $QuarantinePath -ErrorAction SilentlyContinue)?.Path
+    log_path_effective     = $logEffective
+    dop_hash               = $DegreeOfParallelism
+    verify                 = [bool]$Verify
+    candidate_count        = $enum.CandidateCount
+    candidate_bytes        = $enum.CandidateBytes
+    total_files            = $enum.TotalCount
+    total_bytes            = $enum.TotalBytes
+  }
+  DeDuPe.Logging\Write-Jsonl -Logger $logger -Data $summary
+  DeDuPe.Logging\Write-Jsonl -Logger $logger -Data @{ ts_utc=(Get-Date).ToUniversalTime().ToString('o'); policy=$policyTag; action='end' }
+  Close-JsonlLogger -Logger $logger
+
+  [pscustomobject]$summary
+}
+
+Export-ModuleMember -Function Resolve-LogPathSafe, Get-DeDupeFiles, Format-ProgressLine, Invoke-DeDupePipeline
+

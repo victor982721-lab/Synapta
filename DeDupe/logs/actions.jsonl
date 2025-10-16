@@ -1,0 +1,6 @@
+{"ts_utc":"2025-10-15T16:57:49.4336082Z","policy":"pdp:test","action":"start","root":"C:\\.CODEX\\Produccion\\Sandbox\\DeDupeTest"}
+{"candidates":3,"candidate_bytes":18,"total_bytes":18,"groups_by_size":1,"ts_utc":"2025-10-15T16:57:49.5461966Z","action":"enumeration","policy":"pdp:test","total_files":3}
+{"action":"start","policy":"pdp:test","root":"C:\\.CODEX\\Produccion\\Sandbox\\DeDupeTest","ts_utc":"2025-10-15T16:58:20.5718199Z"}
+{"total_files":3,"candidate_bytes":18,"total_bytes":18,"candidates":3,"ts_utc":"2025-10-15T16:58:20.6856564Z","action":"enumeration","groups_by_size":1,"policy":"pdp:test"}
+{"action":"start","root":"C:\\.CODEX\\Produccion\\Sandbox\\DeDupeTest","policy":"pdp:test","ts_utc":"2025-10-15T16:58:31.2712781Z"}
+{"policy":"pdp:test","ts_utc":"2025-10-15T16:58:31.3980276Z","action":"enumeration","candidate_bytes":18,"total_bytes":18,"groups_by_size":1,"candidates":3,"total_files":3}

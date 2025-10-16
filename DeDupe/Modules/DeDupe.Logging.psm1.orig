@@ -1,0 +1,24 @@
+# DeDupe.Logging — Adaptador JSONL
+# Usa el escritor de DeDupe.Metrics.Ultra pero ofrece interfaz: New-JsonlLogger / Write-Jsonl -Logger/-Data / Close-JsonlLogger
+
+Set-StrictMode -Version Latest
+
+function New-JsonlLogger {
+  [CmdletBinding(SupportsShouldProcess)]
+  param([Parameter(Mandatory)][string]$Path,[int]$RotateAtMB=768,[switch]$Compress)
+  if ($PSCmdlet.ShouldProcess($Path,"Open JSONL")) {
+    DeDupe.Metrics.Ultra\New-JsonlWriter -Path $Path -RotateAtMB $RotateAtMB -Compress:$Compress | Out-Null
+  }
+  [pscustomobject]@{ Path = $Path }
+}
+
+function Write-Jsonl {
+  [CmdletBinding()]
+  param([Parameter(Mandatory)][pscustomobject]$Logger,[Parameter(Mandatory)][AllowNull()]$Data)
+  DeDuPe.Metrics.Ultra\Write-Jsonl -Object $Data
+}
+
+function Close-JsonlLogger { [CmdletBinding()] param([pscustomobject]$Logger) DeDuPe.Metrics.Ultra\Close-JsonlWriter }
+
+Export-ModuleMember -Function New-JsonlLogger, Write-Jsonl, Close-JsonlLogger
+
