@@ -1,0 +1,47 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Color x:Key="Color.WindowBackground">#F4F6FB</Color>
+    <Color x:Key="Color.PanelBackground">#FFFFFF</Color>
+    <Color x:Key="Color.Accent">#2D6CDF</Color>
+    <Color x:Key="Color.AccentMuted">#E0E7FF</Color>
+    <Color x:Key="Color.TextPrimary">#1A202C</Color>
+    <Color x:Key="Color.TextSecondary">#4A566A</Color>
+    <Color x:Key="Color.Border">#D2D6E2</Color>
+    <Color x:Key="Color.TerminalBackground">#F5F5F7</Color>
+    <Color x:Key="Color.TerminalText">#1D1F23</Color>
+    <Color x:Key="Color.LogBackground">#E4E6EB</Color>
+    <Color x:Key="Color.LogText">#1B1D22</Color>
+
+    <SolidColorBrush x:Key="WindowBackgroundBrush" Color="{StaticResource Color.WindowBackground}" />
+    <SolidColorBrush x:Key="PanelBrush" Color="{StaticResource Color.PanelBackground}" />
+    <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource Color.Accent}" />
+    <SolidColorBrush x:Key="AccentMutedBrush" Color="{StaticResource Color.AccentMuted}" />
+    <SolidColorBrush x:Key="TextBrush" Color="{StaticResource Color.TextPrimary}" />
+    <SolidColorBrush x:Key="TextMutedBrush" Color="{StaticResource Color.TextSecondary}" />
+    <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource Color.Border}" />
+    <SolidColorBrush x:Key="InputBackgroundBrush" Color="#F0F2F8" />
+    <SolidColorBrush x:Key="InputBorderBrush" Color="#CBD2E0" />
+    <SolidColorBrush x:Key="TerminalBackgroundBrush" Color="{StaticResource Color.TerminalBackground}" />
+    <SolidColorBrush x:Key="TerminalTextBrush" Color="{StaticResource Color.TerminalText}" />
+    <SolidColorBrush x:Key="LogBackgroundBrush" Color="{StaticResource Color.LogBackground}" />
+    <SolidColorBrush x:Key="LogTextBrush" Color="{StaticResource Color.LogText}" />
+
+    <Style TargetType="ScrollBar">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="#C1C9E2" />
+        <Setter Property="Width" Value="6" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ScrollBar">
+                    <Grid Background="{TemplateBinding Background}">
+                        <Rectangle Fill="{TemplateBinding Foreground}"
+                                   Width="{TemplateBinding Width}"
+                                   RadiusY="3"
+                                   RadiusX="3"
+                                   Margin="0,2" />
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+</ResourceDictionary>
