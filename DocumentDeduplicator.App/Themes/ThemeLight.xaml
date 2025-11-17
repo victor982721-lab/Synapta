@@ -1,0 +1,19 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Color x:Key="BackgroundColor">#FFFDFDFD</Color>
+    <Color x:Key="PrimaryTextColor">#FF1F1F1F</Color>
+    <Color x:Key="AccentColor">#FF0D6EFD</Color>
+    <Color x:Key="PanelColor">#FFF4F6FB</Color>
+    <Color x:Key="BorderColor">#FFDADCE3</Color>
+
+    <SolidColorBrush x:Key="AppBackground" Color="{StaticResource BackgroundColor}"/>
+    <SolidColorBrush x:Key="PrimaryText" Color="{StaticResource PrimaryTextColor}"/>
+    <SolidColorBrush x:Key="AccentText" Color="{StaticResource AccentColor}"/>
+    <SolidColorBrush x:Key="PanelBackground" Color="{StaticResource PanelColor}"/>
+    <SolidColorBrush x:Key="PanelBorder" Color="{StaticResource BorderColor}"/>
+
+    <Style TargetType="Window">
+        <Setter Property="Background" Value="{StaticResource AppBackground}"/>
+        <Setter Property="Foreground" Value="{StaticResource PrimaryText}"/>
+    </Style>
+</ResourceDictionary>
