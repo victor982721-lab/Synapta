@@ -1,0 +1,25 @@
+<!-- Define la clase principal de la aplicación WPF -->
+<Application x:Class="Ws_Insights.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             StartupUri="MainWindow.xaml">
+
+    <!-- Recursos globales disponibles para toda la aplicación -->
+    <Application.Resources>
+
+        <!-- Diccionario raíz donde se almacenan estilos, brushes, templates, etc. -->
+        <ResourceDictionary>
+
+            <!-- Lista de diccionarios fusionados (importados desde otros archivos) -->
+            <ResourceDictionary.MergedDictionaries>
+
+                <!-- Importa el tema oscuro definido en Themes/ThemeDark.xaml -->
+                <ResourceDictionary Source="Themes/ThemeDark.xaml" />
+
+            </ResourceDictionary.MergedDictionaries>
+
+        </ResourceDictionary>
+
+    </Application.Resources>
+
+</Application>
