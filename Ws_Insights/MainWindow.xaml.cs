@@ -426,7 +426,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged // Ventana prin
 
         try
         {
-            await CsvReporter.ExportAsync(dialog.FileName, Results); // Exporta resultados a CSV de forma asíncrona
+            await CsvExporter.ExportAsync(dialog.FileName, Results); // Exporta resultados a CSV de forma asíncrona
             AppendLog($"Reporte guardado en {dialog.FileName}"); // Registra ruta del reporte
         }
         catch (Exception ex)

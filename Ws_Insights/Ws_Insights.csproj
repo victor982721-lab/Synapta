@@ -19,7 +19,7 @@
     <!-- Habilitar soporte completo WPF -->
     <UseWPF>true</UseWPF>
 
-    <!-- Permitir usar componentes WinForms cuando convenga -->
+    <!-- WinForms habilitado para soporte de diálogos/controles específicos -->
     <UseWindowsForms>true</UseWindowsForms>
 
 
@@ -36,11 +36,8 @@
     <!-- Runtime objetivo: Windows x64 -->
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
 
-    <!-- Habilita trimming (elimina código no usado) -->
-    <PublishTrimmed>true</PublishTrimmed>
-
-    <!-- Modo de trimming más seguro para WPF -->
-    <TrimMode>partial</TrimMode>
+    <!-- Trimming deshabilitado: WPF no lo soporta oficialmente en .NET 8 -->
+    <PublishTrimmed>false</PublishTrimmed>
 
     <!-- Habilitar AOT para reducir tiempos de arranque -->
     <PublishAot>true</PublishAot>
@@ -72,25 +69,16 @@
     <Description>Sistema de búsqueda de archivos de Víctor</Description>
 
 
-    <!-- ===================== -->
-    <!-- ÍCONO DEL EJECUTABLE -->
-    <!-- ===================== -->
-
-    <!-- Ruta del archivo .ico -->
-    <ApplicationIcon>Assets/AppIcon.ico</ApplicationIcon>
-
   </PropertyGroup>
 
 
   <!-- Incluir archivos del proyecto -->
   <ItemGroup>
+  </ItemGroup>
 
-    <!-- Incluir ícono en Compilación -->
-    <Content Include="Assets\AppIcon.ico" />
-
-    <!-- (Opcional) incluir recursos adicionales -->
-    <!-- <Content Include="Assets\*.png" /> -->
-
+  <!-- El motor experimental (Search.Engine/*) depende de APIs disponibles desde .NET 9 -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0-windows'">
+    <Compile Remove="Search.Engine\**\*.cs" />
   </ItemGroup>
 
 </Project>

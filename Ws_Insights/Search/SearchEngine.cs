@@ -309,7 +309,7 @@ public sealed class SearchEngine
         IEnumerable<string> candidates;
         try
         {
-            candidates = Directory.EnumerateFiles(rootPath, pattern: "*", enumerationOptions);
+            candidates = Directory.EnumerateFiles(rootPath, searchPattern: "*", enumerationOptions);
         }
         catch (Exception)
         {

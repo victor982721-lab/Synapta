@@ -25,6 +25,7 @@ Motor de búsqueda de archivos con interfaz WPF optimizada para análisis masivo
 - Windows 11/10 de 64 bits (el `RuntimeIdentifier` es `win-x64`).
 - .NET 8 SDK (LTS) con workloads de escritorio (`Microsoft.NET.Sdk.WindowsDesktop`).
 - VS 2022 17.8+ o `dotnet` CLI 8.0 para compilar WPF/AOT.
+- El subdirectorio `Search.Engine` contiene prototipos que dependen de APIs de .NET 9; por ahora el proyecto net8 los omite del build (se mantienen como referencia técnica).
 
 ## Primeros pasos
 
