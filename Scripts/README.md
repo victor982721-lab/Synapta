@@ -31,3 +31,17 @@ principios descritos en `AGENTS.md` (parámetros claros, salidas estructuradas y
 
 El script siempre imprime un resumen JSON (también puede escribirse en archivo con `--summary`), de modo que otras automatizaciones
 puedan consumir el estado final de cada componente.
+
+### Librerías reutilizables (`Scripts/lib`)
+
+Para fomentar la modularidad, los scripts Bash comparten utilidades comunes dentro del subdirectorio `lib/`:
+
+| Archivo | Rol |
+| --- | --- |
+| `lib/logging.sh` | Inicializa colores ANSI y expone `synapta::log::{banner,section,info,...}`. |
+| `lib/utils.sh` | Helpers agnósticos (`require_cmd`, `ensure_dir`, `emit_summary`). |
+| `lib/installers/dotnet.sh` | Funciones `synapta::dotnet::ensure/install` para descargar el SDK por canal. |
+| `lib/installers/pwsh.sh` | Rutinas para instalar o validar PowerShell portables. |
+| `lib/installers/pssa.sh` | Installer best-effort de **PSScriptAnalyzer** (PowerShell). |
+
+Otros scripts pueden `source` estos módulos para reutilizar logging, validaciones y rutinas de instalación sin duplicar código.
