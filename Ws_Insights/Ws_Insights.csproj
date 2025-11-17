@@ -7,8 +7,8 @@
     <!-- Ejecutable con ventana (sin consola) -->
     <OutputType>WinExe</OutputType>
 
-    <!-- Target .NET 9 únicamente para Windows (habilita APIs específicas) -->
-    <TargetFramework>net9.0-windows</TargetFramework>
+    <!-- Target .NET 8 LTS únicamente para Windows (habilita APIs específicas) -->
+    <TargetFramework>net8.0-windows</TargetFramework>
 
     <!-- Sistema de nulabilidad activado -->
     <Nullable>enable</Nullable>

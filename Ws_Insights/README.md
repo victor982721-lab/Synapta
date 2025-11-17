@@ -23,8 +23,8 @@ Motor de búsqueda de archivos con interfaz WPF optimizada para análisis masivo
 ## Requisitos
 
 - Windows 11/10 de 64 bits (el `RuntimeIdentifier` es `win-x64`).
-- .NET 9 SDK (Preview) con workloads de escritorio (`Microsoft.NET.Sdk.WindowsDesktop`).
-- VS 2022 17.10+ o `dotnet` CLI 9.0-preview para compilar WPF/AOT.
+- .NET 8 SDK (LTS) con workloads de escritorio (`Microsoft.NET.Sdk.WindowsDesktop`).
+- VS 2022 17.8+ o `dotnet` CLI 8.0 para compilar WPF/AOT.
 
 ## Primeros pasos
 
