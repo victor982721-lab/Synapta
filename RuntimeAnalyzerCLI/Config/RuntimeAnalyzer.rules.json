@@ -1,0 +1,29 @@
+{
+  "DefaultRuleSet": [
+    "NullChecks",
+    "TypeChecks",
+    "PathChecks",
+    "PipelineChecks",
+    "Smoke"
+  ],
+  "Rules": {
+    "NullChecks": {
+      "Enabled": true,
+      "MaxParameters": 10
+    },
+    "TypeChecks": {
+      "Enabled": true
+    },
+    "PathChecks": {
+      "Enabled": true,
+      "MockCommand": "Test-Path"
+    },
+    "PipelineChecks": {
+      "Enabled": true,
+      "SampleItemCount": 3
+    },
+    "Smoke": {
+      "Enabled": true
+    }
+  }
+}
