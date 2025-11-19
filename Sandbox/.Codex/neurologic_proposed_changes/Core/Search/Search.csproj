@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net7.0;net6.0</TargetFrameworks>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <AssemblyName>Neurologic.Core.Search</AssemblyName>
+    <RootNamespace>Neurologic.Core.Search</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Cuando Indexing exista, agregar referencia a Neurologic.Core.Indexing -->
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net7.0;net6.0</TargetFrameworks>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <AssemblyName>Neurologic.Core.Indexing</AssemblyName>
+    <RootNamespace>Neurologic.Core.Indexing</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Agregar aquí referencias a otros proyectos de Core como FileSystem si fuera necesario -->
+  </ItemGroup>
+
+</Project>

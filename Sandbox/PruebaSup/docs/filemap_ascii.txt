@@ -1,0 +1,16 @@
+PruebaSup/
+├── AGENTS.md
+├── README.md
+├── PruebaSup.csproj
+├── docs/
+│   ├── solicitud_de_artefactos.md
+│   ├── filemap_ascii.txt
+│   ├── table_hierarchy.json
+│   ├── Procedimiento_de_solicitud_de_artefactos.md
+│   └── bitacora.md
+├── csv/
+│   ├── modules.csv
+│   └── artefacts.csv
+├── Scripts/
+├── src/
+└── tests/
