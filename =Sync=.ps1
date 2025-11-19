@@ -1,4 +1,4 @@
-<#!
+<#! 
     Sync-CodexMain.ps1
 
     Dos modos pensados para trabajar siempre sobre la rama 'main'
@@ -9,10 +9,22 @@
       - Pregunta confirmación.
       - Hace git add -A, git commit, git pull origin main, git push origin main.
 
-    Modo 2: Traer cambios desde GitHub (sync down)
-      - Verifica que NO haya cambios locales sin commitear.
-      - Hace git pull origin main para traer los cambios (por ejemplo,
-        los que vienen de una PR creada por Codex Web).
+    Modo 2: Traer cambios de la rama Codex_{date} y fusionarlos en main (sync down + merge)
+      - Soporta nombres de rama:  Codex_yyyy-MM-dd  o  codex_yyyy-MM-dd.
+      - Verifica que el árbol de trabajo esté limpio (sin cambios locales).
+      - Calcula nombre de rama Codex_YYYY-MM-DD para HOY.
+      - git fetch origin
+      - Verifica que exista origin/Codex_YYYY-MM-DD u origin/codex_YYYY-MM-DD.
+      - Muestra diff entre origin/main y origin/Codex_YYYY-MM-DD (sin pager).
+      - Pregunta confirmación.
+      - Hace:
+          * git checkout main (o la rama configurada)
+          * git pull origin main
+          * git merge --no-ff origin/Codex_YYYY-MM-DD
+          * git push origin main
+          * git push origin --delete Codex_YYYY-MM-DD   (borrar rama remota)
+          * git branch -D Codex_YYYY-MM-DD             (borrar rama local si existe)
+        Si hay conflictos en el merge, los muestra y NO borra la rama.
 
     Requisitos:
       - git en PATH
@@ -122,7 +134,7 @@ if ($currentBranch -ne $Branch) {
 Write-Host ""
 Write-Host "Selecciona modo:" -ForegroundColor Cyan
 Write-Host "  1) Subir cambios locales a GitHub (commit + pull + push)"
-Write-Host "  2) Traer cambios desde GitHub (pull)"
+Write-Host "  2) Traer cambios desde rama Codex_{date} (merge en main y borrar rama)"
 Write-Host ""
 
 $mode = Read-Host "Opción (1/2, ENTER = 1)"
@@ -173,25 +185,117 @@ switch ($mode.Trim()) {
         Write-Info "Listo. Cambios locales subidos a origin/$Branch."
     }
     '2' {
-        # Modo 2: traer cambios desde GitHub
+        # Modo 2: traer cambios desde rama Codex_{date} y fusionar en main
+
+        # Asegurarse de que no haya cambios locales
         $rawStatus = (& git status --porcelain)
         if (-not [string]::IsNullOrWhiteSpace($rawStatus)) {
-            Write-WarnMsg "Hay cambios locales sin commitear. No se realizará pull para evitar mezclas raras."
+            Write-WarnMsg "Hay cambios locales sin commitear. No se continuará para evitar mezclar con la rama Codex."
             Write-Host "Revisa primero con:" -ForegroundColor Yellow
             Write-Host "  git status"
             Write-Host "  git diff"
             return
         }
 
-        Write-Info "Trayendo cambios de origin/$Branch (git pull)..."
-        try {
-            & git pull origin $Branch
-        } catch {
-            Write-ErrMsg "git pull origin $Branch falló. Revisa el mensaje de error de git."
+        # Fecha de hoy
+        $today = Get-Date -Format 'yyyy-MM-dd'
+        $candidateBranches = @(
+            ("Codex_{0}" -f $today),
+            ("codex_{0}" -f $today)
+        )
+
+        Write-Info ("Buscando rama Codex para hoy ({0})..." -f $today)
+        Write-Info "Haciendo git fetch origin..."
+        & git fetch origin | Out-Null
+
+        $codexBranch = $null
+
+        foreach ($name in $candidateBranches) {
+            $remoteMatch = (& git branch -r --list ("origin/{0}" -f $name))
+            if (-not [string]::IsNullOrWhiteSpace($remoteMatch)) {
+                $codexBranch = $name
+                break
+            }
+        }
+
+        if (-not $codexBranch) {
+            Write-ErrMsg "No se encontró ninguna rama remota Codex para la fecha de hoy ($today)."
+            Write-Host "Ramas remotas que parecen ser de Codex:" -ForegroundColor Yellow
+            & git branch -r --list "origin/Codex_*" "origin/codex_*"
             return
         }
 
-        Write-Info "Listo. origin/$Branch sincronizado en tu carpeta local."
+        Write-Info ("Se usará la rama remota origin/{0}" -f $codexBranch)
+
+        # Mostrar diff entre origin/main y origin/Codex_{date}
+        Write-Host ""
+        Write-Info ("Diff entre origin/{0} y origin/{1} (sin pager):" -f $Branch, $codexBranch)
+        & git --no-pager diff ("origin/{0}" -f $Branch) ("origin/{0}" -f $codexBranch)
+        Write-Host ""
+
+        $confirm = Read-Host ("Escribe 'S' y pulsa ENTER para fusionar origin/{0} en {1}, o cualquier otra cosa para cancelar" -f $codexBranch, $Branch)
+        if ($confirm.Trim().ToUpperInvariant() -ne "S") {
+            Write-Info "Operación cancelada por el usuario."
+            return
+        }
+
+        # Asegurarse de estar en la rama main/Branch
+        Write-Info ("Cambiando a rama {0}..." -f $Branch)
+        & git checkout $Branch
+
+        Write-Info ("Actualizando {0} desde origin/{0}..." -f $Branch)
+        try {
+            & git pull origin $Branch
+        } catch {
+            Write-ErrMsg "git pull origin $Branch falló. Revisa el estado del repo."
+            return
+        }
+
+        Write-Info ("Haciendo merge --no-ff de origin/{0} en {1}..." -f $codexBranch, $Branch)
+        try {
+            & git merge --no-ff ("origin/{0}" -f $codexBranch)
+        } catch {
+            Write-ErrMsg "El merge produjo conflictos. Revisa 'git status' y 'git diff'. La rama Codex NO se borró."
+            return
+        }
+
+        # Verificar si quedaron conflictos
+        $postStatus = (& git status --porcelain --untracked-files=no)
+        if ($postStatus -match '^\s*UU') {
+            Write-ErrMsg "Hay archivos en conflicto (estado 'UU'). Resuélvelos manualmente antes de hacer push."
+            Write-Host "Usa, por ejemplo:" -ForegroundColor Yellow
+            Write-Host "  git status"
+            Write-Host "  git diff"
+            Write-Host "  git add <archivos_resueltos>"
+            Write-Host "  git commit"
+            Write-Host ""
+            Write-WarnMsg ("La rama origin/{0} NO se borró por seguridad." -f $codexBranch)
+            return
+        }
+
+        Write-Info ("Merge completado. Haciendo push de {0} a origin..." -f $Branch)
+        & git push origin $Branch
+
+        # Borrar rama remota Codex_{date}
+        Write-Info ("Borrando rama remota origin/{0}..." -f $codexBranch)
+        try {
+            & git push origin --delete $codexBranch
+        } catch {
+            Write-WarnMsg ("No se pudo borrar la rama remota {0}. Revisa permisos o hazlo a mano en GitHub." -f $codexBranch)
+        }
+
+        # Borrar rama local Codex_{date} si existe
+        $localBranchMatch = (& git branch --list $codexBranch)
+        if (-not [string]::IsNullOrWhiteSpace($localBranchMatch)) {
+            Write-Info ("Borrando rama local {0}..." -f $codexBranch)
+            try {
+                & git branch -D $codexBranch
+            } catch {
+                Write-WarnMsg ("No se pudo borrar la rama local {0}. Revisa manualmente." -f $codexBranch)
+            }
+        }
+
+        Write-Info ("Listo. Los cambios de {0} quedaron fusionados en {1} y la rama Codex se limpió (en lo posible)." -f $codexBranch, $Branch)
     }
     default {
         Write-WarnMsg "Opción inválida. Nada que hacer."
