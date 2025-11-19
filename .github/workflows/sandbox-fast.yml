@@ -1,0 +1,130 @@
+name: Sandbox .NET Fast CI
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'Sandbox/**'
+      - '.github/workflows/sandbox-fast.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'Sandbox/**'
+      - '.github/workflows/sandbox-fast.yml'
+  workflow_dispatch:
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: 1
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    # Corre siempre en push a main
+    # y solo en PRs cuya rama origen empiece con "codex_"
+    if: >
+      github.event_name == 'push' ||
+      (github.event_name == 'pull_request' && startsWith(github.head_ref, 'codex_'))
+    defaults:
+      run:
+        shell: pwsh
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET SDK 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~\.nuget\packages
+            ~\AppData\Local\NuGet\Cache
+          key: nuget-${{ runner.os }}-${{ hashFiles('Sandbox/**/*.csproj') }}
+          restore-keys: |
+            nuget-${{ runner.os }}-
+
+      - name: Restore & build all Sandbox projects (Release)
+        run: |
+          $root = Join-Path $env:GITHUB_WORKSPACE "Sandbox"
+          if (-not (Test-Path $root)) {
+            Write-Host "No existe carpeta Sandbox en el repo. Nada que hacer."
+            exit 0
+          }
+
+          $projects = Get-ChildItem $root -Recurse -Filter *.csproj
+          if (-not $projects) {
+            Write-Host "No se encontraron proyectos .csproj en Sandbox."
+            exit 0
+          }
+
+          foreach ($proj in $projects) {
+            Write-Host ">>> Restaurando y compilando: $($proj.FullName)" -ForegroundColor Cyan
+            dotnet restore $proj.FullName
+            dotnet build  $proj.FullName -c Release --no-restore /p:ContinuousIntegrationBuild=true
+          }
+
+  publish:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    needs: build
+    # Solo cuando ya hay código fusionado en main (push a main)
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    defaults:
+      run:
+        shell: pwsh
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET SDK 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Publish all Sandbox projects (Release, sin AOT)
+        run: |
+          $root = Join-Path $env:GITHUB_WORKSPACE "Sandbox"
+          $projects = Get-ChildItem $root -Recurse -Filter *.csproj
+          if (-not $projects) {
+            Write-Host "No hay proyectos .csproj en Sandbox. Nada que publicar."
+            exit 0
+          }
+
+          $artifactsRoot = Join-Path $env:GITHUB_WORKSPACE "artifacts"
+          New-Item -ItemType Directory -Path $artifactsRoot -Force | Out-Null
+
+          foreach ($proj in $projects) {
+            $projName   = $proj.BaseName
+            $publishDir = Join-Path $artifactsRoot "$projName/Release"
+
+            Write-Host ">>> Publicando $projName en $publishDir" -ForegroundColor Cyan
+            New-Item -ItemType Directory -Path $publishDir -Force | Out-Null
+
+            dotnet publish $proj.FullName `
+              -c Release `
+              -r win-x64 `
+              --self-contained true `
+              /p:PublishSingleFile=true `
+              /p:PublishTrimmed=true `
+              -o $publishDir
+          }
+
+          "PUBLISH_DIR=$artifactsRoot" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Upload Sandbox artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: sandbox-win-x64
+          path: ${{ env.PUBLISH_DIR }}
+          if-no-files-found: error
