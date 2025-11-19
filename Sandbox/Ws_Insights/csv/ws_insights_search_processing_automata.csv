@@ -1,0 +1,4 @@
+Archivo,Namespace,Rol,Estado
+AutomataBuilder.cs,Ws_Insights.Search.Processing.Automata,Construir autómatas DFA desde patrones literales,Stub
+DfaMatcher.cs,Ws_Insights.Search.Processing.Automata,Matcher de DFA sobre texto,Implementación simple
+NfaEngine.cs,Ws_Insights.Search.Processing.Automata,Motor NFA para patrones complejos,Stub

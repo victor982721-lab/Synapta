@@ -1,0 +1,4 @@
+Archivo,Namespace,Rol,Estado
+SearchEngine.cs,Ws_Insights.Search,Motor de búsqueda de alto nivel para UI,Implementado
+SearchOptions.cs,Ws_Insights.Search,Opciones de búsqueda expuestas a la UI,Implementado
+SearchProgress.cs,Ws_Insights.Search,Progreso de búsqueda para UI,Implementado

@@ -1,0 +1,3 @@
+Archivo,Namespace,Rol,Estado
+HyperscanEngine.cs,Ws_Insights.Search.Processing.Regex,Wrapper para motor Hyperscan opcional,Stub
+RegexEngine.cs,Ws_Insights.Search.Processing.Regex,Motor regex basado en .NET (sin Hyperscan),Funcional

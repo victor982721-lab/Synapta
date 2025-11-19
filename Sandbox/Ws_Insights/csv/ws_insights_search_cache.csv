@@ -1,0 +1,2 @@
+Archivo,Namespace,Rol,Estado
+BufferPool.cs,Ws_Insights.Search.Cache,Pool de buffers para arrays,Implementado

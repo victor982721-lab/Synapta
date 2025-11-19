@@ -1,0 +1,3 @@
+Archivo,Namespace,Rol,Estado
+Analyzer.cs,Ws_Insights.Search.Public,Análisis avanzado del índice,Stub
+IndexService.cs,Ws_Insights.Search.Public,Servicio de construcción y mantenimiento del índice,Parcial

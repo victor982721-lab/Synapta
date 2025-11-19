@@ -1,0 +1,7 @@
+Archivo,Namespace,Rol,Estado
+SearchContext.cs,Ws_Insights.Search.Core,Contexto de búsqueda con opciones y estado,Implementado
+SearchMatchKind.cs,Ws_Insights.Search.Core,Enum de tipos de coincidencia,Implementado
+SearchOptions.cs,Ws_Insights.Search.Core,Parámetros de búsqueda (record struct),Implementado
+SearchPipeline.cs,Ws_Insights.Search.Core,Pipeline de búsqueda (placeholder),Implementado (placeholder)
+SearchResult.cs,Ws_Insights.Search.Core,Representa un resultado de búsqueda,Implementado
+SearchStatistics.cs,Ws_Insights.Search.Core,Métricas de ejecución de una búsqueda,Implementado

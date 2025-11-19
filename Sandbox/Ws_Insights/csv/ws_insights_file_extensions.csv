@@ -1,0 +1,3 @@
+Archivo,Namespace,Rol,Estado
+ExtensionManagerWindow.cs,Ws_Insights.File_Extensions,Lógica de la ventana de gestión de extensiones,Implementado
+ExtensionManagerWindow.xaml,Ws_Insights.File_Extensions,Vista XAML de gestión de extensiones,Implementado

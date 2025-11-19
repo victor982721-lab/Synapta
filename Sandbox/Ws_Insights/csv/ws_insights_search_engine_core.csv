@@ -1,0 +1,2 @@
+Archivo,Namespace,Rol,Estado
+SearchPipeline.cs,Ws_Insights.Search.Engine.Core,Pipeline de búsqueda de alto rendimiento,Implementado

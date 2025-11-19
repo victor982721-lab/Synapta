@@ -1,0 +1,159 @@
+Neurologic/
+└── Ws_Insights/
+    ├── AGENTS.md
+    ├── README.md
+    ├── App.xaml
+    ├── App.xaml.cs
+    ├── MainWindow.xaml
+    ├── MainWindow.xaml.cs
+    ├── ThemeDark.xaml
+    ├── ThemeLight.xaml
+    ├── Ws_Insights.csproj
+    ├── Scripts/
+    │   └── lib/
+    │       ├── installers/
+    │       │   ├── dotnet.sh
+    │       │   ├── pssa.sh
+    │       │   └── pwsh.sh
+    │       └── logging.sh
+    ├── Models/
+    │   ├── ExtensionCategoryDefinition.cs
+    │   ├── ExtractionModeOption.cs
+    │   ├── ExtensionOption.cs
+    │   └── FileMatch.cs
+    ├── File_Extensions/
+    │   ├── ExtensionManagerWindow.cs
+    │   └── ExtensionManagerWindow.xaml
+    ├── Reporting/
+    │   └── Csv.Exporter.cs
+    ├── Utilities/
+    │   ├── PauseToken.cs
+    │   ├── SessionLogWriter.cs
+    │   └── TextRangeExtractor.cs
+    ├── Search.Engine/
+    │   ├── Cache/
+    │   │   ├── HotFileCache.cs
+    │   │   ├── LruCache.cs
+    │   │   └── QueryCache.cs
+    │   ├── Core/
+    │   │   └── SearchPipeline.cs
+    │   ├── Index/
+    │   │   └── IndexManager.cs
+    │   ├── IO/
+    │   │   ├── AsyncDiskScheduler.cs
+    │   │   ├── FileEnumerator.cs
+    │   │   └── MemoryMappedLoader.cs
+    │   ├── Processing/
+    │   │   └── Regex/
+    │   │       └── RegexEngine.cs
+    │   └── Public/
+    │       ├── Diagnostics.cs
+    │       └── SearchEngine.cs
+    ├── Search/
+    │   ├── SearchEngine.cs
+    │   ├── SearchOptions.cs
+    │   ├── SearchProgress.cs
+    │   ├── Core/
+    │   │   ├── SearchContext.cs
+    │   │   ├── SearchMatchKind.cs
+    │   │   ├── SearchOptions.cs
+    │   │   ├── SearchPipeline.cs
+    │   │   ├── SearchResult.cs
+    │   │   ├── SearchStatistics.cs
+    │   │   ├── Flags/
+    │   │   │   └── SearchOptionFlags.cs
+    │   │   └── Util/
+    │   │       ├── HashUtils.cs
+    │   │       ├── PathNormalizer.cs
+    │   │       └── TimeProvider.cs
+    │   ├── Cache/
+    │   │   └── BufferPool.cs
+    │   ├── IO/
+    │   │   ├── FileChangeDetector.cs
+    │   │   ├── FileMetadataReader.cs
+    │   │   └── FileSystemSnapshot.cs
+    │   ├── Processing/
+    │   │   ├── SpanHelpers.cs
+    │   │   ├── Automata/
+    │   │   │   ├── AutomataBuilder.cs
+    │   │   │   ├── DfaMatcher.cs
+    │   │   │   └── NfaEngine.cs
+    │   │   ├── Regex/
+    │   │   │   ├── HyperscanEngine.cs
+    │   │   │   └── RegexEngine.cs
+    │   │   ├── Text/
+    │   │   │   ├── CharsetTables.cs
+    │   │   │   └── Normalization.cs
+    │   │   └── Tokenizer/
+    │   │       ├── Token.cs
+    │   │       ├── TokenizerSIMD.cs
+    │   │       └── TokenStream.cs
+    │   ├── Index/
+    │   │   ├── Bloom/
+    │   │   │   ├── BloomFilterBuilder.cs
+    │   │   │   ├── BloomFilterConfig.cs
+    │   │   │   ├── BloomFilterReader.cs
+    │   │   │   └── BloomFilterStore.cs
+    │   │   ├── FileIdMap/
+    │   │   │   ├── FileId.cs
+    │   │   │   ├── FileIdMapBuilder.cs
+    │   │   │   └── FileIdMapReader.cs
+    │   │   ├── MetadataStore/
+    │   │   │   ├── ColumnStoreReader.cs
+    │   │   │   ├── ColumnStoreWriter.cs
+    │   │   │   └── Columns/
+    │   │   │       ├── ExtensionColumn.cs
+    │   │   │       ├── FileSizeColumn.cs
+    │   │   │       ├── FlagsColumn.cs
+    │   │   │       └── TimestampColumn.cs
+    │   │   ├── Storage/
+    │   │   │   ├── PostingsStore.cs
+    │   │   │   ├── StoredFieldsStore.cs
+    │   │   │   ├── TokenDictionaryStore.cs
+    │   │   │   └── Compression/
+    │   │   │       └── LZ4CodecAdapter.cs
+    │   │   ├── Segment/
+    │   │   │   ├── SegmentMetadata.cs
+    │   │   │   ├── SegmentReader.cs
+    │   │   │   └── SegmentWriter.cs
+    │   │   └── SegmentFileLayout.cs
+    │   └── Public/
+    │       ├── Analyzer.cs
+    │       └── IndexService.cs
+    ├── csv/
+    │   ├── scripts_lib.csv
+    │   ├── scripts_lib_installers.csv
+    │   ├── ws_insights_root.csv
+    │   ├── ws_insights_models.csv
+    │   ├── ws_insights_file_extensions.csv
+    │   ├── ws_insights_reporting.csv
+    │   ├── ws_insights_utilities.csv
+    │   ├── ws_insights_search_engine_cache.csv
+    │   ├── ws_insights_search_engine_core.csv
+    │   ├── ws_insights_search_engine_index.csv
+    │   ├── ws_insights_search_engine_io.csv
+    │   ├── ws_insights_search_engine_processing_regex.csv
+    │   ├── ws_insights_search_engine_public.csv
+    │   ├── ws_insights_search.csv
+    │   ├── ws_insights_search_core.csv
+    │   ├── ws_insights_search_core_flags.csv
+    │   ├── ws_insights_search_core_util.csv
+    │   ├── ws_insights_search_cache.csv
+    │   ├── ws_insights_search_io.csv
+    │   ├── ws_insights_search_processing.csv
+    │   ├── ws_insights_search_processing_automata.csv
+    │   ├── ws_insights_search_processing_regex.csv
+    │   ├── ws_insights_search_processing_text.csv
+    │   ├── ws_insights_search_processing_tokenizer.csv
+    │   ├── ws_insights_search_index_bloom.csv
+    │   ├── ws_insights_search_index_fileidmap.csv
+    │   ├── ws_insights_search_index_metadatastore.csv
+    │   ├── ws_insights_search_index_metadatastore_columns.csv
+    │   ├── ws_insights_search_index_storage.csv
+    │   ├── ws_insights_search_index_storage_compression.csv
+    │   ├── ws_insights_search_index_segment.csv
+    │   ├── ws_insights_search_index.csv
+    │   └── ws_insights_search_public.csv
+    └── docs/
+        ├── filemap_ascii.txt
+        └── table_hierarchy.json

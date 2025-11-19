@@ -1,0 +1,5 @@
+Archivo,Namespace,Rol,Estado
+ExtensionColumn.cs,Ws_Insights.Search.Index.MetadataStore.Columns,Columna doc→ id de extensión,Stub
+FileSizeColumn.cs,Ws_Insights.Search.Index.MetadataStore.Columns,Columna de tamaños de archivo,Stub
+FlagsColumn.cs,Ws_Insights.Search.Index.MetadataStore.Columns,Columna de flags/bitmask por documento,Stub
+TimestampColumn.cs,Ws_Insights.Search.Index.MetadataStore.Columns,Columna de timestamps por documento,Stub

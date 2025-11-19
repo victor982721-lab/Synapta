@@ -1,0 +1,5 @@
+Archivo,Namespace,Rol,Estado
+PostingsStore.cs,Ws_Insights.Search.Index.Storage,Acceso a listas de postings,Stub
+StoredFieldsStore.cs,Ws_Insights.Search.Index.Storage,Acceso a campos almacenados,Stub
+TokenDictionaryStore.cs,Ws_Insights.Search.Index.Storage,Diccionario de tokens por segmento,Stub
+SegmentFileLayout.cs,Ws_Insights.Search.Index.Storage,Definir nombres de archivos de segmento,Implementado

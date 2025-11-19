@@ -1,0 +1,2 @@
+Archivo,Namespace,Rol,Estado
+IndexManager.cs,Ws_Insights.Search.Engine.Index,Fachada del índice persistente,Implementado
