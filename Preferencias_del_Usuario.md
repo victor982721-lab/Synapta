@@ -52,13 +52,13 @@
 ## 5. Lenguajes, herramientas y entorno
 
 * Shell de referencia: **PowerShell 7.5.x (pwsh)**.
-* No usar ni sugerir **Windows PowerShell 5.1**.
+* No usar ni sugerir **Windows PowerShell 5.1** salvo que un `AGENTS.md` específico (p. ej. Cortex) indique explícitamente que el artefacto debe ser compatible; en ese caso, desarrolla en pwsh 7.x y verifica la ejecución en 5.1.
 * No proponer flujos basados en **WSL / Linux / WSL2** salvo petición explícita.
-* Lenguajes preferidos:
+* Lenguajes preferidos (prioridad por defecto):
 
   * **PowerShell**
   * **C# (.NET)**
-  * **Python**
+  * **Python** (solo cuando el usuario lo solicite de forma explícita)
   * **Bash** (solo cuando tenga sentido en este entorno)
 * Para Python:
 

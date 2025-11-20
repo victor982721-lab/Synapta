@@ -23,12 +23,13 @@ Los `AGENTS.md` específicos de cada proyecto (por ejemplo `Neurologic/Ws_Insigh
 
 ## 2. Entorno técnico global
 
-1. **Sistema operativo objetivo**: Windows 10.
-2. **Shell principal**: PowerShell 7+ (`pwsh`) en Windows Terminal.
+1. **Sistema operativo de trabajo**: Windows 10 u 11.
+2. **Compatibilidad mínima**: Algunos proyectos (p. ej. Cortex) requieren ejecutarse también en Windows 7/8.1 y en Windows PowerShell 5.1. Cuando un `AGENTS` específico lo indique, esa compatibilidad se considera una excepción autorizada.
+3. **Shell principal**: PowerShell 7+ (`pwsh`) en Windows Terminal para desarrollo y pruebas. El código debe conservar compatibilidad con PowerShell 5.1 solo cuando el proyecto lo requiera explícitamente y se deben documentar las diferencias.
 3. **Lenguajes permitidos por defecto**:
    - PowerShell
    - C# (.NET)
-   - Python
+   - Python (solo bajo petición explícita del usuario; PowerShell y C# son la prioridad para nuevos artefactos)
    - Bash (solo cuando tenga sentido en este entorno)
 4. **Prohibido por defecto**:
    - Windows PowerShell 5.1.
@@ -73,6 +74,7 @@ De acuerdo con el estándar técnico global del ecosistema:
    - Revisar la estructura del repositorio.
    - Revisar la documentación del proyecto (README, AGENTS específicos, mapas de archivos, CSV de inventario, etc.).
    - Confirmar si ya existe algo equivalente o similar.
+6. **`Core/` es el repositorio canónico de librerías reutilizables** (C# o PowerShell). Cuando un artefacto sea genérico para múltiples proyectos, debe residir o promoverse a `Core/` de forma planificada; `Sandbox/` se reserva para aplicaciones o pruebas específicas.
 
 ---
 

@@ -3,11 +3,14 @@ Cortex/
 ├── README.md
 ├── Cortex.csproj
 ├── docs/
+│   ├── Procedimiento_de_solicitud_de_artefactos.md
+│   ├── Informe.md
+│   ├── Cortex_Plan_Schema.md
 │   ├── solicitud_de_artefactos.md
 │   ├── filemap_ascii.txt
 │   ├── table_hierarchy.json
-│   ├── Procedimiento_de_solicitud_de_artefactos.md
-│   └── bitacora.md
+│   ├── bitacora.md
+│   └── Cortex.ps1
 ├── csv/
 │   ├── modules.csv
 │   └── artefacts.csv

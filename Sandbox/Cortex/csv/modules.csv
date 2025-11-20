@@ -1,1 +1,9 @@
 Componente,Descripcion,Estado,Responsable
+Cortex.Core.Scaffolding,"Genera estructuras Sandbox/Core, docs, CSV y plantillas embebidas.",Pendiente,Codex Web
+Cortex.Core.GitOps,"API para git status/add/commit/pull/push/merge Codex con manejo de remotos y conflictos.",Pendiente,Codex Web
+Cortex.Core.Analysis,"Ejecución de Parser AST, PSSA, dotnet build/test y quality gates.",Pendiente,Codex Web
+Cortex.Core.Artifacts,"Descarga artefactos vía gh/HTTP y extrae ZIP con System.IO.Compression.",Pendiente,Codex Web
+Cortex.Services,"Orquestadores de alto nivel (RequestBuilder, ProjectFactory, ArtifactSync).",Pendiente,Codex Web
+Cortex.CLI,"Interfaz interactiva basada en PromptForChoice, Confirm-Action y Write-Progress.",Pendiente,Codex Web
+Cortex.Automation,"Modo no interactivo por parámetros/archivos JSON para CI/CD.",Pendiente,Codex Web
+Cortex.Exporter,"Comando para empaquetar el script en un ejecutable (ps2exe/dotnet).",Pendiente,Codex Web

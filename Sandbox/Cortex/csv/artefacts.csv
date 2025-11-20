@@ -1,1 +1,9 @@
 Artefacto,Ubicacion,Proyecto_Origen,Proyecto_Destino,Estado
+Cortex.Core.Scaffolding,Sandbox/Cortex/src/Core/Scaffolding,Cortex,Sandbox/*,Pendiente
+Cortex.Core.GitOps,Sandbox/Cortex/src/Core/GitOps,Cortex,Sandbox/*,Pendiente
+Cortex.Core.Analysis,Sandbox/Cortex/src/Core/Analysis,Cortex,Sandbox+Core,Pendiente
+Cortex.Core.Artifacts,Sandbox/Cortex/src/Core/Artifacts,Cortex,Sandbox+Core,Pendiente
+Cortex.Services,Sandbox/Cortex/src/Services,Cortex,Sandbox+Core,Pendiente
+Cortex.CLI,Sandbox/Cortex/src/CLI,Cortex,Sandbox/Cortex,Pendiente
+Cortex.Automation,Sandbox/Cortex/src/Automation,Cortex,CI/CD Pipelines,Pendiente
+Cortex.Exporter,Sandbox/Cortex/src/Exporter,Cortex,Tooling (Exe),Pendiente

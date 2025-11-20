@@ -1,8 +1,26 @@
 {
   "name": "Cortex",
   "children": [
-    { "name": "docs" },
-    { "name": "csv" },
+    {
+      "name": "docs",
+      "children": [
+        { "name": "Procedimiento_de_solicitud_de_artefactos.md" },
+        { "name": "Informe.md" },
+        { "name": "solicitud_de_artefactos.md" },
+        { "name": "filemap_ascii.txt" },
+        { "name": "table_hierarchy.json" },
+        { "name": "bitacora.md" },
+        { "name": "Cortex_Plan_Schema.md" },
+        { "name": "Cortex.ps1" }
+      ]
+    },
+    {
+      "name": "csv",
+      "children": [
+        { "name": "modules.csv" },
+        { "name": "artefacts.csv" }
+      ]
+    },
     { "name": "Scripts" },
     { "name": "src" },
     { "name": "tests" }
