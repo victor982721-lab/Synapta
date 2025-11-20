@@ -1,6 +1,17 @@
 {
   "name": "Cortex",
   "children": [
+    { "name": "Cortex.ps1", "children": [
+        { "name": "Cortex.Core.Scaffolding" },
+        { "name": "Cortex.Core.GitOps" },
+        { "name": "Cortex.Core.Analysis" },
+        { "name": "Cortex.Core.Artifacts" },
+        { "name": "Cortex.Services" },
+        { "name": "Cortex.CLI" },
+        { "name": "Cortex.Automation" },
+        { "name": "Cortex.Exporter" }
+      ]
+    },
     {
       "name": "docs",
       "children": [

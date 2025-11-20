@@ -29,6 +29,24 @@ Cortex es la evolución modular de `RepoMaster.ps1`: un script maestro único, c
 
 Los componentes deben residir en el mismo `.ps1`, pero claramente separados (regiones o módulos internos) para permitir pruebas y reuso.
 
+## Implementación actual (Cortex.ps1)
+
+- Script único en la raíz (`Cortex.ps1`) con `Set-StrictMode`, `$ErrorActionPreference='Stop'` y salida UTF-8.
+- Capas internas: Core.Scaffolding, Core.GitOps, Core.Analysis, Core.Artifacts, Services (plan runner), CLI (PromptForChoice + Confirm-Action), Automation (AutoOption 1–7) y Exporter.
+- Templates embebidos para AGENTS/README/Procedimiento/Informe/Solicitud/CSV/mapa ASCII/tabla de jerarquía, generados via `New-CortexScaffold`.
+- Operaciones Git avanzadas (`Invoke-CortexSyncUp`, `Invoke-CortexSyncDown` con abort en conflicto), análisis integrados (Parser AST, PSSA si disponible, `dotnet build/test`), descargas de artefactos vía `gh` o HTTP+ZipFile y plan JSON/YAML (`Invoke-CortexPlan`).
+- Exportador (`Invoke-CortexExporter`) que usa `ps2exe` si está instalado o instruye sobre `dotnet publish` para un host .NET.
+
+### Ejecución rápida
+
+```powershell
+pwsh ./Cortex.ps1 -AutoOption 1 -RepoPath C:\Repos\Proyecto -ProjectName Demo -ProjectType PS-CLI
+pwsh ./Cortex.ps1 -AutoOption 5 -RepoPath C:\Repos\Proyecto -Branch main -RemoteName origin
+pwsh ./Cortex.ps1 -AutoOption 7 -PlanPath .\plan.json -LogPath .\logs
+```
+
+En modo interactivo, ejecuta `pwsh ./Cortex.ps1` y usa el menú basado en `PromptForChoice`.
+
 ## AutoOption y modos de ejecución
 
 | AutoOption | Operación                                                               |
@@ -62,18 +80,18 @@ Debe mantenerse multi-target (`net8.0;net7.0;net6.0`) y alinearse con los comand
 
 ## Estado actual
 
+- `Cortex.ps1` implementa las capas Core/Services/CLI/Automation/Exporter con plantillas embebidas y logging.
 - `docs/Informe.md`: análisis detallado de mejoras para RepoMaster/Cortex.
 - `docs/solicitud_de_artefactos.md`: solicitud en elaboración para Codex Web.
 - `AGENTS.md`: reglas específicas del proyecto.
 - `docs/Cortex_Plan_Schema.md`: estructura del plan JSON/YAML para Automation.
-- `csv/modules.csv` y `csv/artefacts.csv`: inventario a completar conforme se definan artefactos.
+- `csv/modules.csv` y `csv/artefacts.csv`: inventario actualizado al primer corte del script.
 - `docs/bitacora.md`: registrar acuerdos/decisiones de cada iteración.
 - `docs/Procedimiento_de_solicitud_de_artefactos.md`: guía de iteraciones para generar solicitudes.
 
 ## Próximos pasos
 
-1. Completar la solicitud con alcance, dependencias y criterios de aceptación (Iteración 2).
-2. Definir los artefactos en CSV (Iteración 3) y validar consistencia con tabla de jerarquía / filemap.
-3. Enviar la solicitud a Codex Web para que entregue el nuevo `Cortex.ps1`.
-4. Diseñar casos de prueba (Iteración 2), implementarlos/validarlos (Iteración 3) y ejecutarlos en PowerShell 5.1 y 7+.
-5. Documentar resultados en la bitácora y compilar a EXE si aplica.
+1. Ejecutar y afinar pruebas (PSSA, Parser, dotnet build/test) en Windows PowerShell 5.1 y pwsh 7+.
+2. Completar iteración de pruebas automatizadas (Pester/xUnit) y documentar resultados en la bitácora.
+3. Ajustar plantillas y flujos Automation según feedback y validar `docs/Cortex_Plan_Schema.md` contra la implementación.
+4. Compilar a EXE cuando se disponga de ps2exe o host .NET dedicado.
