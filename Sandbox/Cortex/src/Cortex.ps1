@@ -1,85 +1,8 @@
 # =========================================================================================================================================================================================
 # === RepoMaster - Script de administración de repositorios Synapta / Neurologic ===
 # =========================================================================================================================================================================================
-<#
-.SYNOPSIS   
-Herramienta interactiva para administrar repositorios del ecosistema Synapta/Neurologic desde una sola consola.
 
-DESCRIPTION
-RepoMaster automatiza tareas frecuentes sobre repositorios Git alojados bajo una ruta base (por defecto, `Documents\GitHub`) y se adapta al entorno de trabajo del usuario (Windows 7–11 con compatibilidad desde PowerShell 5 en adelante, priorizando Windows 10 y PowerShell 7.5.x).  Entre sus funciones destacan:
-
-* Alta de subproyectos en `Sandbox/<Proyecto>` con estructura estándar (carpetas `docs`, `csv`, `Scripts`, `src`, `tests`).
-* Generación de archivos base (`AGENTS.md`, `README.md`, `.csproj`, mapas ASCII, jerarquía JSON, CSV, procedimientos).
-* Inicialización de la estructura base del repositorio (documentos globales y sandbox vacío) cuando no existe.
-* Creación de copias de seguridad comprimidas (7z) de proyectos en Sandbox hacia la carpeta de documentos del usuario.
-* Eliminación de proyectos en Sandbox de forma segura, sin requerir permisos especiales fuera del script.
-* Sincronización de cambios locales hacia `origin` (pull + commit + push) y fusión de ramas `Codex_YYYY-MM-DD` generadas por agentes en la rama principal indicada.
-* Análisis estático con PSScriptAnalyzer sobre proyectos creados.
-* Descarga de artifacts publicados por GitHub Actions (vía GitHub CLI).
-* Operaciones en lote sobre todos los repositorios Git detectados bajo la ruta base.
-* Función “Doctor” para validar la estructura mínima esperada de cada proyecto.
-
-El script está pensado como monolito interactivo: muestra menús, pregunta confirmaciones y guía al usuario en cada paso.
-También admite un modo no interactivo básico mediante -InitialRepo y -AutoOption.
-
-.PARAMETER BasePath
-Ruta base donde se buscarán repositorios Git y se mostrará el menú de selección.
-Por defecto: "$env:USERPROFILE\Documents\GitHub".
-
-.PARAMETER DefaultBranch
-Nombre de la rama principal sobre la que operan las funciones de sincronización y fusión (por ejemplo, main o master).
-Puede ser sobreescrita por -InitialBranch.
-
-.PARAMETER InitialRepo
-Ruta a un repositorio concreto para ejecutar directamente una opción automática, sin pasar por el menú de selección.
-Se usa en combinación con -AutoOption.
-
-.PARAMETER AutoOption
-Código de opción a ejecutar en modo automático sobre -InitialRepo.
-Valores actuales:
-  '1' = Crear estructura Sandbox en el repositorio indicado.
-  '2' = Crear la estructura base del repositorio (documentos globales + sandbox vacío).
-  '3' = Sincronizar cambios locales → origin/DefaultBranch.
-  '4' = Fusionar la rama Codex_YYYY-MM-DD → DefaultBranch.
-  '5' = Descargar artifacts de GitHub Actions.
-  '6' = Crear una copia de seguridad comprimida (7z) de un proyecto del Sandbox.
-  '7' = Eliminar un proyecto existente en Sandbox.
-  '8' = Atrás (seleccionar otro repositorio; solo tiene efecto en modo interactivo).
-Cualquier otro valor se considera no soportado y dispara una advertencia.
-
-.PARAMETER InitialBranch
-Permite sobreescribir la rama por defecto (-DefaultBranch) al inicio de la ejecución.
-Si se indica, todas las operaciones que usan la rama principal trabajarán sobre este valor.
-
-.NOTES
-Autor:    ChatGPT (generado para el usuario).
-Contexto: Ecosistema Synapta / Neurologic – administración de repos locales y flujos con Codex / GitHub.
-Fecha:    19 de noviembre de 2025.
-
-REQUISITOS:
-- Git instalado y accesible en PATH (para Ensure-GitAvailable / Ensure-GitRepo / operaciones de sync).
-- .NET SDK (para dotnet build / dotnet test en operaciones en lote).
-- PSScriptAnalyzer instalado si se desea usar Invoke-PSSAAnalysis:
-    Install-Module -Name PSScriptAnalyzer
-- GitHub CLI (gh) configurado con autenticación válida para descargar artifacts:
-    https://cli.github.com/  +  gh auth login
-
-.LINK
-(Interno) Documentación de estándares de proyecto Neurologic / Synapta, si aplica.
-
-.EXAMPLE
-# Uso interactivo normal sobre la ruta base por defecto
-.\RepoMaster.ps1
-
-.EXAMPLE
-# Ejecutar directamente la creación de estructura Sandbox sobre un repo concreto
-.\RepoMaster.ps1 -InitialRepo 'C:\Code\MyRepo' -AutoOption '1'
-
-.EXAMPLE
-# Trabajar sobre una rama principal distinta a main (por ejemplo, develop)
-.\RepoMaster.ps1 -DefaultBranch 'develop'
-
-#>
+{{Aquí va el contenido del Introducción_Cortex.ps1 ubicado en "C:\Users\VictorFabianVeraVill\Documents\GitHub\Neurologic\Sandbox\Cortex\docs\Templates"}}}}
     
 # =========================================================================================================================================================================================
 # === Parámetros y configuración ===
@@ -90,303 +13,67 @@ param(
     [string]$BasePath = (Join-Path $env:USERPROFILE 'Documents\GitHub'),
     [string]$DefaultBranch = 'main',
     [string]$InitialRepo,
-    # Se amplía el conjunto de opciones automáticas para permitir nuevas acciones como
-    # copias de seguridad y eliminación de proyectos.  Se conservan las opciones
-    # existentes (1 a 5) y se añaden 6 y 7 para backup y borrado.
     [ValidateSet('1','2','3','4','5','6','7','8')]
     [string]$AutoOption,
     [string]$InitialBranch
 )
 
-    # ===================================================================================================
-    # === Contenidos embebidos para documentos globales ===
-    # Las siguientes variables contienen las versiones optimizadas de los archivos que
-    # deben existir en la raíz del repositorio (AGENTS.md, Politica_cultural_y_de_calidad.md,
-    # Preferencias_del_Usuario.md, README.md) así como el AGENTS de la carpeta Core.
-    # Estas cadenas se utilizan en la función Ensure-RepoDocs para crear dichos archivos
-    # la primera vez que se inicialice el repositorio o cuando falten.  Si se actualiza
-    # alguno de estos documentos, actualiza también estas variables para reflejar los
-    # cambios.
+# ===============================
+<#
+.SYNOPSIS   
+- Variables que contienen las versiones optimizadas de AGENTS.md, Politica_cultural_y_de_calidad.md, Preferencias_del_Usuario.md, README.md y el AGENTS de Core.
+- Ensure-RepoDocs usa estas cadenas para crear o reponer esos archivos; si actualizas los documentos, actualiza también estas variables.
+#>
+# ===============================
 
-    $GlobalNeurologicAgentsContent = @'
-# AGENTS – Neurologic (General)
+$GlobalNeurologicAgentsContent = 
 
-Este documento define las reglas globales para el agente **Codex** al trabajar en el repositorio **Neurologic**.  Se aplica junto con la **Política cultural y de calidad** del ecosistema.  Los `AGENTS.md` específicos de cada proyecto pueden añadir reglas más estrictas, pero nunca debilitar este estándar.
+@'
 
-## 1. Prioridad de reglas
+{{Aquí va el contenido del AGENTS.md ubicado en "C:\Users\VictorFabianVeraVill\Documents\GitHub\Neurologic\Sandbox\Cortex\docs\Templates"}}
 
-1. **Política cultural y de calidad** – principios culturales y estándares mínimos.
-2. `AGENTS.md` **específico del proyecto o subproyecto** (si existe).
-3. Este **AGENTS general**.
-
-En caso de conflicto, prevalece la regla más específica siempre que no contradiga la política global.
-
-## 2. Entorno y lenguajes
-
-* **Sistema operativo principal**: Windows 10.  Se requiere compatibilidad desde Windows 7 hasta Windows 11.
-* **Shell principal**: PowerShell 7.5.x (`pwsh`).  Se admite compatibilidad desde PowerShell 5 en adelante (5.x, 6.x, 7.x) para preservar entornos legacy.
-* **Lenguajes permitidos**: C# (.NET), PowerShell, Python y Bash (solo cuando tenga sentido en este entorno).
-* **Compatibilidad con Linux**: no se requiere compatibilidad con Linux en esta fase; los flujos basados en WSL/WSL2 siguen prohibidos salvo instrucción explícita.
-* **Proyectos .NET**: se deben desarrollar para **.NET 8**, manteniendo compatibilidad con .NET 7 y .NET 6 mediante multi‑targeting (`net8.0;net7.0;net6.0` para librerías y `net8.0‑windows;net7.0‑windows;net6.0‑windows` para aplicaciones).  No degradar a single‑target sin una justificación documentada.  Priorizar el funcionamiento en el entorno real del usuario y dejar listo el camino para futuras versiones.
-
-## 3. Principios globales
-
-1. **Reutilización antes que reinvención** – Antes de crear un motor o módulo nuevo, revisar la estructura del repositorio, la documentación y los CSV de inventario para ver si ya existe algo similar.
-2. **Modularidad y determinismo** – Implementar funcionalidades complejas como módulos reutilizables desacoplados de la UI; garantizar que mismos inputs producen mismos outputs.
-3. **No duplicación de motores** – Los indexadores y motores existentes se consideran la fuente de verdad.  Extenderlos mediante nuevas funciones o adaptadores en lugar de crear clones.
-4. **Entrega completa** – Codex debe entregar scripts o archivos completos y listos para ejecutar; no diffs parciales ni fragmentos sueltos.
-5. **Respeto a la estructura** – Mantener `namespace = ruta de carpeta`; no crear carpetas ni mover archivos sin instrucción o regla explícita.
-6. **Compatibilidad y pruebas** – Mantener compatibilidad hacia atrás en APIs públicas; acompañar cada módulo con pruebas automáticas.
-
-## 4. Comportamiento esperado de Codex
-
-Antes de generar código, Codex debe:
-
-* Leer este AGENTS general, la **Política** y el `AGENTS.md` específico del subproyecto.
-* Revisar la arquitectura (motores, indexadores y módulos comunes) antes de proponer soluciones.
-* Extender motores o módulos existentes en vez de duplicarlos.
-* Entregar resultados de extremo a extremo: código listo para ejecutar, con documentación mínima, pruebas y actualización de CSV y docs.
-* No introducir dependencias pesadas ni simplificar un motor sólido a una versión inferior sin justificación.
-
-## 5. Resumen rápido
-
-1. Leer el contexto y las reglas antes de actuar.
-2. Reutilizar lo existente y mantener modularidad y determinismo.
-3. Cumplir el esquema multi‑target de .NET.
-4. Entregar código completo, ejecutable y alineado con las convenciones.
-5. Consultar y respetar los `AGENTS.md` específicos donde se trabaje.
 '@
 
-    $GlobalPolicyContent = @'
-# Política cultural y de calidad – Ecosistema Neurologic
+# ================================
 
-Este documento define los principios culturales y los estándares técnicos mínimos que deben respetar todos los trabajos realizados dentro del ecosistema **Neurologic/Synapta**, tanto por personas como por agentes automatizados (incluyendo modelos de IA como Codex o ChatGPT).  Se aplica a todo el repositorio y a cualquier proyecto que forme parte de él.  Los documentos `AGENTS.md` específicos de cada proyecto pueden **endurecer** estas reglas, pero nunca rebajarlas.
+$GlobalPolicyContent = 
 
----
+@'
 
-## 1. Principios culturales
+{{Aquí va el contenido del Politica_CC.md ubicado en "C:\Users\VictorFabianVeraVill\Documents\GitHub\Neurologic\Sandbox\Cortex\docs\Templates"}}
 
-1. **Respeto al trabajo previo** – El código, los scripts, índices y motores existentes forman parte de un ecosistema vivo.  No se desechan ni se reescriben desde cero por comodidad o desconocimiento; si algo no se entiende, primero se estudia y se documenta mejor.
-2. **Reutilización antes que reinvención** – Ante cualquier nueva tarea se debe comprobar si ya existe un motor, módulo o script que la resuelva parcial o totalmente.  Si existe algo reutilizable, se extiende o se adapta; duplicar un motor existente se considera una regresión.
-3. **Ecosistema coherente, no scripts desechables** – Las herramientas no son piezas sueltas: cada nueva pieza debe integrarse con logs, índices, formatos de salida y módulos compartidos existentes.
-4. **Determinismo y previsibilidad** – Mismos inputs → mismos outputs.  Las decisiones pseudoaleatorias deben evitarse o controlarse mediante semillas reproducibles.
-5. **Responsabilidad técnica** – No se eligen soluciones rápidas pero frágiles cuando existen alternativas robustas razonables.  Cada cambio debe pensarse como algo que convivirá años con el resto del ecosistema.
-
----
-
-## 2. Estándar técnico mínimo
-
-1. **Modularidad extrema** – Motores de alto nivel (lectura de NTFS, indexadores, motores de búsqueda, etc.) deben implementarse como módulos reutilizables desacoplados de la UI.  El código debe exponer APIs claras y poder ser consumido por múltiples scripts o aplicaciones sin modificaciones.
-2. **Indexadores e infraestructura de memoria** – Cuando exista un indexador, éste se considera la fuente de verdad para rutas, hashes, metadatos y resultados de búsqueda.  Los nuevos componentes deben integrarse con él antes de inventar estructuras paralelas.
-3. **Rendimiento y escalabilidad** – Evitar recorridos masivos sin filtros.  Priorizar lectura por lotes, paralelismo razonable y procesamiento en streaming cuando sea necesario.  Considerar explícitamente el consumo de CPU y RAM en el diseño.
-4. **Entradas y salidas estructuradas** – Los procesos de larga duración deben producir salidas estructuradas (NDJSON, JSON, CSV) y logs útiles; evitar archivos basura y establecer una política clara de limpieza.
-5. **Hashing y deduplicación** – Preferir algoritmos rápidos (por ejemplo, xxHash3) para identificación y deduplicación; usar hashes más pesados solo cuando esté justificado.
-6. **Diseño de scripts** – Entregar scripts completos, parametrizables e idempotentes en la medida de lo posible.  No depender de rutas mágicas no documentadas.
-7. **.NET y multi‑framework** – En proyectos .NET se debe desarrollar para **.NET 8** y mantener compatibilidad con .NET 7 y .NET 6.  Los archivos de proyecto deben usar multi‑targeting (`net8.0;net7.0;net6.0` para librerías y `net8.0‑windows;net7.0‑windows;net6.0‑windows` para aplicaciones).  Nunca degradar un proyecto multi‑framework a single‑target sin una justificación documentada.  Se prioriza el funcionamiento en las condiciones reales del entorno del usuario y se deja abierta la integración a futuras versiones.
-
----
-
-## 3. Reutilización de motores e indexadores
-
-1. **Búsqueda de componentes existentes** – Antes de crear un motor nuevo se debe revisar la estructura del repositorio, la documentación disponible y los CSV de inventario para confirmar si ya existe algo equivalente o similar.
-2. **Extensión en lugar de duplicación** – Si existe un módulo funcional que cubre parte del problema, por defecto se debe extender o adaptar en lugar de duplicar.  Nuevas funcionalidades deben integrarse mediante métodos adicionales, modos de operación o adaptadores que llamen al motor existente.
-3. **Migración hacia versiones mejores** – Cuando se construya una versión mejorada de un motor, se deben migrar gradualmente sus usos actuales para evitar ramas paralelas incompatibles.  Mantener múltiples motores casi iguales se considera una deuda técnica a corregir.
-4. **Documentación mínima obligatoria** – Los motores e indexadores deben tener comentarios claros en el código y una descripción básica en la documentación relevante (README, AGENTS del proyecto).  La falta de documentación en un motor crítico es un problema a resolver.
-
----
-
-## 4. Determinismo y no regresión
-
-1. **Determinismo** – Un mismo conjunto de entradas debe producir el mismo conjunto de salidas salvo cambios deliberados en configuración o entorno.  Las decisiones pseudoaleatorias deben controlarse con semillas reproducibles.
-2. **Bases estables** – Un componente probado y estable se considera base para trabajos futuros.  No se reemplaza una base sólida por una versión más simple pero peor por comodidad.
-3. **Reescrituras desde cero** – Reescribir un motor desde cero porque “no se encuentra” o “no se entiende” el código actual se considera un fallo del sistema.  La respuesta adecuada es localizar el código, mejorar la documentación y refactorizar de forma incremental.
-4. **Criterio de aceptación** – Un cambio que empeora rendimiento, integrabilidad o determinismo no debe considerarse aceptable aunque “funcione” en un caso simple.
-
----
-
-## 5. Rol de los agentes IA
-
-1. **Lectura previa del contexto** – Antes de generar código o scripts, el agente debe leer este documento, consultar los `AGENTS.md` específicos del proyecto y considerar la arquitectura e indexadores definidos.
-2. **Búsqueda de reutilización** – La acción por defecto no es “escribir código nuevo” sino revisar módulos, scripts o motores ya documentados que puedan usarse.  Solo después se genera código nuevo que encaje en el ecosistema.
-3. **Entrega A→Z** – Las respuestas deben ofrecer soluciones completas y accionables (scripts, configuraciones, módulos), no esqueletos vagos; no delegar al usuario la tarea de rellenar la mitad del código cuando el agente puede generarlo.
-4. **Respeto a este estándar** – Cualquier sugerencia que vaya en contra de estos principios (scripts desechables, duplicación de motores, degradación de proyectos multi‑framework) debe considerarse errónea y corregirse.
-
----
-
-## 6. Checklist de calidad antes de integrar cambios
-
-Antes de aceptar un trabajo en el ecosistema Neurologic, debe pasarse por la siguiente lista mínima:
-
-1. ¿Reutiliza o extiende motores/indexadores/módulos existentes cuando corresponde?
-2. ¿Evita duplicar funcionalidades que ya existen en otra parte del repositorio?
-3. ¿Respeta la estructura de módulos, namespaces y proyectos definida para su área?
-4. ¿Cumple el estándar técnico mínimo (modularidad, rendimiento razonable, salidas estructuradas)?
-5. En proyectos .NET, ¿respeta el esquema multi‑framework (`net8/net7/net6`) o está justificada cualquier excepción?
-6. ¿Ofrece un comportamiento determinista y reproducible?
-7. ¿Está acompañado de la documentación mínima necesaria para que otro agente o persona pueda entenderlo y reutilizarlo?
-
-Si alguna respuesta es “no”, el trabajo debe tratarse como un borrador a mejorar, no como un resultado final.
 '@
 
-    $GlobalUserPrefsContent = @'
-# Preferencias del usuario
+# ================================
 
-## 1. Perfil y entorno
+$GlobalUserPrefsContent = 
 
-* Usuario: **Víctor Vera**
-* SO principal: **Windows 10** (compatible desde Windows 7 hasta Windows 11)
-* Uso principal: scripts, automatización y desarrollo técnico sin fines de lucro
-* Carpeta local base del proyecto: `C:\Users\VictorFabianVeraVill\Documents\GitHub\Neurologic`
-* Repositorio remoto principal: `victor982721‑lab/Neurologic`
-* Shell principal: **PowerShell 7.5.x (pwsh)** en **Windows Terminal** (compatibilidad con PowerShell 5 en adelante)
-* Editor habitual: **Sublime Text** (pueden aparecer otros, pero este es el de referencia)
+@'
 
----
+{{Aquí va el contenido de Preferencias_Usuario.md ubicado en "C:\Users\VictorFabianVeraVill\Documents\GitHub\Neurologic\Sandbox\Cortex\docs\Templates"}}
 
-## 2. Idioma y estilo de respuesta
-
-* Idioma por defecto: **español (MX)**
-* Tono: **directo, conciso y técnico**
-* Orden de la respuesta:
-  1. **Resultado accionable primero** (script/archivo/comando listo para pegar).
-  2. Después, como máximo **1–3 párrafos breves** de explicación práctica.
-* Evitar elogios, relleno y frases vacías.
-* No convertir ninguna petición en curso/tutorial salvo que el usuario lo pida explícitamente.
-
----
-
-## 3. Forma de entrega (código y archivos)
-
-* Entregar siempre **scripts completos y ejecutables**, nunca solo diffs o fragmentos sueltos.
-* Si la solución cabe en una o dos líneas, usar **un único bloque de código corto**.
-* Si el script tiene varias líneas o es algo real, generarlo mediante **Canvas (Canmore)** con el tipo adecuado (`code/powershell`, `code/csharp`, `code/python`, etc.).
-* Después de crear un archivo en Canvas, **no repetir su contenido completo en el chat**; solo explicar brevemente qué archivo se creó, para qué sirve y cómo usarlo.
-* Preferencia por soluciones **A→Z** en un solo turno: si está claro que se necesita un script, **entregar el script directamente**, sin preguntar si también lo quieres en script.
-
----
-
-## 4. Manejo de ambigüedad y contexto
-
-* No reinterpretar ni “mejorar” instrucciones por iniciativa propia.
-* Ante ambigüedad que **bloquee la ejecución**, hacer **una sola pregunta corta y concreta**.
-* No repetir preguntas ya respondidas en el contexto reciente.
-* Antes de responder, leer el contexto reciente y aplicar estas preferencias.
-* Cuando el usuario exprese frustración, reconocerla de forma breve y respetuosa, y luego volver al foco: **resolver el problema técnico**.
-
----
-
-## 5. Lenguajes, herramientas y entorno
-
-* Shell de referencia: **PowerShell 7.5.x (pwsh)** (compatible desde PowerShell 5 en adelante).
-* No proponer flujos basados en **WSL/Linux/WSL2** salvo petición explícita.
-* Lenguajes preferidos: **PowerShell**, **C# (.NET)**, **Python**, **Bash** (solo cuando tenga sentido en este entorno).
-* Para Python: no usar entornos virtuales (`venv`) por defecto.  Para GUI, preferir **PySide6**; no usar **Tkinter**.
-* El usuario tiene y usa `git` y `gh` autenticado; se pueden proponer flujos que los aprovechen.
-
----
-
-## 6. Reutilización, calidad y no regresión
-
-* Preferencia clara por **reutilizar motores, módulos y utilidades existentes** antes de reescribir desde cero.
-* Evitar duplicar lógica cuando sea posible extraer utilidades comunes reutilizables.
-* No sustituir una solución sólida por otra más simple pero peor solo para “acortar código”, salvo que el usuario lo pida explícitamente.
-* Cuando se proponga una versión mejorada de un motor/módulo: explicar brevemente qué mejora y sugerir migrar sus usos relevantes, en lugar de dejar múltiples variantes incompatibles.
-* Reescribir algo desde cero **solo** porque “ya no se encuentra el script” se considera una situación a corregir (mejorar organización/nombres), no un comportamiento deseable.
-
----
-
-## 7. Prohibiciones de interacción
-
-* No dar cursos, series de lecciones ni explicaciones largas salvo petición explícita.
-* No mezclar demasiados temas en una sola respuesta si eso hace menos claro el paso accionable principal.
-* No proponer tecnologías fuera de las preferidas sin una razón técnica clara.
-* No hablar de versiones antiguas de reglas o documentos; aplicar siempre **la versión actual**.
-* No dividir artificialmente el trabajo en varios turnos si puede resolverse de forma razonable en uno solo.
-
----
-
-## 8. Resumen operativo rápido
-
-1. Leer el contexto reciente y este documento de preferencias.
-2. Si el usuario pide algo ejecutable, devolver **script/comando/archivo completo listo para usarse**.
-3. Alinear siempre la solución con su entorno real (Windows 10 + pwsh 7.5.x, sin WSL ni PS 5.1 por defecto).
-4. Añadir solo la explicación mínima necesaria para que entienda cómo usar lo entregado.
-5. Si hay una duda que realmente bloquee la respuesta, hacer **una pregunta corta**; si no, resolver en el mismo turno con la mejor suposición razonable.
 '@
 
-    $GlobalRepoReadmeContent = @'
-# Neurologic
+# ================================
 
-Repositorio privado para el ecosistema **Neurologic/Synapta**: automatización, motores internos, indexadores y proyectos de escritorio.  Este README sirve como índice operativo y referencia para agentes (humanos o IA).  No es documentación pública.
+$GlobalRepoReadmeContent = 
 
-## Documentos normativos globales
+@'
 
-* **Política cultural y de calidad – Ecosistema Neurologic** – Define principios culturales y estándares técnicos mínimos que deben respetar todas las personas y agentes en cualquier proyecto.
-* **AGENTS – Neurologic (General)** – Reglas específicas para el agente Codex al trabajar en este repositorio.  Refuerza multi‑target .NET, modularidad, reutilización de motores y entrega completa de código.
-* **Preferencias del usuario** – Describe preferencias operativas del desarrollador: idioma, tono, formato de respuesta y entorno base (Windows 10, PowerShell 7.5.x, etc.).
+{{Aquí va el contenido del Repo_README.md ubicado en "C:\Users\VictorFabianVeraVill\Documents\GitHub\Neurologic\Sandbox\Cortex\docs\Templates"}}
 
-Los AGENTS específicos de cada proyecto pueden **endurecer** estas reglas pero nunca rebajarlas.
-
-## Cómo trabajar con un proyecto en Sandbox
-
-Cada subproyecto dentro de `Sandbox/<Proyecto>` contiene su propia carpeta con sus documentos.  El flujo recomendado para un agente ChatGPT es:
-
-1. **Leer los documentos normativos globales** mencionados arriba.
-2. Entrar en `Sandbox/<Proyecto>/` y leer su `AGENTS.md` y `README.md`.
-3. Abrir `docs/Procedimiento_Codex_<Proyecto>.md` (si existe) y seguir el flujo descrito allí: investigar el dominio, preparar la solicitud de artefactos, actualizar los CSV y jerarquías y entregar la carpeta final sin el procedimiento.
-
-Una vez que ChatGPT produce la solicitud y los inventarios, la carpeta puede enviarse a Codex, quien generará módulos y artefactos conforme a los AGENTS y a la política.
-
-## Estructura general del repositorio
-
-La estructura de carpetas se describe en `Repo_Estructura_ASCII.md`, que ofrece un mapa ASCII con los principales directorios (Core y Sandbox).  Cada subproyecto de Sandbox sigue un patrón similar: contiene su propio `AGENTS.md`, `README.md`, un directorio `docs/` con plantillas y jerarquías, un directorio `csv/` para inventarios, una carpeta `Scripts/` con utilidades y carpetas `src/` y `tests/` para el código y las pruebas.
 '@
 
-    $CoreAgentsContent = @'
-# AGENTS – Core
+# ================================
 
-Este documento define las reglas específicas para el desarrollo de módulos en la carpeta **Core** del repositorio Neurologic.  Se complementa con la **Política cultural y de calidad** y el **AGENTS general**, y en ningún caso puede contradecirlos.
+$CoreAgentsContent = 
 
-## Entorno y herramientas
+@'
 
-* **Sistema operativo principal:** Windows 10 (compatibilidad con Windows 7–11).
-* **Shell principal:** PowerShell 7.5.x (se admite compatibilidad con PowerShell 5 en adelante).  No usar WSL/WSL2 por defecto.
-* **Lenguajes:** C# para librerías .NET; PowerShell para scripts de soporte.  Python solo cuando esté justificado y se acuerde explícitamente.
-* **Proyectos .NET:** se deben crear como bibliotecas multi‑target desarrolladas para **.NET 8** con compatibilidad para **.NET 7** y **.NET 6** (`<TargetFrameworks>net8.0;net7.0;net6.0</TargetFrameworks>`).  No se permite degradar a single‑target salvo justificación documentada.  Se prioriza el funcionamiento en el entorno real del usuario y se deja abierta la adaptación a futuras versiones.
+{{Aquí va el contenido del Core_AGENTS.md ubicado en "C:\Users\VictorFabianVeraVill\Documents\GitHub\Neurologic\Sandbox\Cortex\docs\Templates"}}
 
-## Principios de desarrollo
-
-1. **Modularidad y reutilización** – Los componentes de Core se diseñan para ser reutilizables por múltiples proyectos.  No mezcles lógica de UI ni dependencias específicas de un subproyecto.
-2. **Firmas claras** – Cada módulo (por ejemplo, `FileSystem`, `Indexing`, `Search`) debe exponer APIs públicas claras (clases, métodos, interfaces) y ocultar los detalles internos.  Documenta el uso mínimo con XML‑docs y un `README.md` en su carpeta.
-3. **Pruebas automáticas** – Cada módulo debe ir acompañado de un proyecto de pruebas (`NombreModulo.Tests.csproj`) dirigido a los mismos frameworks.  Las pruebas se ejecutan mediante `dotnet test` en CI.
-4. **Compatibilidad hacia atrás** – Cambios que rompan la compatibilidad deben documentarse y planificarse mediante versiones.  Evita modificar firmas públicas sin un plan de migración.
-5. **No duplicación** – Antes de crear un módulo nuevo, busca en `Core` si ya existe algo equivalente.  Extiende o adapta lo existente conforme a la política de reutilización.
-
-## Estructura recomendada
-
-Para cada módulo bajo `Core` se recomienda la siguiente estructura:
-
-```
-Core/
-  NombreModulo/
-    NombreModulo.csproj
-    README.md
-    src/
-      ...       # Clases, interfaces, impl.
-    tests/
-      NombreModulo.Tests.csproj
-      ...       # Pruebas unitarias
-```
-
-* `NombreModulo.csproj` debe definir los frameworks de destino y, si es necesario, paquetes NuGet de terceros.
-* `README.md` explicará el propósito del módulo, cómo instalarlo en otros proyectos y dará ejemplos de uso.
-* `src/` contendrá la implementación.  No mezclar código de varias responsabilidades en un mismo archivo.
-* `tests/` contendrá las pruebas unitarias usando xUnit/NUnit para C# o Pester para PowerShell.
-
-## Cumplimiento
-
-Los cambios en Core se revisan según la lista de verificación de calidad definida en la Política global.  Cualquier omisión (por ejemplo, falta de multi‑targeting, ausencia de pruebas o de documentación) hará que el trabajo se considere un borrador hasta su corrección.
 '@
+
 
 # =========================================================================================================================================================================================
 # === Si se especifica una rama inicial, se sobrepone al valor por defecto ===

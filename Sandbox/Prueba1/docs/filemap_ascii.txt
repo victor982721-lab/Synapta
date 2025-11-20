@@ -1,0 +1,18 @@
+CortexProject/
+├── AGENTS.md
+├── README.md
+├── Cortex.csproj
+├── docs/
+│   ├── Procedimiento_de_solicitud_de_artefactos.md
+│   ├── Informe.md
+│   ├── solicitud_de_artefactos.md
+│   ├── filemap_ascii.txt
+│   ├── table_hierarchy.json
+│   ├── bitacora.md
+│   └── Cortex.ps1
+├── csv/
+│   ├── modules.csv
+│   └── artefacts.csv
+├── Scripts/
+├── src/
+└── tests/
