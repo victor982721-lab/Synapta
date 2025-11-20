@@ -1,4 +1,5 @@
 Cortex/
+├── Cortex.ps1
 ├── AGENTS.md
 ├── README.md
 ├── Cortex.csproj
