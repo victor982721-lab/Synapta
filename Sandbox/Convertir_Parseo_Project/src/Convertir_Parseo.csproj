@@ -9,15 +9,17 @@
     <AssemblyName>Convertir_Parseo</AssemblyName>
     <RootNamespace>Convertir_Parseo</RootNamespace>
 
-    <!-- Publicación autocontenida en un solo archivo -->
+    <!-- Autocontenido en un archivo -->
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <SelfContained>true</SelfContained>
     <PublishSingleFile>true</PublishSingleFile>
-    <PublishTrimmed>true</PublishTrimmed>
+    <!-- Mejor desactivar trim con PowerShell para evitar sorpresas -->
+    <PublishTrimmed>false</PublishTrimmed>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.PowerShell.SDK" Version="7.4.3" />
+    <!-- Solo el ensamblado que contiene Parser / AST -->
+    <PackageReference Include="System.Management.Automation" Version="7.4.3" />
   </ItemGroup>
 
 </Project>
