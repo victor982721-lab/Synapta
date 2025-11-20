@@ -1,4 +1,0 @@
-Archivo,Namespace,Rol,Estado
-SegmentMetadata.cs,Ws_Insights.Search.Index.Segment,Metadata de un segmento,Implementado
-SegmentReader.cs,Ws_Insights.Search.Index.Segment,Lectura de segmento inmutable,Stub
-SegmentWriter.cs,Ws_Insights.Search.Index.Segment,Escritura de segmentos inmutables,Stub

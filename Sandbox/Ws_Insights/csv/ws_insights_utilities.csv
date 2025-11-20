@@ -1,4 +1,0 @@
-Archivo,Namespace,Rol,Estado
-PauseToken.cs,Ws_Insights.Utilities,Controlar pausa y reanudación de tareas,Implementado
-SessionLogWriter.cs,Ws_Insights.Utilities,Registrar logs de la sesión,Implementado
-TextRangeExtractor.cs,Ws_Insights.Utilities,Extraer rangos de texto,Implementado

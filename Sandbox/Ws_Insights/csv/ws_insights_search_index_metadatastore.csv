@@ -1,3 +1,0 @@
-Archivo,Namespace,Rol,Estado
-ColumnStoreReader.cs,Ws_Insights.Search.Index.MetadataStore,Lectura de columnas de metadatos,Stub
-ColumnStoreWriter.cs,Ws_Insights.Search.Index.MetadataStore,Escritura de columnas de metadatos,Stub

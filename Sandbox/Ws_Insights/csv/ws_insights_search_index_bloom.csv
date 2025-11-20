@@ -1,5 +1,0 @@
-Archivo,Namespace,Rol,Estado
-BloomFilterBuilder.cs,Ws_Insights.Search.Index.Bloom,Construir Bloom filters a partir de tokens,Stub
-BloomFilterConfig.cs,Ws_Insights.Search.Index.Bloom,Configurar parámetros de Bloom filters,Implementado
-BloomFilterReader.cs,Ws_Insights.Search.Index.Bloom,Leer Bloom filters desde disco,Stub
-BloomFilterStore.cs,Ws_Insights.Search.Index.Bloom,Almacén de Bloom filter en memoria,Stub

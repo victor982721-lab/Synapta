@@ -1,4 +1,0 @@
-Archivo,Namespace,Rol,Estado
-HashUtils.cs,Ws_Insights.Search.Core.Util,Helper para cálculo de hash rápido,Stub funcional
-PathNormalizer.cs,Ws_Insights.Search.Core.Util,Normalizar rutas de archivos,Implementado
-TimeProvider.cs,Ws_Insights.Search.Core.Util,Abstracción de proveedor de tiempo,Implementado

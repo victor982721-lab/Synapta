@@ -1,3 +1,0 @@
-Archivo,Namespace,Rol,Estado
-CharsetTables.cs,Ws_Insights.Search.Processing.Text,Tablas de tipos de carácter,Stub
-Normalization.cs,Ws_Insights.Search.Processing.Text,Normalización de acentos y mayúsculas/minúsculas,Implementado

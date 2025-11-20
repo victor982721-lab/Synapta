@@ -1,4 +1,0 @@
-Archivo,Namespace,Rol,Estado
-FileId.cs,Ws_Insights.Search.Index.FileIdMap,Identificador único de archivo mediante Guid,Implementado
-FileIdMapBuilder.cs,Ws_Insights.Search.Index.FileIdMap,Construir mapa path→FileId,Stub funcional
-FileIdMapReader.cs,Ws_Insights.Search.Index.FileIdMap,Leer mapa path→FileId,Stub funcional

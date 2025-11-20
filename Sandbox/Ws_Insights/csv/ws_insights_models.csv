@@ -1,5 +1,0 @@
-Archivo,Namespace,Rol,Estado
-ExtensionCategoryDefinition.cs,Ws_Insights.Models,Define categoría de extensiones,Implementado
-ExtractionModeOption.cs,Ws_Insights.Models,Define modo de extracción de contenido,Implementado
-ExtensionOption.cs,Ws_Insights.Models,Modelo de extensión con estado de selección,Implementado
-FileMatch.cs,Ws_Insights.Models,Representa un resultado de archivo,Implementado

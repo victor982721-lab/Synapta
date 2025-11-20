@@ -1,4 +1,0 @@
-Archivo,Namespace,Rol,Estado
-HotFileCache.cs,Ws_Insights.Search.Engine.Cache,Caché de archivos en memoria,Implementado
-LruCache.cs,Ws_Insights.Search.Engine.Cache,Caché LRU de objetos,Implementado
-QueryCache.cs,Ws_Insights.Search.Engine.Cache,Caché de resultados de consultas,Implementado

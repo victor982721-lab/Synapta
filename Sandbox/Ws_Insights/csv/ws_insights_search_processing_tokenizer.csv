@@ -1,4 +1,0 @@
-Archivo,Namespace,Rol,Estado
-Token.cs,Ws_Insights.Search.Processing.Tokenizer,Representa un token con posición y longitud,Implementado
-TokenizerSIMD.cs,Ws_Insights.Search.Processing.Tokenizer,Tokenizador rápido basado en SIMD,Stub funcional
-TokenStream.cs,Ws_Insights.Search.Processing.Tokenizer,Enumerable de tokens,Implementado

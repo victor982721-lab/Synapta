@@ -1,9 +1,0 @@
-Archivo,Namespace,Rol,Estado
-README.md,Ws_Insights,Documentación del proyecto,Implementado
-Ws_Insights.csproj,,Archivo de proyecto .NET 8 WPF,Implementado
-App.xaml,Ws_Insights,Definición de la aplicación WPF y recursos,Implementado
-App.xaml.cs,Ws_Insights,Code‑behind de la aplicación,Implementado
-MainWindow.xaml,Ws_Insights,Vista principal de la app,Implementado
-MainWindow.xaml.cs,Ws_Insights,Lógica de la ventana principal,Implementado
-ThemeDark.xaml,,Recursos XAML para tema oscuro,Implementado
-ThemeLight.xaml,,Recursos XAML para tema claro,Implementado

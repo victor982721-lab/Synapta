@@ -1,3 +1,0 @@
-Archivo,Namespace,Rol,Estado
-Diagnostics.cs,Ws_Insights.Search.Engine.Public,Generar métricas internas del engine,Implementado
-SearchEngine.cs,Ws_Insights.Search.Engine.Public,Fachada pública del engine de búsqueda,Implementado

@@ -1,0 +1,10 @@
+{
+  "name": "Cortex",
+  "children": [
+    { "name": "docs" },
+    { "name": "csv" },
+    { "name": "Scripts" },
+    { "name": "src" },
+    { "name": "tests" }
+  ]
+}
