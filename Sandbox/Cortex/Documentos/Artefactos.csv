@@ -1,9 +1,10 @@
 Artefacto,Ubicacion,Proyecto_Origen,Proyecto_Destino,Estado
-Cortex.Core.Scaffolding,Sandbox/Cortex/Cortex.ps1 (sección Core.Scaffolding),Cortex,Sandbox/*,En progreso
-Cortex.Core.GitOps,Sandbox/Cortex/Cortex.ps1 (sección Core.GitOps),Cortex,Sandbox/*,En progreso
-Cortex.Core.Analysis,Sandbox/Cortex/Cortex.ps1 (sección Core.Analysis),Cortex,Sandbox+Core,En progreso
-Cortex.Core.Artifacts,Sandbox/Cortex/Cortex.ps1 (sección Core.Artifacts),Cortex,Sandbox+Core,En progreso
-Cortex.Services,Sandbox/Cortex/Cortex.ps1 (sección Services),Cortex,Sandbox+Core,En progreso
-Cortex.CLI,Sandbox/Cortex/Cortex.ps1 (sección CLI),Cortex,Sandbox/Cortex,En progreso
-Cortex.Automation,Sandbox/Cortex/Cortex.ps1 (sección Automation),Cortex,CI/CD Pipelines,En progreso
-Cortex.Exporter,Sandbox/Cortex/Cortex.ps1 (sección Exporter),Cortex,Tooling (Exe),En progreso
+Cortex.Core.Scaffolding,Sandbox/Cortex/src/Cortex.Core.Scaffolding.ps1,Cortex,Sandbox/*,Disponible
+Cortex.Core.GitOps,Sandbox/Cortex/src/Cortex.Core.GitOps.ps1,Cortex,Sandbox/*,Disponible
+Cortex.Core.Analysis,Sandbox/Cortex/src/Cortex.Core.Analysis.ps1,Cortex,Sandbox+Core,Disponible
+Cortex.Core.Artifacts,Sandbox/Cortex/src/Cortex.Core.Artifacts.ps1,Cortex,Sandbox+Core,Disponible
+Cortex.Automation,Sandbox/Cortex/src/Cortex.Automation.ps1,Cortex,CI/CD Pipelines,Disponible
+Cortex.CLI,Sandbox/Cortex/src/Cortex.CLI.ps1,Cortex,Sandbox/Cortex,Disponible
+Cortex.Exporter,Sandbox/Cortex/src/Cortex.Exporter.ps1,Cortex,Tooling (Exe),Disponible
+Cortex.Common,Sandbox/Cortex/src/Cortex.Common.ps1,Cortex,Sandbox/Cortex,Disponible
+Cortex.Orchestrator,Sandbox/Cortex/Entregable/Cortex.ps1,Cortex,Sandbox/Cortex,Disponible
