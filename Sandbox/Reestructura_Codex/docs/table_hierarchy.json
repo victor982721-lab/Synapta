@@ -1,10 +1,27 @@
 {
   "name": "Reestructura_Codex",
   "children": [
-    { "name": "docs" },
-    { "name": "csv" },
-    { "name": "Scripts" },
-    { "name": "src" },
-    { "name": "tests" }
+    { "name": "docs", "description": "Procedimientos, solicitud y bitácora" },
+    { "name": "csv", "description": "Inventarios declarativos" },
+    {
+      "name": "Repo",
+      "children": [
+        {
+          "name": "Core",
+          "children": [
+            { "name": "FileSystem", "type": "library", "targets": ["net8.0", "net7.0", "net6.0"] },
+            { "name": "Indexing", "type": "library", "targets": ["net8.0", "net7.0", "net6.0"] },
+            { "name": "Search", "type": "library", "targets": ["net8.0", "net7.0", "net6.0"] }
+          ]
+        },
+        {
+          "name": "Sandbox",
+          "children": [
+            { "name": "ProyectoEjemplo", "type": "app", "targets": ["net8.0", "net7.0", "net6.0"] }
+          ]
+        },
+        { "name": "Scripts", "children": [ { "name": "New-RepoReport.ps1", "type": "utility" } ] }
+      ]
+    }
   ]
 }

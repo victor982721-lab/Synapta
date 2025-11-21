@@ -2,15 +2,48 @@ Reestructura_Codex/
 ├── AGENTS.md
 ├── README.md
 ├── Reestructura_Codex.csproj
+├── Reestructuración Integral del Repositorio.docx
+├── Repo/
+│   ├── README.md
+│   ├── AGENTS.md
+│   ├── Politica_Cultural_y_Calidad.md
+│   ├── Preferencias_del_Usuario.md
+│   ├── Repo_Estructura_ASCII.md
+│   ├── Core/
+│   │   ├── AGENTS.md
+│   │   ├── FileSystem/
+│   │   │   ├── FileSystem.csproj
+│   │   │   ├── README.md
+│   │   │   ├── src/FileSystemService.cs
+│   │   │   └── tests/FileSystemServiceTests.cs
+│   │   ├── Indexing/
+│   │   │   ├── Indexing.csproj
+│   │   │   ├── README.md
+│   │   │   ├── src/{IndexBuilder.cs,IndexEntry.cs}
+│   │   │   └── tests/IndexBuilderTests.cs
+│   │   └── Search/
+│   │       ├── Search.csproj
+│   │       ├── README.md
+│   │       ├── src/SearchService.cs
+│   │       └── tests/SearchServiceTests.cs
+│   ├── Sandbox/
+│   │   ├── README.md
+│   │   └── ProyectoEjemplo/
+│   │       ├── AGENTS.md
+│   │       ├── README.md
+│   │       ├── ProyectoEjemplo.csproj
+│   │       ├── docs/
+│   │       ├── csv/
+│   │       ├── src/Program.cs
+│   │       └── tests/ProgramTests.cs
+│   └── Scripts/
+│       ├── README.md
+│       └── New-RepoReport.ps1
 ├── docs/
 │   ├── solicitud_de_artefactos.md
-│   ├── filemap_ascii.txt
 │   ├── table_hierarchy.json
 │   ├── Procedimiento_de_solicitud_de_artefactos.md
 │   └── bitacora.md
-├── csv/
-│   ├── modules.csv
-│   └── artefacts.csv
-├── Scripts/
-├── src/
-└── tests/
+└── csv/
+    ├── modules.csv
+    └── artefacts.csv
