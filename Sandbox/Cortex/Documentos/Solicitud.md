@@ -5,7 +5,7 @@ Codex Web
 artefacto_reutilizable
 
 [ANTECEDENTES]
-RepoMaster.ps1 ha crecido como script monolítico que combina UI, lógica de negocio, plantillas y operaciones Git/CI. El informe técnico (`docs/Informe.md`) documenta más de 50 hallazgos: ausencia de StrictMode, dependencia de `Read-Host`, opciones automáticas incompletas (5 y 6), falta de logging/resúmenes, manejo deficiente de merges Codex y descarga manual de artefactos. Se requiere un rediseño manteniendo un solo `.ps1`, pero con capas internas claras para soportar PowerShell 5.1+ y pwsh 7+, Windows 7+, proyectos PowerShell y .NET multi-target (net6/net7/net8) y la futura compilación del script a ejecutable. El proyecto Cortex parte del código actual (copiado en `docs/Cortex.ps1`) y de la estructura Sandbox generada por RepoMaster.
+Cortex (`Archivo/Cortex_Legacy.ps1`) ha crecido como script monolítico que combina UI, lógica de negocio, plantillas y operaciones Git/CI. El informe técnico (`Archivo/Informe.md`) documenta más de 50 hallazgos: ausencia de StrictMode, dependencia de `Read-Host`, opciones automáticas incompletas (5 y 6), falta de logging/resúmenes, manejo deficiente de merges Codex y descarga manual de artefactos. Se requiere un rediseño manteniendo un solo `.ps1`, pero con capas internas claras para soportar PowerShell 5.1+ y pwsh 7+, Windows 7+, proyectos PowerShell y .NET multi-target (net6/net7/net8) y la futura compilación del script a ejecutable. El proyecto Cortex parte del código actual (copiado en `Archivo/Cortex_Legacy.ps1`) y de la estructura Sandbox generada por Cortex_Legacy.ps1
 
 [OBJETIVO_TECNICO]
 Entregar un script `Cortex.ps1` autosuficiente que:
@@ -27,7 +27,7 @@ Entregar un script `Cortex.ps1` autosuficiente que:
 
 [ALCANCE_FUNCIONAL]
 Incluye:
-- Refactorización completa de `RepoMaster` a `Cortex` con separación Core/UI y StrictMode.
+- Refactorización completa de `Cortex_Legacy` a `Cortex` con separación Core/UI y StrictMode.
 - Compatibilidad PS 5.1+ / pwsh 7+, Windows 7+.
 - Generación de proyectos PowerShell y .NET multi-target (CLI o UI) seleccionables por menú o parámetros.
 - Plantillas embebidas para AGENTS, README, Procedimiento, Informe, Solicitud, CSV, tabla de jerarquía y bitácora.
@@ -36,7 +36,7 @@ Incluye:
 Excluye:
 - Migrar a módulos externos (.psm1) o dividir en varios archivos.
 - Soporte para Linux/Mac en esta fase (debe detectar y advertir si se ejecuta fuera de Windows).
-- Reescritura de proyectos existentes distintos a RepoMaster; el foco es el script maestro.
+- Reescritura de proyectos existentes distintos a Cortex_Legacy; el foco es el script maestro.
 
 [INTERFAZ]
 *CLI interactiva*:
@@ -51,25 +51,39 @@ Excluye:
 
 [ESTRUCTURA_ARCHIVOS]
 ```
-Cortex/
-├── AGENTS.md
-├── README.md
-├── Cortex.csproj (para pruebas/helpers .NET)
-├── docs/
-│   ├── Procedimiento_de_solicitud_de_artefactos.md
-│   ├── Informe.md
-│   ├── solicitud_de_artefactos.md
-│   ├── filemap_ascii.txt
-│   ├── table_hierarchy.json
-│   ├── bitacora.md
-│   └── Cortex.ps1 (versión actual)
-├── csv/
-│   ├── modules.csv
-│   └── artefacts.csv
-├── Scripts/
-├── src/
-└── tests/
+        📂 Cortex
+│   │   │
+│   │   ├── 📂 .Archivo
+│   │   │   ├── 📂 Otros
+│   │   │   │   └── (…) contenido oculto
+│   │   │   ├── 📄 Instrucciones_ChatGPT.md
+│   │   │   ├── 🖥️ Cortex_Legacy.ps1
+│   │   │   └── 📄 Informe.md
+│   │   │
+│   │   ├── 📂 Documentos
+│   │   │   ├── 📊 Artefactos.csv
+│   │   │   ├── 📄 Bitacora.md
+│   │   │   ├── 📄 Cortex_Plan_Schema.md
+│   │   │   ├── 📊 Modulos.csv
+│   │   │   ├── 📄 Solicitud.md
+│   │   │   └── 📑 table_hierarchy.json
+│   │   │
+│   │   ├── 📂 Entregable
+│   │   │   └── 🖥️ Cortex.ps1
+│   │   │
+│   │   ├── 📂 Scripts
+│   │   │   └── 🖥️ Cortex_Wizard.NET.ps1
+│   │   │
+│   │   ├── 📂 SrcNet
+│   │   │   ├── 🧩 Cortex.csproj
+│   │   │   └── 💻 Program.cs
+│   │   │
+│   │   ├── 📄 AGENTS.md
+│   │   └── 📄 README.md
+
+
 ```
+
 `docs/filemap_ascii.txt` y `docs/table_hierarchy.json` deben actualizarse para reflejar los nuevos artefactos generados durante el desarrollo.
 
 [DEPENDENCIAS_CORE]
