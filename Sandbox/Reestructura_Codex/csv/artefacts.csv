@@ -1,1 +1,6 @@
 Artefacto,Ubicacion,Proyecto_Origen,Proyecto_Destino,Estado
+FileSystemService,Repo/Core/FileSystem/src/FileSystemService.cs,Core,Reutilizable,estable
+IndexBuilder,Repo/Core/Indexing/src/IndexBuilder.cs,Core,Reutilizable,estable
+SearchService,Repo/Core/Search/src/SearchService.cs,Core,Reutilizable,estable
+ProyectoEjemplo CLI,Repo/Sandbox/ProyectoEjemplo/src/Program.cs,Sandbox,Ejemplo/Plantilla,estable
+New-RepoReport.ps1,Repo/Scripts/New-RepoReport.ps1,Scripts,Soporte,estable

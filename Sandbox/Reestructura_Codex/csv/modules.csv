@@ -1,1 +1,6 @@
 Componente,Descripcion,Estado,Responsable
+Repo/Core/FileSystem,Librería para normalización y validación de rutas multi-target net8/net7/net6,estable,Codex
+Repo/Core/Indexing,Constructor simple de índices en memoria a partir de rutas y metadatos,estable,Codex
+Repo/Core/Search,Servicio de búsqueda sobre índices en memoria,estable,Codex
+Repo/Sandbox/ProyectoEjemplo,Aplicación de consola que demuestra el consumo de los módulos Core,estable,Codex
+Repo/Scripts/New-RepoReport.ps1,Script PowerShell para inventariar módulos y proyectos declarados,estable,Codex
