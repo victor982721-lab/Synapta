@@ -1,1 +1,3 @@
 Componente,Descripcion,Estado,Responsable
+FileMapX.Native,Interop Win32 y enumeración rápida para preconteo de archivos,Activo,Codex
+FileMapX.Functions,Funciones reutilizables para hashing MD5, clasificación y salida JSON/tree,Activo,Codex
