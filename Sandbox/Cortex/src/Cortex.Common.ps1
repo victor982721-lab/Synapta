@@ -2,12 +2,22 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 function Assert-CortexWindowsPlatform {
+<<<<<<< HEAD
+=======
+    [CmdletBinding()]
+    param()
+
+>>>>>>> origin/codex_2025-11-21
     if ($IsWindows -eq $false -and [Environment]::OSVersion.Platform -ne 'Win32NT') {
         throw 'Cortex solo está soportado en Windows (PowerShell 5.1+ / pwsh 7+).'
     }
 }
 
 function Get-CortexRoot {
+<<<<<<< HEAD
+=======
+    [CmdletBinding()]
+>>>>>>> origin/codex_2025-11-21
     param(
         [Parameter(Mandatory)]
         [string]$ScriptRoot
@@ -16,6 +26,10 @@ function Get-CortexRoot {
 }
 
 function Invoke-CortexCommand {
+<<<<<<< HEAD
+=======
+    [CmdletBinding()]
+>>>>>>> origin/codex_2025-11-21
     param(
         [Parameter(Mandatory)][string]$FilePath,
         [string[]]$Arguments,
@@ -42,6 +56,10 @@ function Invoke-CortexCommand {
 }
 
 function Test-CortexCommand {
+<<<<<<< HEAD
+=======
+    [CmdletBinding()]
+>>>>>>> origin/codex_2025-11-21
     param(
         [Parameter(Mandatory)][string]$Name
     )
@@ -49,6 +67,10 @@ function Test-CortexCommand {
 }
 
 function New-CortexLogEntry {
+<<<<<<< HEAD
+=======
+    [CmdletBinding()]
+>>>>>>> origin/codex_2025-11-21
     param(
         [Parameter(Mandatory)][string]$RunId,
         [Parameter(Mandatory)][string]$Repo,
@@ -127,6 +149,10 @@ Describe el objetivo técnico, alcance y criterios de aceptación.
 }
 
 function Expand-CortexTemplate {
+<<<<<<< HEAD
+=======
+    [CmdletBinding()]
+>>>>>>> origin/codex_2025-11-21
     param(
         [Parameter(Mandatory)][string]$Content,
         [Parameter(Mandatory)][string]$ProjectName,
@@ -140,6 +166,10 @@ function Expand-CortexTemplate {
 }
 
 function Write-CortexFileIfMissing {
+<<<<<<< HEAD
+=======
+    [CmdletBinding()]
+>>>>>>> origin/codex_2025-11-21
     param(
         [Parameter(Mandatory)][string]$Path,
         [Parameter(Mandatory)][string]$Content

@@ -18,8 +18,13 @@ function Invoke-CortexArtifactDownload {
 
     $useGh = Test-CortexCommand -Name 'gh'
     if ($useGh -and $RunIdOrTag -and $ArtifactName -and $Repository) {
+<<<<<<< HEAD
         $args = @('run', 'download', $RunIdOrTag, '-n', $ArtifactName, '-R', $Repository, '-D', $Destination)
         Invoke-CortexCommand -FilePath 'gh' -Arguments $args
+=======
+        $ghArguments = @('run', 'download', $RunIdOrTag, '-n', $ArtifactName, '-R', $Repository, '-D', $Destination)
+        Invoke-CortexCommand -FilePath 'gh' -Arguments $ghArguments
+>>>>>>> origin/codex_2025-11-21
         return
     }
 
