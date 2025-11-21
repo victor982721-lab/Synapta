@@ -1,0 +1,25 @@
+# Build outputs
+bin/
+obj/
+**/bin/
+**/obj/
+*.user
+*.suo
+*.cache
+*.log
+
+# Visual Studio
+.vs/
+GeneratedFiles/
+TestResult*/
+.vscode/
+
+# PowerShell
+*.psd1
+*.psm1
+*.ps1xml
+
+# Dotnet
+project.lock.json
+.nuget/
+*.nupkg
