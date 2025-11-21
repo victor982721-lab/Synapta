@@ -10,7 +10,7 @@ Repositorio personal para el ecosistema **Neurologic / Synapta**: automatizació
 ```
 Neurologic
 │
-├── 📂 Core
+├── 📂 Artefactos
 │   ├── 📄 AGENTS_CORE.md
 │   ├── 📄 README.md
 │   └── (carpetas con artefactos reutilizables)
@@ -37,9 +37,6 @@ Neurologic
 │   │   ├── 📂 Entregable
 │   │   │   └── 🖥️ Cortex.ps1
 │   │   │
-│   │   ├── 📂 Pruebas
-│   │   │   └── 🧪 (contiene pruebas Pester)
-│   │   │
 │   │   ├── 📂 Scripts
 │   │   │   └── 🖥️ Cortex_Wizard.NET.ps1
 │   │   │
@@ -53,7 +50,6 @@ Neurologic
 │   └── 📂 Otros_proyectos
 │       └── …
 │
-├── 📂 Scripts
 │
 ├── 📄 .gitignore
 ├── 📄 AGENTS.md
