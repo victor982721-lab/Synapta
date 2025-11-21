@@ -1,5 +1,9 @@
 <<<<<<< HEAD
 <<<<<<<< HEAD:Sandbox/=FmapX=/Scripts/FileMapX.Functions.ps1
+<<<<<<< HEAD
+<<<<<<<< HEAD:Sandbox/=FmapX=/Scripts/FileMapX.Functions.ps1
+=======
+>>>>>>> origin/codex_2025-11-21
 =======
 >>>>>>> origin/codex_2025-11-21
 function Format-Size {
@@ -59,6 +63,26 @@ function Match-Patterns {
   return $true
 }
 
+<<<<<<< HEAD
+=======
+function Is-DirectoryExcluded {
+  param([object]$Directory)
+  if (-not $Directory) { return $false }
+  $dirPath = if ($Directory -is [System.IO.DirectoryInfo]) { $Directory.FullName }
+  elseif ($Directory.PSObject.Properties['FullName']) { [string]$Directory.FullName }
+  else { [string]$Directory }
+  if ([string]::IsNullOrWhiteSpace($dirPath)) { return $false }
+  $fullPath = [System.IO.Path]::GetFullPath($dirPath)
+  if ($script:OutputDirExclusionActive) {
+    if ($fullPath.StartsWith($script:OutputDirPrefix, [System.StringComparison]::OrdinalIgnoreCase) -and -not $fullPath.Equals($script:OutputDirFull, [System.StringComparison]::OrdinalIgnoreCase)) {
+      return $true
+    }
+  }
+  if ($script:ExcludedPaths -and $script:ExcludedPaths.Contains($fullPath)) { return $true }
+  return $false
+}
+
+>>>>>>> origin/codex_2025-11-21
 # ==========================================================================================================================================
 
 function Write-ErrorJson {
@@ -95,6 +119,147 @@ function Write-ErrorJson {
   }
   catch {
     Write-Verbose "Write-ErrorJson: $($_.Exception.Message)"
+  }
+<<<<<<< HEAD
+<<<<<<< HEAD
+========
+<#
+.SYNOPSIS
+  Genera un árbol jerárquico (Markdown/TXT) y un inventario JSONL con metadatos opcionales.
+
+.DESCRIPTION
+  - Recorre un directorio raíz y escribe:
+      1) Árbol jerárquico (.md/.txt) en OutputDir.
+      2) Inventario JSONL (una línea por elemento) con campos base y opcionales.
+  - StreamWriter (rápido/baja memoria), manejo de errores, sin dependencias externas.
+  - PowerShell 7.0+.
+
+.PARAMETER RootPath
+  Directorio raíz a mapear (obligatorio en modo no interactivo).
+
+.PARAMETER OutputKind
+  Formato del árbol. Valores: 'md' (predeterminado) o 'txt'.
+
+.PARAMETER OutputDir
+  Carpeta de salida. Por defecto, la carpeta del script.
+
+.PARAMETER NoProgress
+  Desactiva la visualización de progreso (útil para CI/pipelines o máximo rendimiento).
+
+.EXAMPLE
+  .\AR-Filemap.ps1 -RootPath 'C:\Data' -OutputKind md -EmitJsonl:$true -NoProgress
+#>
+
+# ==========================================================================================================================================
+
+[CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Low')]
+param(
+  [string]$RootPath,
+  [string]$OutputKind = 'md',
+  [string]$OutputDir = $PSScriptRoot,
+  [ValidateRange(0,64)][int]$MaxDepth = 0,
+  [switch]$IncludeHidden,
+  [switch]$ShowSizes,
+  [switch]$ShowDates,
+  [ValidateRange(50,1000000)][int]$ProgressInterval = 2000,
+  [bool]$EmitTree = $true,
+  [bool]$EmitJsonl = $true,
+  [switch]$ComputeHashes,
+  [ValidateRange(1,4096)][int]$MaxHashMB = 50,
+  [switch]$ProbeDocs,
+  [switch]$ProbeArchives,
+  [ValidateRange(1,1000)][int]$ZipListEntries = 10,
+  [ValidateRange(1,4096)][int]$LargeFileMB = 100,
+  [switch]$EmitSummaries,
+  [switch]$Classify,
+  [switch]$DetectExecutables,
+  [switch]$ProbeText,
+  [ValidateRange(1,1024)][int]$ProbeTextMaxMB = 5,
+  [ValidateSet('Automatico','Completo')][string]$Mode = 'Automatico',
+  [switch]$StrictJson,
+  [string[]]$Include,
+  [string[]]$Exclude,
+  [ValidateRange(1,100000000)][int]$MaxEntries = 100000000,
+  [switch]$Parallel,
+  [ValidateRange(1,256)][int]$DegreeOfParallelism = [Environment]::ProcessorCount,
+  [ValidateRange(0,102400)][int]$OutputMaxMB = 0,
+  [string]$ErrorLog,
+  [Nullable[int]]$MinMB,
+  [Nullable[int]]$MaxMB,
+  [Nullable[int]]$MinAgeDays,
+  [Nullable[int]]$MaxAgeDays,
+  [switch]$ParallelProbes,
+  [switch]$ParallelHash,
+  [ValidateRange(1,256)][int]$DopProbes,
+  [ValidateRange(1,256)][int]$DopHash,
+  [switch]$StdOut,
+  [switch]$CompressOutput,
+  [switch]$PreferCompressionSpeed,
+  [switch]$EmitTimes,
+  [switch]$NormalizeNames,
+  [switch]$FindDuplicates,
+  [ValidateRange(0,600)][int]$TimeoutSecPerProbe = 0
+)
+
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+$script:IsWindowsPlatform = $true
+
+# ==========================================================================================================================================
+
+if (-not $StdOut -and ([System.Console]::IsOutputRedirected -or [System.Console]::IsErrorRedirected)) {
+    Write-Verbose "La salida está redirigida."
+>>>>>>>> origin/codex_2025-11-21:Sandbox/=FmapX=/src/FileMapX.ps1
+=======
+>>>>>>> origin/codex_2025-11-21
+=======
+>>>>>>> origin/codex_2025-11-21
+}
+
+# ==========================================================================================================================================
+
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<<< HEAD:Sandbox/=FmapX=/Scripts/FileMapX.Functions.ps1
+=======
+>>>>>>> origin/codex_2025-11-21
+=======
+>>>>>>> origin/codex_2025-11-21
+function Test-OutputDirHealth {
+  param(
+    [string]$Dir,
+    [int]$MinFreeMB = 200
+  )
+  try {
+    $full = [System.IO.Path]::GetFullPath($Dir)
+    if (-not (Test-Path -LiteralPath $full)) {
+      [void][System.IO.Directory]::CreateDirectory($full)
+    }
+    $root = [System.IO.Path]::GetPathRoot($full)
+    if ([string]::IsNullOrWhiteSpace($root)) {
+      $root = $full
+    }
+    $drive = [System.IO.DriveInfo]::new($root)
+    $freeMB = [math]::Floor($drive.AvailableFreeSpace / 1MB)
+    if ($freeMB -lt $MinFreeMB) {
+      Write-Warning ("Espacio libre bajo en '{0}': {1} MB" -f $root, $freeMB)
+    }
+    $tmpName = '.ar-filemap.tmp.{0}' -f ([guid]::NewGuid().ToString('N'))
+    $tmpPath = [System.IO.Path]::Combine($full, $tmpName)
+    $renamed = $tmpPath + '.ren'
+    try {
+      $fs = [System.IO.FileStream]::new($tmpPath, [System.IO.FileMode]::CreateNew, [System.IO.FileAccess]::Write, [System.IO.FileShare]::None)
+      $fs.Dispose()
+      [System.IO.File]::Move($tmpPath, $renamed)
+    }
+    finally {
+      if (Test-Path -LiteralPath $tmpPath) { Remove-Item -LiteralPath $tmpPath -Force -ErrorAction SilentlyContinue }
+      if (Test-Path -LiteralPath $renamed) { Remove-Item -LiteralPath $renamed -Force -ErrorAction SilentlyContinue }
+    }
+  }
+  catch {
+    Bump-Error 'OutputDirHealth'
+    throw "OutputDir no usable: $Dir — $($_.Exception.Message)"
   }
 <<<<<<< HEAD
 ========
@@ -195,46 +360,6 @@ if (-not $StdOut -and ([System.Console]::IsOutputRedirected -or [System.Console]
 <<<<<<<< HEAD:Sandbox/=FmapX=/Scripts/FileMapX.Functions.ps1
 =======
 >>>>>>> origin/codex_2025-11-21
-function Test-OutputDirHealth {
-  param(
-    [string]$Dir,
-    [int]$MinFreeMB = 200
-  )
-  try {
-    $full = [System.IO.Path]::GetFullPath($Dir)
-    if (-not (Test-Path -LiteralPath $full)) {
-      [void][System.IO.Directory]::CreateDirectory($full)
-    }
-    $root = [System.IO.Path]::GetPathRoot($full)
-    if ([string]::IsNullOrWhiteSpace($root)) {
-      $root = $full
-    }
-    $drive = [System.IO.DriveInfo]::new($root)
-    $freeMB = [math]::Floor($drive.AvailableFreeSpace / 1MB)
-    if ($freeMB -lt $MinFreeMB) {
-      Write-Warning ("Espacio libre bajo en '{0}': {1} MB" -f $root, $freeMB)
-    }
-    $tmpName = '.ar-filemap.tmp.{0}' -f ([guid]::NewGuid().ToString('N'))
-    $tmpPath = [System.IO.Path]::Combine($full, $tmpName)
-    $renamed = $tmpPath + '.ren'
-    try {
-      $fs = [System.IO.FileStream]::new($tmpPath, [System.IO.FileMode]::CreateNew, [System.IO.FileAccess]::Write, [System.IO.FileShare]::None)
-      $fs.Dispose()
-      [System.IO.File]::Move($tmpPath, $renamed)
-    }
-    finally {
-      if (Test-Path -LiteralPath $tmpPath) { Remove-Item -LiteralPath $tmpPath -Force -ErrorAction SilentlyContinue }
-      if (Test-Path -LiteralPath $renamed) { Remove-Item -LiteralPath $renamed -Force -ErrorAction SilentlyContinue }
-    }
-  }
-  catch {
-    Bump-Error 'OutputDirHealth'
-    throw "OutputDir no usable: $Dir — $($_.Exception.Message)"
-  }
-}
-
-# ==========================================================================================================================================
-
 function Update-CategoryTotals {
   param(
     [string]$Category,
@@ -255,8 +380,13 @@ function Add-ToDupGroups {
   param([hashtable]$Rec)
   if (-not $Rec) { return }
 <<<<<<< HEAD
+<<<<<<< HEAD
   $hashValue = if ($Rec.ContainsKey('finger_xxh3_64')) { $Rec.finger_xxh3_64 }
                elseif ($Rec.ContainsKey('hash_xxh3_64')) { $Rec.hash_xxh3_64 }
+=======
+  $hashValue = if ($Rec.ContainsKey('finger_md5_16')) { $Rec.finger_md5_16 }
+               elseif ($Rec.ContainsKey('hash_md5')) { $Rec.hash_md5 }
+>>>>>>> origin/codex_2025-11-21
 =======
   $hashValue = if ($Rec.ContainsKey('finger_md5_16')) { $Rec.finger_md5_16 }
                elseif ($Rec.ContainsKey('hash_md5')) { $Rec.hash_md5 }
@@ -511,24 +641,54 @@ function Ensure-JsonRotation {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+function Normalize-Name {
+  param([string]$Name)
+  if ($NormalizeNames) { return $Name.Normalize([System.Text.NormalizationForm]::FormC) }
+  return $Name
+}
+
+>>>>>>> origin/codex_2025-11-21
 # ==============================================================================================================================
 # Salida JSONL y escritura de árbol
 
 function Write-JsonLine {
+<<<<<<< HEAD
   param([hashtable]$Object)
   if (-not $EmitJsonl) { return }
   $line = $null
   if ($StrictJson) {
     $payload = ConvertTo-JsonCompatible $Object
+=======
+  param([object]$Object)
+  if (-not $EmitJsonl) { return }
+  if (-not $Object) { return }
+  $objectMap = if ($Object -is [System.Collections.IDictionary]) { $Object }
+  else {
+    $ht = [ordered]@{}
+    foreach ($prop in $Object.PSObject.Properties) { $ht[$prop.Name] = $prop.Value }
+    $ht
+  }
+  $line = $null
+  if ($StrictJson) {
+    $payload = ConvertTo-JsonCompatible $objectMap
+>>>>>>> origin/codex_2025-11-21
     $payloadType = if ($payload) { $payload.GetType() } else { [object] }
     $line = [System.Text.Json.JsonSerializer]::Serialize($payload, $payloadType)
   }
   else {
     $pairs = @()
+<<<<<<< HEAD
     foreach ($key in $Object.Keys) {
       $escapedKey = $key -replace '"','\"'
       $pairs += "`"$escapedKey`":$(JsonPrimitive $Object[$key])"
+=======
+    foreach ($key in $objectMap.Keys) {
+      $escapedKey = $key -replace '"','\"'
+      $pairs += "`"$escapedKey`":$(JsonPrimitive $objectMap[$key])"
+>>>>>>> origin/codex_2025-11-21
     }
     $line = '{' + ($pairs -join ',') + '}'
   }
@@ -565,8 +725,13 @@ function Write-DirectoryEntry {
 
   if ($script:Cancelled) { return }
   $childLists = if ($Prefetched) { $Prefetched } else { Get-ChildLists -Directory $Directory -IncludeHidden ([bool]$IncludeHidden) }
+<<<<<<< HEAD
   $dirs = $childLists.Dirs
   $files = $childLists.Files
+=======
+  $dirs = @($childLists.Dirs)
+  $files = @($childLists.Files)
+>>>>>>> origin/codex_2025-11-21
 
   $summaryBytes = 0L
   foreach ($f in $files) { $summaryBytes += $f.Length }
@@ -655,14 +820,34 @@ function Write-DirectoryEntry {
         Write-JsonLine -Object $record
         $script:FileCount++
         $script:TotalBytes += [int64]$file.Length
+<<<<<<< HEAD
         Update-CategoryTotals -Category $record.category -Bytes $file.Length
+=======
+        if ($Classify -and $record.PSObject.Properties['category']) {
+          Update-CategoryTotals -Category $record.category -Bytes $file.Length
+        }
+>>>>>>> origin/codex_2025-11-21
       }
     }
   }
 
   $childDirs = New-Object System.Collections.Generic.List[System.IO.DirectoryInfo]
+<<<<<<< HEAD
   foreach ($d in $dirs) { if (-not (Is-DirectoryExcluded -Directory $d)) { $childDirs.Add($d) | Out-Null } }
   $childDirsSorted = $childDirs | Sort-Object -Property FullName -CultureInvariant
+=======
+  foreach ($d in $dirs) {
+    $dirInfo = if ($d -is [System.IO.DirectoryInfo]) { $d }
+    elseif ($d.PSObject.Properties['FullName']) {
+      try { [System.IO.DirectoryInfo]::new([string]$d.FullName) }
+      catch { $null }
+    }
+    else { $null }
+    if (-not $dirInfo) { continue }
+    if (-not (Is-DirectoryExcluded -Directory $dirInfo)) { $childDirs.Add($dirInfo) | Out-Null }
+  }
+  $childDirsSorted = @($childDirs | Sort-Object -Property FullName)
+>>>>>>> origin/codex_2025-11-21
   $childDirsCount = $childDirsSorted.Count
   $childFilesCount = $files.Count
   $hasMoreDir = $false
@@ -691,6 +876,9 @@ function Write-DirectoryEntry {
   }
 }
 
+<<<<<<< HEAD
+>>>>>>> origin/codex_2025-11-21
+=======
 >>>>>>> origin/codex_2025-11-21
 # ==========================================================================================================================================
 
@@ -724,7 +912,11 @@ Optimize-ThreadPool -CpuDop $cpuDopTarget -IoDop $ioDopTarget
 function New-FileRecord {
   param(
     [object]$FileEntry,
+<<<<<<< HEAD
     [System.IO.FileInfo]$FileInfoFallback,
+=======
+    [object]$FileInfoFallback,
+>>>>>>> origin/codex_2025-11-21
     [int]$Depth,
     [datetime]$StartedUtc,
     [string]$RootPath,
@@ -759,7 +951,15 @@ function New-FileRecord {
   if ([string]::IsNullOrWhiteSpace($fullPath)) { return $null }
 
   $fileInfoLocal = if ($FileEntry -is [System.IO.FileInfo]) { $FileEntry }
+<<<<<<< HEAD
   elseif ($FileInfoFallback) { $FileInfoFallback }
+=======
+  elseif ($FileInfoFallback -is [System.IO.FileInfo]) { $FileInfoFallback }
+  elseif ($FileInfoFallback -and $FileInfoFallback.PSObject.Properties['FullName']) {
+    try { [System.IO.FileInfo]::new([string]$FileInfoFallback.FullName) }
+    catch { $null }
+  }
+>>>>>>> origin/codex_2025-11-21
   else { $null }
 
   $name = if ($FileEntry.PSObject.Properties['Name']) { [string]$FileEntry.Name }
@@ -864,7 +1064,11 @@ function New-FileRecord {
   if ($script:SizeCount.ContainsKey([int64]$length) -and ($script:SizeCount[[int64]$length] -gt 1)) {
     $fp = Get-FingerprintFast -Path $fullPath -Size $length -NBytes 65536
 <<<<<<< HEAD
+<<<<<<< HEAD
     if ($fp) { $record.finger_xxh3_64 = $fp }
+=======
+    if ($fp) { $record.finger_md5_16 = $fp }
+>>>>>>> origin/codex_2025-11-21
 =======
     if ($fp) { $record.finger_md5_16 = $fp }
 >>>>>>> origin/codex_2025-11-21
@@ -893,7 +1097,11 @@ function New-FileRecord {
       $script:HashStopwatch.Start()
       try {
 <<<<<<< HEAD
+<<<<<<< HEAD
         $hashValue = Get-Sha256Safe -Path $fullPath -Size $length -MaxMB $MaxHashMB
+=======
+        $hashValue = Get-Md5Safe -Path $fullPath -Size $length -MaxMB $MaxHashMB
+>>>>>>> origin/codex_2025-11-21
 =======
         $hashValue = Get-Md5Safe -Path $fullPath -Size $length -MaxMB $MaxHashMB
 >>>>>>> origin/codex_2025-11-21
@@ -907,7 +1115,11 @@ function New-FileRecord {
     }
     if ($hashValue) {
 <<<<<<< HEAD
+<<<<<<< HEAD
       if ($ComputeHashes -or $FindDuplicates) { $record.hash_xxh3_64 = $hashValue }
+=======
+      if ($ComputeHashes -or $FindDuplicates) { $record.hash_md5 = $hashValue }
+>>>>>>> origin/codex_2025-11-21
 =======
       if ($ComputeHashes -or $FindDuplicates) { $record.hash_md5 = $hashValue }
 >>>>>>> origin/codex_2025-11-21
@@ -1340,7 +1552,11 @@ function Is-ExecutableKind {
 # ==========================================================================================================================================
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 function Get-Sha256Safe {
+=======
+function Get-Md5Safe {
+>>>>>>> origin/codex_2025-11-21
 =======
 function Get-Md5Safe {
 >>>>>>> origin/codex_2025-11-21
@@ -1362,6 +1578,7 @@ function Get-Md5Safe {
       1048576,
       [System.IO.FileOptions]::SequentialScan
     )
+<<<<<<< HEAD
 <<<<<<< HEAD
 
     $xxh128Type = [Type]::GetType('System.IO.Hashing.XxHash128, System.IO.Hashing', $false)
@@ -1413,6 +1630,8 @@ function Get-Md5Safe {
     Write-Verbose "Get-XXHashSafe: $Path — $($_.Exception.Message)"
     Write-ErrorJson -Op 'Hash' -Path $Path -Exception $_.Exception -Context 'XXHASH'
 =======
+=======
+>>>>>>> origin/codex_2025-11-21
     $hash = [System.Security.Cryptography.IncrementalHash]::CreateHash([System.Security.Cryptography.HashAlgorithmName]::MD5)
     $blockSize = [Math]::Max(4096, $BlockKB * 1024)
     $buffer = [System.Buffers.ArrayPool[byte]]::Shared.Rent($blockSize)
@@ -1429,6 +1648,9 @@ function Get-Md5Safe {
   catch {
     Write-Verbose "Get-Md5Safe: $Path — $($_.Exception.Message)"
     Write-ErrorJson -Op 'Hash' -Path $Path -Exception $_.Exception -Context 'MD5'
+<<<<<<< HEAD
+>>>>>>> origin/codex_2025-11-21
+=======
 >>>>>>> origin/codex_2025-11-21
     $null
   }
@@ -1437,6 +1659,18 @@ function Get-Md5Safe {
     if ($fs) { $fs.Dispose() }
   }
 <<<<<<< HEAD
+<<<<<<< HEAD
+========
+$ComputeHashes = $true
+
+if (-not $PSBoundParameters.ContainsKey('DopProbes')) {
+  $DopProbes = [math]::Max([int][math]::Ceiling($DegreeOfParallelism / 2.0), 1)
+}
+
+if (-not $PSBoundParameters.ContainsKey('DopHash')) {
+  $DopHash = [math]::Max([int][math]::Ceiling($DegreeOfParallelism / 2.0), 1)
+=======
+>>>>>>> origin/codex_2025-11-21
 ========
 $ComputeHashes = $true
 
@@ -1525,6 +1759,82 @@ $script:IncludePatterns = if ($Include) {
 
 # ==========================================================================================================================================
 
+<<<<<<<< HEAD:Sandbox/=FmapX=/Scripts/FileMapX.Functions.ps1
+<<<<<<< HEAD
+try {
+  $mods = if ($env:SYNAPTA_ROOT) {
+    Join-Path $env:SYNAPTA_ROOT '.codex\02.- Datos del entorno\04.- Dependencias de herramientas\03.- Powershell\02.- Modules\03.- Aprobados'
+  } else {
+    # Fallback relativo al script (PSScriptRoot\..\..\..)
+    $r = Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $PSScriptRoot))
+    Join-Path $r '.codex\02.- Datos del entorno\04.- Dependencias de herramientas\03.- Powershell\02.- Modules\03.- Aprobados'
+  }
+
+  if (Test-Path -LiteralPath $mods) {
+    $sep = [IO.Path]::PathSeparator
+    if (-not (($env:PSModulePath -split [regex]::Escape($sep)) -contains $mods)) {
+      $env:PSModulePath = "$mods$sep$env:PSModulePath"
+    }
+  }
+
+  if (-not (Get-Command New-ZipFromFolder -ErrorAction SilentlyContinue)) {
+    Import-Module System.IO.Compression.Tools -ErrorAction SilentlyContinue | Out-Null
+  }
+  if ($IsWindows -and -not (Get-Command Resize-Image -ErrorAction SilentlyContinue)) {
+    Import-Module System.Drawing.Tools -ErrorAction SilentlyContinue | Out-Null
+  }
+}
+catch {
+  Write-Verbose "Inicialización de módulos opcionales: $($_.Exception.Message)"
+}
+
+# ==========================================================================================================================================
+
+
+# ==============================================================================================================================
+# Carga de módulos y utilidades
+$projectRoot = Split-Path -Parent $PSScriptRoot
+$scriptsRoot = Join-Path $projectRoot 'Scripts'
+
+. (Join-Path $scriptsRoot 'FileMapX.Native.ps1')
+. (Join-Path $scriptsRoot 'FileMapX.Functions.ps1')
+
+$script:Win32NativeAvailable = Initialize-NativeInterop -IsWindowsPlatform:$script:IsWindowsPlatform
+# ==============================================================================================================================
+# Preconteo por tamaño (evita hashear singletons)
+$script:SizeCount = @{}
+if (($ComputeHashes -or $FindDuplicates) -and (Test-Path -LiteralPath $RootPath)) {
+  try {
+    if ($script:Win32NativeAvailable) {
+      foreach ($len in (Get-FileSizesFastWin32 -Root $RootPath)) {
+        if ($script:SizeCount.ContainsKey($len)) { $script:SizeCount[$len] = [int64]$script:SizeCount[$len] + 1 }
+        else { $script:SizeCount[$len] = 1 }
+      }
+    } else {
+      Get-ChildItem -LiteralPath $RootPath -Recurse -File -ErrorAction SilentlyContinue | ForEach-Object {
+        $l = [int64]$_.Length
+        if ($script:SizeCount.ContainsKey($l)) { $script:SizeCount[$l] = [int64]$script:SizeCount[$l] + 1 } else { $script:SizeCount[$l] = 1 }
+      }
+    }
+  } catch { Write-Verbose "Preconteo por tamaño falló: $($_.Exception.Message)" }
+}
+
+$script:RunId = [guid]::NewGuid().ToString()
+$script:StartedUtc = (Get-Date).ToUniversalTime()
+
+# ==========================================================================================================================================
+
+$script:IncludePatterns = if ($Include) {
+  $Include | ForEach-Object { [Management.Automation.WildcardPattern]::new($_, 'IgnoreCase') }
+} else {
+  $null
+>>>>>>>> origin/codex_2025-11-21:Sandbox/=FmapX=/src/FileMapX.ps1
+}
+
+# ==========================================================================================================================================
+
+========
+>>>>>>>> origin/codex_2025-11-21:Sandbox/=FmapX=/src/FileMapX.ps1
 $script:ExcludePatterns = if ($Exclude) {
   $Exclude | ForEach-Object { [Management.Automation.WildcardPattern]::new($_, 'IgnoreCase') }
 } else {
@@ -1654,6 +1964,7 @@ if ($EmitTree -and $PSCmdlet.ShouldProcess($treeFile, 'Crear archivo de árbol')
     [System.IO.FileShare]::Read,
     1048576,
     [System.IO.FileOptions]::SequentialScan
+<<<<<<<< HEAD:Sandbox/=FmapX=/Scripts/FileMapX.Functions.ps1
   )
   $script:swTree = [System.IO.StreamWriter]::new($fsTree, $script:Utf8NoBom, 1048576, $false)
 }
@@ -1669,6 +1980,8 @@ if ($EmitJsonl) {
 }
 <<<<<<<< HEAD:Sandbox/=FmapX=/Scripts/FileMapX.Functions.ps1
 =======
+=======
+>>>>>>> origin/codex_2025-11-21
 function Get-FingerprintFast {
   param(
     [Parameter(Mandatory)][string]$Path,
@@ -1703,6 +2016,25 @@ function Get-FingerprintFast {
     foreach($b in $hashBytes){ [void]$sb.AppendFormat('{0:x2}',$b) }
     $hashString = $sb.ToString()
     return $hashString.Substring(0,[Math]::Min(16,$hashString.Length))
+<<<<<<< HEAD
+========
+  )
+  $script:swTree = [System.IO.StreamWriter]::new($fsTree, $script:Utf8NoBom, 1048576, $false)
+}
+if ($EmitJsonl) {
+  if ($StdOut) {
+    $script:JsonBasePath = $jsonFile
+    $script:JsonOutputPaths.Add('stdout') | Out-Null
+>>>>>>>> origin/codex_2025-11-21:Sandbox/=FmapX=/src/FileMapX.ps1
+  }
+  elseif ($PSCmdlet.ShouldProcess($jsonFile, 'Crear archivo JSONL')) {
+    $script:JsonBasePath = $jsonFile
+    Open-JsonWriter -PathBase $jsonFile
+  }
+}
+<<<<<<<< HEAD:Sandbox/=FmapX=/Scripts/FileMapX.Functions.ps1
+>>>>>>> origin/codex_2025-11-21
+=======
   }
   catch {
     Write-Verbose "Get-FingerprintFast: $Path — $($_.Exception.Message)"
@@ -1764,7 +2096,10 @@ function Get-ZipInfo {
   }
   $result
 <<<<<<< HEAD
+<<<<<<< HEAD
 ========
+========
+>>>>>>>> origin/codex_2025-11-21:Sandbox/=FmapX=/src/FileMapX.ps1
 if ($ErrorLog) {
   $errorDir = Split-Path -Parent $ErrorLog
   if ($errorDir -and -not (Test-Path -LiteralPath $errorDir)) {
@@ -1810,6 +2145,11 @@ try {
 }
 catch {
   Write-Verbose "Register PowerShell.Exiting: $($_.Exception.Message)"
+<<<<<<<< HEAD:Sandbox/=FmapX=/Scripts/FileMapX.Functions.ps1
+>>>>>>>> origin/codex_2025-11-21:Sandbox/=FmapX=/src/FileMapX.ps1
+=======
+>>>>>>> origin/codex_2025-11-21
+========
 >>>>>>>> origin/codex_2025-11-21:Sandbox/=FmapX=/src/FileMapX.ps1
 =======
 >>>>>>> origin/codex_2025-11-21
@@ -1819,6 +2159,10 @@ catch {
 
 <<<<<<< HEAD
 <<<<<<<< HEAD:Sandbox/=FmapX=/Scripts/FileMapX.Functions.ps1
+<<<<<<< HEAD
+<<<<<<<< HEAD:Sandbox/=FmapX=/Scripts/FileMapX.Functions.ps1
+=======
+>>>>>>> origin/codex_2025-11-21
 =======
 >>>>>>> origin/codex_2025-11-21
 function Get-PdfPageGuess {
@@ -2275,7 +2619,10 @@ function Write-ProgressSafe {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 ========
+========
+>>>>>>>> origin/codex_2025-11-21:Sandbox/=FmapX=/src/FileMapX.ps1
 # ==========================================================================================================================================
 
 # ==========================================================================================================================================
@@ -2536,6 +2883,11 @@ if ($EmitJsonl -and $script:JsonOutputPaths.Count -gt 0) {
 $finalExitCode = if ($script:Cancelled -or $script:ReachedEntryLimit) { 1 } else { 0 }
 exit $finalExitCode
 
+<<<<<<<< HEAD:Sandbox/=FmapX=/Scripts/FileMapX.Functions.ps1
+>>>>>>>> origin/codex_2025-11-21:Sandbox/=FmapX=/src/FileMapX.ps1
+=======
+>>>>>>> origin/codex_2025-11-21
+========
 >>>>>>>> origin/codex_2025-11-21:Sandbox/=FmapX=/src/FileMapX.ps1
 =======
 >>>>>>> origin/codex_2025-11-21

@@ -9,7 +9,11 @@ Inventario de archivos en PowerShell que genera un árbol (MD/TXT) y JSONL con m
 ## Módulos
 - `Scripts/FileMapX.Native.ps1`: carga de tipos Win32 y recorrido rápido para conteo previo.
 <<<<<<< HEAD
+<<<<<<< HEAD
 - `Scripts/FileMapX.Functions.ps1`: utilidades de hashing, clasificación, escritura JSONL y render de árbol.
+=======
+- `Scripts/FileMapX.Functions.ps1`: utilidades de hashing MD5, clasificación, escritura JSONL y render de árbol.
+>>>>>>> origin/codex_2025-11-21
 =======
 - `Scripts/FileMapX.Functions.ps1`: utilidades de hashing MD5, clasificación, escritura JSONL y render de árbol.
 >>>>>>> origin/codex_2025-11-21
