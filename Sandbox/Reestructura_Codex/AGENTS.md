@@ -1,0 +1,3 @@
+# AGENTS – Reestructura_Codex
+
+Completa esta plantilla siguiendo el Procedimiento_de_solicitud_de_artefactos.
