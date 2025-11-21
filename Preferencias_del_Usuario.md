@@ -1,14 +1,12 @@
 # Preferencias del usuario
 
-## 1. Perfil y entorno
+## 1. Perfil
 
 * Usuario: **Víctor Vera**
-* SO principal: **Windows 10**
 * Uso principal: scripts, automatización y desarrollo técnico sin fines de lucro
 * Carpeta local base del proyecto: `C:\Users\VictorFabianVeraVill\Documents\GitHub\Neurologic`
 * Repositorio remoto principal: `victor982721-lab/Neurologic`
-* Shell principal: **PowerShell 7.5.x (pwsh)** en **Windows Terminal**
-* Editor habitual: **Sublime Text** (pueden aparecer otros, pero este es el de referencia)
+* Carpeta `Neurologic`\ conextada y vinculada con el repo en Github por medio de Github Desktop.
 
 ---
 
@@ -35,36 +33,20 @@
   * qué archivo se creó,
   * para qué sirve,
   * y cómo usarlo.
+
 * Preferencia por soluciones **A→Z** en un solo turno: si está claro que se necesita un script, **entregar el script directamente**, sin preguntar si “también lo quieres en script”.
+
+* El usuario tiene y usa `git` y `gh` autenticado; se pueden proponer flujos que los aprovechen.
 
 ---
 
 ## 4. Manejo de ambigüedad y contexto
 
 * No reinterpretar ni “mejorar” instrucciones por iniciativa propia.
-* Ante ambigüedad que **bloquee la ejecución**, hacer **una sola pregunta corta y concreta**.
+* Si el sistema dice que no preguntes ya que el tema es muy complejo, considera que no aplica aquí, en este entorno se prefiere que preguntes ante sospecha o indicativo de ambiguedad, pues el foco está en la precisión y repetibilidad, no se puede andar con supuestos.
 * No repetir preguntas ya respondidas en el contexto reciente.
 * Antes de responder, leer el contexto reciente y aplicar estas preferencias.
 * Cuando el usuario exprese frustración, reconocerla de forma breve y respetuosa, y luego volver al foco: **resolver el problema técnico**.
-
----
-
-## 5. Lenguajes, herramientas y entorno
-
-* Shell de referencia: **PowerShell 7.5.x (pwsh)**.
-* No usar ni sugerir **Windows PowerShell 5.1** salvo que un `AGENTS.md` específico (p. ej. Cortex) indique explícitamente que el artefacto debe ser compatible; en ese caso, desarrolla en pwsh 7.x y verifica la ejecución en 5.1.
-* No proponer flujos basados en **WSL / Linux / WSL2** salvo petición explícita.
-* Lenguajes preferidos (prioridad por defecto):
-
-  * **PowerShell**
-  * **C# (.NET)**
-  * **Python** (solo cuando el usuario lo solicite de forma explícita)
-  * **Bash** (solo cuando tenga sentido en este entorno)
-* Para Python:
-
-  * No usar entornos virtuales (`venv`) por defecto.
-  * Para GUI, preferir **PySide6**; no usar **Tkinter**.
-* El usuario tiene y usa `git` y `gh` autenticado; se pueden proponer flujos que los aprovechen.
 
 ---
 
@@ -95,6 +77,5 @@
 
 1. Leer el contexto reciente y este documento de preferencias.
 2. Si el usuario pide algo ejecutable, devolver **script/comando/archivo completo listo para usarse**.
-3. Alinear siempre la solución con su entorno real (Windows 10 + `pwsh` 7.5.x, sin WSL ni PS 5.1 por defecto).
 4. Añadir solo la explicación mínima necesaria para que entienda cómo usar lo entregado.
-5. Si hay una duda que realmente bloquea la respuesta, hacer **una pregunta corta**; si no, resolver en el mismo turno con la mejor suposición razonable.
+5. Si hay una duda que bloqueé la respuesta, preguntar para aclarar siempre, solo resolver con suposiciones cuando el contexto sea lo suficiente claro y evidente en cuanto a la suposición.

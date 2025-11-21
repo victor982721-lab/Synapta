@@ -4,6 +4,66 @@ Repositorio personal para el ecosistema **Neurologic / Synapta**: automatizació
 
 ---
 
+## Estructura
+
+
+```
+Neurologic
+│
+├── 📂 Core
+│   ├── 📄 AGENTS_CORE.md
+│   ├── 📄 README.md
+│   └── (carpetas con artefactos reutilizables)
+│
+├── 📂 Sandbox
+│   │
+│   ├── 📂 Cortex
+│   │   │
+│   │   ├── 📂 .Archivo
+│   │   │   ├── 📂 Otros
+│   │   │   │   └── (…) contenido oculto
+│   │   │   ├── 📄 Instrucciones_ChatGPT.md
+│   │   │   ├── 🖥️ Cortex_Legacy.ps1
+│   │   │   └── 📄 Informe.md
+│   │   │
+│   │   ├── 📂 Documentos
+│   │   │   ├── 📊 Artefactos.csv
+│   │   │   ├── 📄 Bitacora.md
+│   │   │   ├── 📄 Cortex_Plan_Schema.md
+│   │   │   ├── 📊 Modulos.csv
+│   │   │   ├── 📄 Solicitud.md
+│   │   │   └── 📑 table_hierarchy.json
+│   │   │
+│   │   ├── 📂 Entregable
+│   │   │   └── 🖥️ Cortex.ps1
+│   │   │
+│   │   ├── 📂 Pruebas
+│   │   │   └── 🧪 (contiene pruebas Pester)
+│   │   │
+│   │   ├── 📂 Scripts
+│   │   │   └── 🖥️ Cortex_Wizard.NET.ps1
+│   │   │
+│   │   ├── 📂 SrcNet
+│   │   │   ├── 🧩 Cortex.csproj
+│   │   │   └── 💻 Program.cs
+│   │   │
+│   │   ├── 📄 AGENTS.md
+│   │   └── 📄 README.md
+│   │
+│   └── 📂 Otros_proyectos
+│       └── …
+│
+├── 📂 Scripts
+│
+├── 📄 .gitignore
+├── 📄 AGENTS.md
+├── 📄 Politica_Cultural_y_Calidad.md
+├── 📄 Preferencias_del_Usuario.md
+└── 📄 README.md
+```
+
+---
+
 ## Documentos normativos
 
 - **Política cultural y de calidad – Ecosistema Neurologic**: estándar global de cultura, calidad y criterios mínimos.

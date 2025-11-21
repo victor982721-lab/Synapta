@@ -8,6 +8,30 @@ Cortex es la evolución modular de `RepoMaster.ps1`: un script maestro único, c
 - Compatibilidad mínima: Windows 7/8.1 con Windows PowerShell 5.1 (Cortex detectará la versión y aplicará ajustes).
 - Proyectos generados: multi-target net8/net7/net6 (CLI por defecto, UI solo cuando se documente un requisito específico).
 
+
+## Estructura
+
+Cortex/
+├── Cortex.ps1
+├── AGENTS.md
+├── README.md
+├── Cortex.csproj
+├── docs/
+│   ├── Procedimiento_de_solicitud_de_artefactos.md
+│   ├── Informe.md
+│   ├── Cortex_Plan_Schema.md
+│   ├── solicitud_de_artefactos.md
+│   ├── filemap_ascii.txt
+│   ├── table_hierarchy.json
+│   ├── bitacora.md
+│   └── Cortex.ps1
+├── csv/
+│   ├── modules.csv
+│   └── artefacts.csv
+├── Scripts/
+├── src/
+└── tests/
+
 ## Objetivos principales
 
 1. **Scaffolding inteligente**: crear Sandbox/Core con toda la documentación (AGENTS, README, Procedimiento, Informe, Solicitud, CSV, tabla de jerarquía, bitácora) sin depender de archivos externos.

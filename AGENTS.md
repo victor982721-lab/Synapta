@@ -1,12 +1,10 @@
-# AGENTS – Neurologic (General para Codex)
+# AGENTS – Neurologic, General.
 
-Este documento define las reglas globales para el agente **Codex** al trabajar en el repositorio **Neurologic**.
+Este documento define las reglas globales para los agentes **Codex Web y ChatGPT Web** al trabajar en el repositorio **Neurologic**.
 
-Se debe leer y aplicar **junto con** la:
+Se debe leer y aplicar **junto con** la **“Política cultural y de calidad – Ecosistema Neurologic”** (documento estándar global de cultura y calidad).
 
-- **“Política cultural y de calidad – Ecosistema Neurologic”** (documento estándar global de cultura y calidad).
-
-Los `AGENTS.md` específicos de cada proyecto (por ejemplo `Neurologic/Ws_Insights/AGENTS.md`) pueden añadir reglas más estrictas, pero **no pueden rebajar** el estándar cultural y técnico definido en esa política global.
+Los `AGENTS.md` específicos de cada proyecto (por ejemplo `Neurologic/Sandbox/<Proyecto>/AGENTS.md`) pueden añadir reglas más estrictas, pero **no pueden rebajar** el estándar cultural y técnico definido en esa política global.
 
 ---
 
@@ -15,7 +13,7 @@ Los `AGENTS.md` específicos de cada proyecto (por ejemplo `Neurologic/Ws_Insigh
 1. Este AGENTS aplica a **todo el trabajo de Codex** dentro de `Neurologic`.
 2. El orden de prioridad es:
    1. Política cultural y de calidad – Ecosistema Neurologic.
-   2. `AGENTS.md` específico del proyecto o subproyecto (si existe).
+   2. `AGENTS.md` específico del proyecto o subproyecto.
    3. Este AGENTS general de Neurologic.
 3. Si hay conflicto entre este documento y un `AGENTS.md` específico, prevalece el **más específico**, siempre que **no contradiga** la política cultural y de calidad.
 
@@ -23,33 +21,37 @@ Los `AGENTS.md` específicos de cada proyecto (por ejemplo `Neurologic/Ws_Insigh
 
 ## 2. Entorno técnico global
 
-1. **Sistema operativo de trabajo**: Windows 10 u 11.
-2. **Compatibilidad mínima**: Algunos proyectos (p. ej. Cortex) requieren ejecutarse también en Windows 7/8.1 y en Windows PowerShell 5.1. Cuando un `AGENTS` específico lo indique, esa compatibilidad se considera una excepción autorizada.
-3. **Shell principal**: PowerShell 7+ (`pwsh`) en Windows Terminal para desarrollo y pruebas. El código debe conservar compatibilidad con PowerShell 5.1 solo cuando el proyecto lo requiera explícitamente y se deben documentar las diferencias.
-3. **Lenguajes permitidos por defecto**:
-   - PowerShell
-   - C# (.NET)
-   - Python (solo bajo petición explícita del usuario; PowerShell y C# son la prioridad para nuevos artefactos)
-   - Bash (solo cuando tenga sentido en este entorno)
-4. **Prohibido por defecto**:
-   - Windows PowerShell 5.1.
-   - Flujos que dependan de WSL / WSL2 / Linux, salvo instrucción explícita.
-   - Entornos virtuales de Python (`venv`), salvo instrucción explícita.
-5. Asumir instalación **global** de Python y herramientas, sin entornos aislados salvo que el usuario indique lo contrario.
+1. **Sistema operativo de trabajo**: Windows 10. (Compatibilidad con Windows 7, 8.1, 11)
+2. **Shell principal**: Pwsh en Windows Terminal.
+3. **Lenguajes de programación usados**:
+   - C# (En .NET 8.0, con compatibilidad en .NET 7.0 y .NET 6.0)
+   - PowerShell (7.5.4. con compatibilidad en PowerShell 5+)
+   - Python (Solo cuando .NET no cuente con las dependencias necesarias para realizar algún proyecto)
+   - Bash en WSL (Solo cuando C# y Python no cuenten con las dependencias necesarias para realizar algún proyecto)
+4. **Editor por defecto**: Sublime Text
 
 ---
 
 ## 3. Estándar .NET y multi-framework
 
-De acuerdo con el estándar técnico global del ecosistema:
+De acuerdo con el estándar técnico global del ecosistema, cualquier proyecto nuevo creado por Cortex debe:
 
-1. Cualquier **proyecto .NET nuevo** creado por Codex dentro de `Neurologic` debe usar **multi-targeting**:
+1. Reutilizar tecnologías existentes previamente desarrolladas, si no hay, evaluar la creación de artefactos reutilizables que puedan aplicar en el proyecto actual y desarrollarlas antes de desarrollar el proyecto completo, esto será evaluado por el asistente en su primer proceso de iteración de acuerdo con el `Procedimiento_ChatGPT_Web`
+
+2. Estar habilitado para desarrollar efectivamente proyectos tanto .NET como proyectos en PowerShell, optando siempre por realizar artefactos .NET cuando haya soluciones existentes en sus dependencias.
+
+2. Debe ser creado pensando en el desarrollo CLI, con compilación portable y autocontenida en una pieza. No considerar UI / GUI por iniciativa propia, salvo solicitud directa del usuario, en cuyo caso se tiene que considerar el desarrollo de una UI / GUI con compatibilidad total con CLI.
+
+3. Se debe considerar siempre la implementación de un "Wizard Interactivo" para los proyectos .NET en CLI, este Wizard será ajeno al propio proyecto de compilación y será desarrollado en un script .ps1, el cual deberá volver interactivo en su totalidad el uso del proyecto .NET
+
+4. Cualquier **proyecto .NET nuevo** creado por Codex dentro de `Neurologic` debe usar **multi-targeting**:
+
    - Aplicaciones Windows/WPF:
      ```xml
      <TargetFrameworks>net8.0-windows;net7.0-windows;net6.0-windows</TargetFrameworks>
      <UseWPF>true</UseWPF>
      ```
-   - Librerías (no WPF):
+   - Librerías:
      ```xml
      <TargetFrameworks>net8.0;net7.0;net6.0</TargetFrameworks>
      ```
@@ -62,9 +64,7 @@ De acuerdo con el estándar técnico global del ecosistema:
 
 1. Regla general para C#:
    - **`namespace = ruta de carpeta`** siempre que aplique.
-2. Codex **no debe crear nuevas carpetas ni mover archivos** salvo:
-   - Instrucción explícita del usuario, o
-   - Regla clara en el `AGENTS.md` específico del subproyecto.
+2. ChatGPT Web puede crear carpetas si se está configurando Cortex, pero Codex Web no debe crear directorios nuevos, debe apegarse al diseño de la solicitud.
 3. Funcionalidades complejas (indexadores, motores de búsqueda, recorridos recursivos masivos, infraestructura de logging, etc.) deben implementarse como **módulos reutilizables**, no como scripts aislados.
 4. Los módulos compartidos deben:
    - Estar desacoplados de UI.
@@ -80,10 +80,8 @@ De acuerdo con el estándar técnico global del ecosistema:
 
 ## 5. Indexadores y motores compartidos
 
-1. Cuando un subproyecto define un **indexador o motor principal** (por ejemplo, `Ws_Insights.Search.*` y `Ws_Insights.Search.Engine.*` para Ws_Insights), este se considera la **fuente de verdad** para paths, hashes, metadatos y resultados.
-2. La acción por defecto para Codex es **extender** ese indexador/motor, no crear uno paralelo. Solo se aceptan motores paralelos si:
-   - Hay una instrucción explícita del usuario, o
-   - El `AGENTS.md` específico del proyecto lo pide.
+1. Cuando un subproyecto define un **Artefacto Reutilizable Canonico** este se considera la **fuente de verdad** para el desarrollo de otros proyectos que requieran una tecnología similar.
+2. La acción por defecto para Codex es **extender** o mejorar ese Artefacto, no crear uno paralelo.
 3. Cualquier nueva funcionalidad relacionada debe integrarse como:
    - Nuevos métodos o servicios dentro del módulo existente.
    - Nuevos modos de operación o adaptadores que llamen al motor actual.
@@ -113,16 +111,15 @@ De acuerdo con el estándar técnico global del ecosistema:
 
 ## 7. Restricciones adicionales
 
-1. No introducir dependencias pesadas (bases de datos externas, servicios cloud, etc.) sin justificación clara o instrucción del usuario.
-2. Preferir librerías **open-source** estándar en el ecosistema .NET / Python / PowerShell.
-3. Respetar el enfoque de **determinismo y previsibilidad** del ecosistema:
+1. Preferir librerías **open-source** estándar en el ecosistema .NET / Python / PowerShell.
+2. Respetar el enfoque de **determinismo y previsibilidad** del ecosistema:
    - Mismos inputs → mismos outputs.
    - No introducir aleatoriedad sin control (usar semillas reproducibles si fuera necesario).
-4. No simplificar ni degradar un motor sólido a una versión inferior solo por comodidad.
+3. No simplificar ni degradar un motor sólido a una versión inferior solo por comodidad.
 
 ---
 
-## 8. Comportamiento esperado de Codex
+## 8. Comportamiento esperado de Codex / ChatGPT Web.
 
 De acuerdo con la política cultural y de calidad, Codex debe comportarse como un agente técnico responsable:
 
@@ -161,7 +158,7 @@ Antes de generar o modificar código en un subárbol del repositorio, Codex debe
 
 ## 10. Resumen operativo rápido
 
-1. Asumir entorno Windows 10, PowerShell 7+, sin WSL ni venv por defecto.
+1. Asumir entorno Windows 10, PowerShell 7.5.4, compatible desde Windows 7 y Powershell 5+.
 2. Cumplir la política cultural y de calidad del ecosistema Neurologic.
 3. Para .NET, aplicar siempre multi-framework (8/7/6) según el tipo de proyecto.
 4. Mantener `namespace = ruta de carpeta` y no inventar estructura sin instrucción.
