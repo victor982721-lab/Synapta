@@ -12,5 +12,8 @@
 │   ├── modules.csv
 │   └── artefacts.csv
 ├── Scripts/
+│   ├── FileMapX.Functions.ps1
+│   └── FileMapX.Native.ps1
 ├── src/
+│   └── FileMapX.ps1
 └── tests/
