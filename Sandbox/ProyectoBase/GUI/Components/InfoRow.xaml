@@ -1,0 +1,22 @@
+<UserControl x:Class="ProyectoBase.GUI.Components.InfoRow"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Grid Margin="0 4 0 4">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="200"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <TextBlock Grid.Column="0"
+                   Text="{Binding Label, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                   FontWeight="SemiBold"
+                   Foreground="{StaticResource TextBrush}"/>
+
+        <TextBlock Grid.Column="1"
+                   Text="{Binding Value, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                   Foreground="{StaticResource TextBrush}"
+                   TextWrapping="Wrap"/>
+    </Grid>
+
+</UserControl>

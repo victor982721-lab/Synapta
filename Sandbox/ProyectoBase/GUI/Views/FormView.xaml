@@ -1,0 +1,17 @@
+<UserControl x:Class=""ProyectoBase.GUI.Views.FormView""
+             xmlns=""http://schemas.microsoft.com/winfx/2006/xaml/presentation""
+             xmlns:x=""http://schemas.microsoft.com/winfx/2006/xaml""
+             Background=""{StaticResource BackgroundBrush}"">
+
+    <ScrollViewer VerticalScrollBarVisibility=""Auto"">
+        <Border Margin=""10"" Padding=""10""
+                Background=""{StaticResource InputBackgroundBrush}""
+                BorderBrush=""{StaticResource BorderBrush}""
+                BorderThickness=""1""
+                CornerRadius=""10"">
+
+            <ContentPresenter x:Name=""FormHost""/>
+        </Border>
+    </ScrollViewer>
+
+</UserControl>

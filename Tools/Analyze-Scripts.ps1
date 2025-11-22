@@ -1,25 +1,19 @@
 #Requires -Version 7.0
 <#
 .SYNOPSIS
-    Recorre un árbol de carpetas y genera un resumen rápido de cada script PowerShell.
+    Analiza scripts PowerShell y Python de forma concurrente y en streaming.
 
 .DESCRIPTION
-    Para cada archivo *.ps1 y *.psm1 calcula:
-        - Número y nombre de funciones declaradas.
-        - Comandos externos/comunes utilizados (git, dotnet, Invoke-WebRequest, etc.).
-        - Uso de Read-Host / Invoke-Expression / Start-Process y otras llamadas relevantes.
-        - Errores de parseo (si los hubiera).
-
-    El resultado se muestra en tabla y también puede exportarse a CSV/JSON.
+    Recorrerá el árbol indicado, deteniéndose solo en archivos *.ps1, *.psm1 y *.py.
+    Cada archivo se procesa con ForEach-Object -Parallel (ThrottleLimit 6) para
+    aprovechar múltiples núcleos y evitar almacenamiento de grandes cantidades de datos
+    mientras se sigue entregando el resultado en una tabla y opcionalmente en CSV/JSON.
 
 .PARAMETER RootPath
-    Carpeta raíz desde la que se analizarán los scripts. Por defecto, la carpeta padre del script.
+    Carpeta raíz desde la que se analizará el árbol.
 
 .PARAMETER OutputPath
-    (Opcional) Ruta a CSV o JSON donde se guardará el resultado. Si se omite, solo escribe en pantalla.
-
-.EXAMPLE
-    ./Analyze-Scripts.ps1 -RootPath ..\Sandbox\Cortex -OutputPath cortex-analysis.csv
+    Ruta opcional a CSV o JSON donde se guardará el resumen final.
 #>
 param(
     [string]$RootPath = (Split-Path -Parent $PSScriptRoot),
@@ -27,18 +21,133 @@ param(
 )
 
 if (-not (Test-Path $RootPath)) {
-    Write-Error "No existe la ruta raíz: $RootPath"
+    Write-Error "No existe la ruta raiz: $RootPath"
     exit 1
 }
 
-Write-Host "[analyzer] Buscando scripts en $RootPath" -ForegroundColor Cyan
+$helperModulePath = Join-Path $PSScriptRoot 'FunctionSpecHelper.psm1'
+if (-not (Test-Path $helperModulePath)) {
+    Write-Error "Falta el módulo de especificaciones de funciones en $helperModulePath"
+    exit 1
+}
 
-$scriptFiles = Get-ChildItem -Path $RootPath -Include *.ps1, *.psm1 -File -Recurse |
-    Where-Object { -not $_.FullName.ToLower().Contains('packages') }
+$pythonAnalyzer = @'
+import ast
+import collections
+import json
+import pathlib
+import sys
 
-if (-not $scriptFiles) {
-    Write-Warning "No se encontraron scripts PowerShell bajo $RootPath."
-    return
+INTERESTING = [
+    'subprocess.run', 'subprocess.Popen', 'subprocess.call',
+    'os.system', 'os.popen', 'os.remove', 'os.rmdir', 'shutil.rmtree',
+    'requests.get', 'requests.post', 'requests.put', 'requests.delete',
+    'httpx.get', 'httpx.post', 'open', 'input', 'exec', 'eval',
+]
+
+def qname(node):
+    parts = []
+    while isinstance(node, ast.Attribute):
+        parts.append(node.attr)
+        node = node.value
+    if isinstance(node, ast.Name):
+        parts.append(node.id)
+    if parts:
+        return '.'.join(reversed(parts))
+    return None
+
+def unique(items, limit):
+    seen = set()
+    count = 0
+    for item in items:
+        if item in seen:
+            continue
+        seen.add(item)
+        yield item
+        count += 1
+        if limit and count >= limit:
+            break
+
+def safe_read(path):
+    try:
+        return path.read_text(encoding='utf-8')
+    except UnicodeDecodeError:
+        return path.read_text(encoding='latin-1', errors='ignore')
+
+path = pathlib.Path(sys.argv[1])
+text = safe_read(path)
+try:
+    tree = ast.parse(text, filename=str(path))
+except Exception as exc:
+    payload = {
+        'Script': str(path),
+        'Functions': '',
+        'FunctionCount': 0,
+        'Interesting': '',
+        'Commands': '',
+        'FunctionSpecCount': 0,
+        'FunctionSpecSummary': '',
+        'FunctionSpecs': [],
+        'ParseErrors': f'{exc.__class__.__name__}: {exc}',
+    }
+    print(json.dumps(payload, ensure_ascii=False))
+    sys.exit(0)
+
+functions = sorted({node.name for node in ast.walk(tree) if isinstance(node, ast.FunctionDef)})
+calls = []
+for node in ast.walk(tree):
+    if isinstance(node, ast.Call):
+        name = qname(node.func)
+        if name:
+            calls.append(name)
+
+counter = collections.Counter(calls)
+interest_hits = []
+for candidate in INTERESTING:
+    total = sum(cnt for command, cnt in counter.items()
+                if command == candidate or command.endswith('.' + candidate))
+    if total:
+        interest_hits.append(f'{candidate} (x{total})')
+
+commands = ', '.join(unique(calls, 25))
+    payload = {
+        'Script': str(path),
+        'Functions': ', '.join(functions),
+        'FunctionCount': len(functions),
+        'Interesting': '; '.join(interest_hits),
+        'Commands': commands,
+        'FunctionSpecCount': 0,
+        'FunctionSpecSummary': '',
+        'FunctionSpecs': [],
+        'ParseErrors': '',
+    }
+print(json.dumps(payload, ensure_ascii=False))
+'@
+
+$pythonHelperPath = Join-Path ([IO.Path]::GetTempPath()) 'neurologic_analyze_python.py'
+$pythonAnalyzer | Set-Content -LiteralPath $pythonHelperPath -Encoding UTF8 -Force
+
+$pythonExecutables = [System.Collections.Generic.List[string]]::new()
+
+try {
+    $defaultPython = (& python -c "import sys; print(sys.executable)" 2>$null).Trim()
+    if ($defaultPython -and (Test-Path $defaultPython)) {
+        $pythonExecutables.Add($defaultPython)
+    }
+} catch {
+}
+
+try {
+    $pyList = & py -0p 2>$null
+    foreach ($line in $pyList) {
+        if ($line -match '([A-Za-z]:\\[^ ]+\.exe)') {
+            $candidate = $matches[1]
+            if ((Test-Path $candidate) -and -not $pythonExecutables.Contains($candidate)) {
+                $pythonExecutables.Add($candidate)
+            }
+        }
+    }
+} catch {
 }
 
 $interestingCommands = @(
@@ -47,28 +156,136 @@ $interestingCommands = @(
     'git','dotnet','gh','Set-StrictMode','Set-ExecutionPolicy','curl'
 )
 
-$results = foreach ($file in $scriptFiles) {
-    $tokens = $null
-    $errors = $null
-    try {
-        $ast = [System.Management.Automation.Language.Parser]::ParseFile(
-            $file.FullName, [ref]$tokens, [ref]$errors
-        )
-    } catch {
-        [pscustomobject]@{
+$analysisBlock = {
+    $file = $_
+    Import-Module $using:helperModulePath -Global -ErrorAction SilentlyContinue | Out-Null
+
+    function Try-FixPowerShellParse {
+        param([System.IO.FileInfo]$File)
+
+        Import-Module -Name PSScriptAnalyzer -ErrorAction SilentlyContinue | Out-Null
+        if (-not (Get-Module -Name PSScriptAnalyzer -ErrorAction SilentlyContinue)) {
+            return $false
+        }
+
+        try {
+            Invoke-ScriptAnalyzer -Path $File.FullName -Fix -ErrorAction Stop | Out-Null
+            if (Get-Command Invoke-Formatter -ErrorAction SilentlyContinue) {
+                Invoke-Formatter -Path $File.FullName -Force -ErrorAction Stop | Out-Null
+            }
+            return $true
+        } catch {
+            return $false
+        }
+    }
+    $extension = [IO.Path]::GetExtension($file.FullName).ToLowerInvariant()
+
+    if ($extension -eq '.py') {
+        if (-not $using:pythonExecutables) {
+            return [pscustomobject]@{
+                Script        = $file.FullName
+                Functions     = ''
+                FunctionCount = 0
+                Interesting   = ''
+                Commands      = ''
+                ParseErrors   = 'No se encontro Python 3 en el entorno.'
+            }
+        }
+
+        $pythonOutput = $null
+        $launcherError = $null
+
+        foreach ($exe in $using:pythonExecutables) {
+            try {
+                $pythonOutput = & $exe $using:pythonHelperPath $file.FullName
+                break
+            } catch [System.ComponentModel.Win32Exception] {
+                $launcherError = $_.Exception.Message
+            } catch {
+                $launcherError = $_.Exception.Message
+            }
+        }
+
+        if (-not $pythonOutput) {
+            $errorMessage = if ($launcherError) { $launcherError } else { 'No se encontro un lanzador Python 3 valido.' }
+            return [pscustomobject]@{
+                Script        = $file.FullName
+                Functions     = ''
+                FunctionCount = 0
+                Interesting   = ''
+                Commands      = ''
+                FunctionSpecCount = 0
+                FunctionSpecSummary = ''
+                FunctionSpecs = @()
+                ParseErrors   = $errorMessage
+            }
+        }
+
+        $jsonText = if ($pythonOutput -is [System.Array]) { $pythonOutput -join "`n" } else { $pythonOutput }
+        try {
+            $parsed = $jsonText | ConvertFrom-Json
+            $parsed.Script = $file.FullName
+            return $parsed
+        } catch {
+            return [pscustomobject]@{
+                Script        = $file.FullName
+                Functions     = ''
+                FunctionCount = 0
+                Interesting   = ''
+                Commands      = ''
+                FunctionSpecCount = 0
+                FunctionSpecSummary = ''
+                FunctionSpecs = @()
+                ParseErrors   = $_.Exception.Message
+            }
+        }
+    }
+
+    $parseErrors = $null
+    $attempt = 0
+    $ast = $null
+    while ($attempt -lt 2) {
+        $tokens = $null
+        $errors = $null
+        try {
+            $ast = [System.Management.Automation.Language.Parser]::ParseFile(
+                $file.FullName, [ref]$tokens, [ref]$errors
+            )
+            $parseErrors = $null
+            break
+        } catch {
+            $parseErrors = $_.Exception.Message
+            if ($attempt -eq 0 -and (Try-FixPowerShellParse -File $file)) {
+                $attempt++
+                continue
+            }
+            $ast = $null
+            break
+        }
+    }
+
+    if (-not $ast) {
+        return [pscustomobject]@{
             Script        = $file.FullName
             Functions     = ''
             FunctionCount = 0
             Interesting   = ''
             Commands      = ''
-            ParseErrors   = $_.Exception.Message
+            ParseErrors   = $parseErrors
         }
-        continue
     }
 
     $functions = $ast.FindAll({
         param($node) $node -is [System.Management.Automation.Language.FunctionDefinitionAst]
     }, $true) | ForEach-Object { $_.Name } | Sort-Object -Unique
+
+    $functionSpecs = @()
+    try {
+        $functionSpecs = Get-FunctionSpecsFromAst -Ast $ast
+    } catch {
+        $functionSpecs = @()
+    }
+    $functionSpecSummary = if ($functionSpecs) { ($functionSpecs | ForEach-Object { $_.Nombre }) -join '; ' } else { '' }
 
     $commandAsts = $ast.FindAll({
         param($node) $node -is [System.Management.Automation.Language.CommandAst]
@@ -80,27 +297,45 @@ $results = foreach ($file in $scriptFiles) {
         Sort-Object
 
     $interestingHits = $commandNames |
-        Where-Object { $interestingCommands -contains $_ } |
+        Where-Object { $using:interestingCommands -contains $_ } |
         Group-Object |
         ForEach-Object { "{0} (x{1})" -f $_.Name, $_.Count }
 
-    [pscustomobject]@{
+    return [pscustomobject]@{
         Script        = $file.FullName
         Functions     = ($functions -join ', ')
         FunctionCount = $functions.Count
+        FunctionSpecCount = $functionSpecs.Count
+        FunctionSpecSummary = $functionSpecSummary
+        FunctionSpecs = $functionSpecs
         Interesting   = ($interestingHits -join '; ')
         Commands      = ($commandNames | Get-Unique | Select-Object -First 25) -join ', '
         ParseErrors   = ($errors | ForEach-Object { $_.Message }) -join '; '
     }
 }
 
-$results | Format-Table -AutoSize
+try {
+    $processing = Get-ChildItem -Path $RootPath -Include *.ps1, *.psm1, *.py -File -Recurse |
+        Where-Object { -not $_.FullName.ToLower().Contains('packages') } |
+        ForEach-Object -Parallel $analysisBlock -ThrottleLimit 6
 
-if ($OutputPath) {
-    $ext = [IO.Path]::GetExtension($OutputPath)
-    switch ($ext.ToLower()) {
-        '.json' { $results | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath $OutputPath -Encoding UTF8 }
-        default { $results | Export-Csv -LiteralPath $OutputPath -NoTypeInformation -Encoding UTF8 }
+    $processing | Tee-Object -Variable cachedResults |
+        Format-Table -AutoSize -Wrap -Property Script, FunctionCount, FunctionSpecCount, FunctionSpecSummary, Functions, Interesting, Commands, ParseErrors | Out-String -Width 200 | Write-Host
+
+    if (-not $cachedResults) {
+        Write-Warning "No se encontraron scripts PowerShell o Python en $RootPath."
+        return
     }
-    Write-Host "[analyzer] Resultado guardado en $OutputPath" -ForegroundColor Green
+
+    if ($OutputPath) {
+        $ext = [IO.Path]::GetExtension($OutputPath)
+        if ($ext.ToLower() -eq '.json') {
+            $cachedResults | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath $OutputPath -Encoding UTF8
+        } else {
+            $cachedResults | Export-Csv -LiteralPath $OutputPath -NoTypeInformation -Encoding UTF8
+        }
+        Write-Host "[analyzer] Resultado guardado en $OutputPath" -ForegroundColor Green
+    }
+} finally {
+    Remove-Item $pythonHelperPath -ErrorAction SilentlyContinue -Force
 }

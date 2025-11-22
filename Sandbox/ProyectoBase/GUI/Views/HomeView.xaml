@@ -1,0 +1,29 @@
+<UserControl x:Class="ProyectoBase.GUI.Views.HomeView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="clr-namespace:ProyectoBase.GUI.Components"
+             Background="{StaticResource BackgroundBrush}">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="10">
+
+            <c:CardControl>
+                <StackPanel>
+                    <c:SectionHeader Text="Bienvenido"/>
+                    <TextBlock Text="Tu panel principal está listo."
+                               Style="{StaticResource BodyText}"/>
+                </StackPanel>
+            </c:CardControl>
+
+            <c:CardControl>
+                <StackPanel>
+                    <c:SectionHeader Text="Información del sistema"/>
+                    <c:InfoRow Label="Versión:" Value="1.0.0"/>
+                    <c:InfoRow Label="Estado:" Value="Operativo"/>
+                </StackPanel>
+            </c:CardControl>
+
+        </StackPanel>
+    </ScrollViewer>
+
+</UserControl>

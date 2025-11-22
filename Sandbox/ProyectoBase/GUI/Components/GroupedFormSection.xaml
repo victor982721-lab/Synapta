@@ -1,0 +1,18 @@
+<UserControl x:Class=""ProyectoBase.GUI.Components.GroupedFormSection""
+             xmlns=""http://schemas.microsoft.com/winfx/2006/xaml/presentation""
+             xmlns:x=""http://schemas.microsoft.com/winfx/2006/xaml"">
+
+    <StackPanel Margin=""0 0 0 12"">
+        <TextBlock Text=""{Binding Title, RelativeSource={RelativeSource AncestorType=UserControl}}"" 
+                   Style=""{StaticResource SubtitleText}""/>
+
+        <Border Background=""{StaticResource InputBackgroundBrush}""
+                BorderBrush=""{StaticResource BorderBrush}""
+                BorderThickness=""1""
+                CornerRadius=""10""
+                Padding=""12"">
+            <ContentPresenter/>
+        </Border>
+    </StackPanel>
+
+</UserControl>
