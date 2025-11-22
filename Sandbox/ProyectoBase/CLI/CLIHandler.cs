@@ -1,5 +1,5 @@
 using System;
-using ProyectoBase.Core;
+using ProyectoBase.Core.Search;
 
 namespace ProyectoBase.CLI
 {
@@ -7,54 +7,70 @@ namespace ProyectoBase.CLI
     {
         public static void Run(string[] args)
         {
-            var opt = Parse(args);
-            var result = Logic.Execute(opt);
+            if (args.Length == 0)
+            {
+                ShowHelp();
+                return;
+            }
 
-            if (opt.Verbose)
-                Console.WriteLine($"[CLI] Resultado: {(result.Success ? "OK" : "FAIL")}");
+            var cmd = args[0].ToLower();
 
-            Console.WriteLine(result.Message);
+            switch (cmd)
+            {
+                case ""search"":
+                    RunSearch(args);
+                    break;
+
+                case ""--help"":
+                default:
+                    ShowHelp();
+                    break;
+            }
         }
 
-        private static Options Parse(string[] args)
+        private static void RunSearch(string[] args)
         {
-            var o = new Options();
+            string path = ""C:\\";;
+            string pattern = """";;
+            bool recursive = true;
+            bool caseSensitive = false;
+            int max = 200;
+            var extensions = new System.Collections.Generic.List<string> { ""txt"", ""log"" };
 
-            for (int i = 0; i < args.Length; i++)
+            for (int i = 1; i < args.Length; i++)
             {
                 switch (args[i])
                 {
-                    case "--path":
-                        if (i + 1 < args.Length) 
-                            o.Path = args[++i];
-                        break;
-
-                    case "--verbose":
-                        o.Verbose = true;
-                        break;
-
-                    case "--help":
-                    case "-h":
-                        ShowHelp();
-                        Environment.Exit(0);
-                        break;
+                    case ""--path"": path = args[++i]; break;
+                    case ""--pattern"": pattern = args[++i]; break;
+                    case ""--recursive"": recursive = true; break;
+                    case ""--norecursive"": recursive = false; break;
+                    case ""--casesensitive"": caseSensitive = true; break;
+                    case ""--max"": max = int.Parse(args[++i]); break;
+                    case ""--ext"": extensions = new System.Collections.Generic.List<string>(args[++i].Split(',')); break;
                 }
             }
 
-            return o;
+            var opt = new SearchOptions
+            {
+                Path = path,
+                Pattern = pattern,
+                Recursive = recursive,
+                CaseSensitive = caseSensitive,
+                MaxResults = max,
+                Extensions = extensions
+            };
+
+            var results = SearchEngine.FindMatches(opt);
+
+            foreach (var r in results)
+                Console.WriteLine(r);
         }
 
         private static void ShowHelp()
         {
-            Console.WriteLine("ProyectoBase - CLI");
-            Console.WriteLine();
-            Console.WriteLine("Parámetros disponibles:");
-            Console.WriteLine("  --path <ruta>      Ruta de trabajo");
-            Console.WriteLine("  --verbose          Modo detallado");
-            Console.WriteLine("  --help, -h         Mostrar ayuda");
-            Console.WriteLine();
-            Console.WriteLine("Ejemplo:");
-            Console.WriteLine("  ProyectoBase.exe --path C:\\Datos --verbose");
+            Console.WriteLine(""Comandos disponibles:"");
+            Console.WriteLine(""  search --path <ruta> --pattern <regex> [--recursive|--norecursive] --max 200 --ext txt,log"");
         }
     }
 }

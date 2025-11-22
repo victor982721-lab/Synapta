@@ -1,0 +1,575 @@
+[
+  {
+    "schemaVersion": "2025.11.20.v1",
+    "generatedAt": "2025-11-22T02:06:40.7290053Z",
+    "Nombre": "Try-FixPowerShellParse",
+    "Lenguaje": "PowerShell",
+    "FirmaPowerShell": "Try-FixPowerShellParse",
+    "Comandos": [
+      "Get-Command",
+      "Get-Module",
+      "Import-Module",
+      "Invoke-Formatter",
+      "Invoke-ScriptAnalyzer",
+      "Out-Null"
+    ],
+    "TryCatch": {
+      "TryBlock": "{\\n        Invoke-ScriptAnalyzer -Path $File.FullName -Fix -ErrorAction Stop | Out-Null\\n        if (Get-Command Invoke-Formatter -ErrorAction SilentlyContinue) {\\n            Invoke-Formatter -Path $File.FullName -Force -ErrorAction Stop | Out-Null\\n        }\\n        return $true\\n    }"
+    },
+    "Returns": [
+      "$false",
+      "$true"
+    ],
+    "AST": {
+      "Type": "FunctionDefinitionAst",
+      "Children": {
+        "Type": "ScriptBlockAst",
+        "Children": [
+          {
+            "Type": "ParamBlockAst",
+            "Children": {
+              "Type": "ParameterAst",
+              "Children": [
+                {
+                  "Type": "TypeConstraintAst"
+                },
+                {
+                  "Type": "VariableExpressionAst"
+                }
+              ]
+            }
+          },
+          {
+            "Type": "NamedBlockAst",
+            "Children": [
+              {
+                "Type": "PipelineAst",
+                "Children": [
+                  {
+                    "Type": "CommandAst",
+                    "Command": "Import-Module -Name PSScriptAnalyzer -ErrorAction SilentlyContinue",
+                    "Children": [
+                      {
+                        "Type": "StringConstantExpressionAst"
+                      },
+                      {
+                        "Type": "CommandParameterAst"
+                      },
+                      {
+                        "Type": "StringConstantExpressionAst"
+                      },
+                      {
+                        "Type": "CommandParameterAst"
+                      },
+                      {
+                        "Type": "StringConstantExpressionAst"
+                      }
+                    ]
+                  },
+                  {
+                    "Type": "CommandAst",
+                    "Command": "Out-Null",
+                    "Children": {
+                      "Type": "StringConstantExpressionAst"
+                    }
+                  }
+                ]
+              },
+              {
+                "Type": "IfStatementAst",
+                "Condition": "-not (Get-Module -Name PSScriptAnalyzer -ErrorAction SilentlyContinue)",
+                "Children": [
+                  {
+                    "Type": "PipelineAst",
+                    "Children": {
+                      "Type": "CommandExpressionAst",
+                      "Children": {
+                        "Type": "UnaryExpressionAst",
+                        "Children": {
+                          "Type": "ParenExpressionAst",
+                          "Children": {
+                            "Type": "PipelineAst",
+                            "Children": {
+                              "Type": "CommandAst",
+                              "Command": "Get-Module -Name PSScriptAnalyzer -ErrorAction SilentlyContinue",
+                              "Children": [
+                                {
+                                  "Type": "StringConstantExpressionAst"
+                                },
+                                {
+                                  "Type": "CommandParameterAst"
+                                },
+                                {
+                                  "Type": "StringConstantExpressionAst"
+                                },
+                                {
+                                  "Type": "CommandParameterAst"
+                                },
+                                {
+                                  "Type": "StringConstantExpressionAst"
+                                }
+                              ]
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "Type": "StatementBlockAst",
+                    "Children": {
+                      "Type": "ReturnStatementAst",
+                      "Return": "$false",
+                      "Children": {
+                        "Type": "PipelineAst",
+                        "Children": {
+                          "Type": "CommandExpressionAst",
+                          "Children": {
+                            "Type": "VariableExpressionAst"
+                          }
+                        }
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "Type": "TryStatementAst",
+                "Children": [
+                  {
+                    "Type": "StatementBlockAst",
+                    "Children": [
+                      {
+                        "Type": "PipelineAst",
+                        "Children": [
+                          {
+                            "Type": "CommandAst",
+                            "Command": "Invoke-ScriptAnalyzer -Path $File.FullName -Fix -ErrorAction Stop",
+                            "Children": [
+                              {
+                                "Type": "StringConstantExpressionAst"
+                              },
+                              {
+                                "Type": "CommandParameterAst"
+                              },
+                              {
+                                "Type": "MemberExpressionAst",
+                                "Children": [
+                                  {
+                                    "Type": "VariableExpressionAst"
+                                  },
+                                  {
+                                    "Type": "StringConstantExpressionAst"
+                                  }
+                                ]
+                              },
+                              {
+                                "Type": "CommandParameterAst"
+                              },
+                              {
+                                "Type": "CommandParameterAst"
+                              },
+                              {
+                                "Type": "StringConstantExpressionAst"
+                              }
+                            ]
+                          },
+                          {
+                            "Type": "CommandAst",
+                            "Command": "Out-Null",
+                            "Children": {
+                              "Type": "StringConstantExpressionAst"
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "Type": "IfStatementAst",
+                        "Condition": "Get-Command Invoke-Formatter -ErrorAction SilentlyContinue",
+                        "Children": [
+                          {
+                            "Type": "PipelineAst",
+                            "Children": {
+                              "Type": "CommandAst",
+                              "Command": "Get-Command Invoke-Formatter -ErrorAction SilentlyContinue",
+                              "Children": [
+                                {
+                                  "Type": "StringConstantExpressionAst"
+                                },
+                                {
+                                  "Type": "StringConstantExpressionAst"
+                                },
+                                {
+                                  "Type": "CommandParameterAst"
+                                },
+                                {
+                                  "Type": "StringConstantExpressionAst"
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "Type": "StatementBlockAst",
+                            "Children": {
+                              "Type": "PipelineAst",
+                              "Children": [
+                                {
+                                  "Type": "CommandAst",
+                                  "Command": "Invoke-Formatter -Path $File.FullName -Force -ErrorAction Stop",
+                                  "Children": [
+                                    {
+                                      "Type": "StringConstantExpressionAst"
+                                    },
+                                    {
+                                      "Type": "CommandParameterAst"
+                                    },
+                                    {
+                                      "Type": "MemberExpressionAst",
+                                      "Children": [
+                                        {
+                                          "Type": "VariableExpressionAst"
+                                        },
+                                        {
+                                          "Type": "StringConstantExpressionAst"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "Type": "CommandParameterAst"
+                                    },
+                                    {
+                                      "Type": "CommandParameterAst"
+                                    },
+                                    {
+                                      "Type": "StringConstantExpressionAst"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "Type": "CommandAst",
+                                  "Command": "Out-Null",
+                                  "Children": {
+                                    "Type": "StringConstantExpressionAst"
+                                  }
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "Type": "ReturnStatementAst",
+                        "Return": "$true",
+                        "Children": {
+                          "Type": "PipelineAst",
+                          "Children": {
+                            "Type": "CommandExpressionAst",
+                            "Children": {
+                              "Type": "VariableExpressionAst"
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "Type": "CatchClauseAst",
+                    "Children": {
+                      "Type": "StatementBlockAst",
+                      "Children": {
+                        "Type": "ReturnStatementAst",
+                        "Return": "$false",
+                        "Children": {
+                          "Type": "PipelineAst",
+                          "Children": {
+                            "Type": "CommandExpressionAst",
+                            "Children": {
+                              "Type": "VariableExpressionAst"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "schemaVersion": "2025.11.20.v1",
+    "generatedAt": "2025-11-22T02:06:40.9593797Z",
+    "Nombre": "Save-FunctionSpecs",
+    "Lenguaje": "PowerShell",
+    "FirmaPowerShell": "Save-FunctionSpecs",
+    "Comandos": [
+      "ConvertTo-Json",
+      "Join-Path",
+      "New-Item",
+      "Out-Null",
+      "Set-Content"
+    ],
+    "Returns": [
+      "$null",
+      "$targetFile"
+    ],
+    "AST": {
+      "Type": "FunctionDefinitionAst",
+      "Children": {
+        "Type": "ScriptBlockAst",
+        "Children": [
+          {
+            "Type": "ParamBlockAst",
+            "Children": [
+              {
+                "Type": "ParameterAst",
+                "Children": [
+                  {
+                    "Type": "TypeConstraintAst"
+                  },
+                  {
+                    "Type": "VariableExpressionAst"
+                  }
+                ]
+              },
+              {
+                "Type": "ParameterAst",
+                "Children": [
+                  {
+                    "Type": "TypeConstraintAst"
+                  },
+                  {
+                    "Type": "VariableExpressionAst"
+                  }
+                ]
+              },
+              {
+                "Type": "ParameterAst",
+                "Children": [
+                  {
+                    "Type": "TypeConstraintAst"
+                  },
+                  {
+                    "Type": "VariableExpressionAst"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "Type": "NamedBlockAst",
+            "Children": [
+              {
+                "Type": "IfStatementAst",
+                "Condition": "-not $Specs",
+                "Children": [
+                  {
+                    "Type": "PipelineAst",
+                    "Children": {
+                      "Type": "CommandExpressionAst",
+                      "Children": {
+                        "Type": "UnaryExpressionAst",
+                        "Children": {
+                          "Type": "VariableExpressionAst"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "Type": "StatementBlockAst",
+                    "Children": {
+                      "Type": "ReturnStatementAst",
+                      "Return": "$null",
+                      "Children": {
+                        "Type": "PipelineAst",
+                        "Children": {
+                          "Type": "CommandExpressionAst",
+                          "Children": {
+                            "Type": "VariableExpressionAst"
+                          }
+                        }
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "Type": "AssignmentStatementAst",
+                "Assignment": "$folder = Join-Path $DestDir ([IO.Path]::GetFileNameWithoutExtension($ScriptPath))",
+                "Children": [
+                  {
+                    "Type": "VariableExpressionAst"
+                  },
+                  {
+                    "Type": "PipelineAst",
+                    "Children": {
+                      "Type": "CommandAst",
+                      "Command": "Join-Path $DestDir ([IO.Path]::GetFileNameWithoutExtension($ScriptPath))",
+                      "Children": [
+                        {
+                          "Type": "StringConstantExpressionAst"
+                        },
+                        {
+                          "Type": "VariableExpressionAst"
+                        },
+                        {
+                          "Type": "ParenExpressionAst",
+                          "Children": {
+                            "Type": "PipelineAst",
+                            "Children": {
+                              "Type": "CommandExpressionAst",
+                              "Children": {
+                                "Type": "InvokeMemberExpressionAst",
+                                "Children": [
+                                  {
+                                    "Type": "TypeExpressionAst"
+                                  },
+                                  {
+                                    "Type": "StringConstantExpressionAst"
+                                  },
+                                  {
+                                    "Type": "VariableExpressionAst"
+                                  }
+                                ]
+                              }
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "Type": "PipelineAst",
+                "Children": [
+                  {
+                    "Type": "CommandAst",
+                    "Command": "New-Item -Path $folder -ItemType Directory -Force",
+                    "Children": [
+                      {
+                        "Type": "StringConstantExpressionAst"
+                      },
+                      {
+                        "Type": "CommandParameterAst"
+                      },
+                      {
+                        "Type": "VariableExpressionAst"
+                      },
+                      {
+                        "Type": "CommandParameterAst"
+                      },
+                      {
+                        "Type": "StringConstantExpressionAst"
+                      },
+                      {
+                        "Type": "CommandParameterAst"
+                      }
+                    ]
+                  },
+                  {
+                    "Type": "CommandAst",
+                    "Command": "Out-Null",
+                    "Children": {
+                      "Type": "StringConstantExpressionAst"
+                    }
+                  }
+                ]
+              },
+              {
+                "Type": "AssignmentStatementAst",
+                "Assignment": "$targetFile = Join-Path $folder \"function-specs.json\"",
+                "Children": [
+                  {
+                    "Type": "VariableExpressionAst"
+                  },
+                  {
+                    "Type": "PipelineAst",
+                    "Children": {
+                      "Type": "CommandAst",
+                      "Command": "Join-Path $folder \"function-specs.json\"",
+                      "Children": [
+                        {
+                          "Type": "StringConstantExpressionAst"
+                        },
+                        {
+                          "Type": "VariableExpressionAst"
+                        },
+                        {
+                          "Type": "StringConstantExpressionAst"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "Type": "PipelineAst",
+                "Children": [
+                  {
+                    "Type": "CommandExpressionAst",
+                    "Children": {
+                      "Type": "VariableExpressionAst"
+                    }
+                  },
+                  {
+                    "Type": "CommandAst",
+                    "Command": "ConvertTo-Json -Depth 100",
+                    "Children": [
+                      {
+                        "Type": "StringConstantExpressionAst"
+                      },
+                      {
+                        "Type": "CommandParameterAst"
+                      },
+                      {
+                        "Type": "ConstantExpressionAst"
+                      }
+                    ]
+                  },
+                  {
+                    "Type": "CommandAst",
+                    "Command": "Set-Content -LiteralPath $targetFile -Encoding UTF8",
+                    "Children": [
+                      {
+                        "Type": "StringConstantExpressionAst"
+                      },
+                      {
+                        "Type": "CommandParameterAst"
+                      },
+                      {
+                        "Type": "VariableExpressionAst"
+                      },
+                      {
+                        "Type": "CommandParameterAst"
+                      },
+                      {
+                        "Type": "StringConstantExpressionAst"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "Type": "ReturnStatementAst",
+                "Return": "$targetFile",
+                "Children": {
+                  "Type": "PipelineAst",
+                  "Children": {
+                    "Type": "CommandExpressionAst",
+                    "Children": {
+                      "Type": "VariableExpressionAst"
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }
+]

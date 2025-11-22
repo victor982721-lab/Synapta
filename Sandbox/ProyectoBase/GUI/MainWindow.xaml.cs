@@ -1,8 +1,7 @@
 using System.Windows;
-using System.Windows.Media.Animation;
-using ProyectoBase.GUI.Views;
 using System.Windows.Controls;
-using System.Linq;
+using ProyectoBase.GUI.Views;
+using ProyectoBase.GUI.Views.Tools.Search;
 
 namespace ProyectoBase.GUI
 {
@@ -11,61 +10,33 @@ namespace ProyectoBase.GUI
         public MainWindow()
         {
             InitializeComponent();
-            ApplyFade(new HomeView());
-            MoveHighlightTo(SidebarPanel.Children[0] as Button);
+
+            foreach (var child in (this.Content as Grid).Children)
+            {
+                if (child is StackPanel panel)
+                {
+                    foreach (var elem in panel.Children)
+                    {
+                        if (elem is Button b)
+                            b.Click += Navigate;
+                    }
+                }
+            }
+
+            MainFrame.Content = new HomeView();
         }
 
-        private void ApplyFade(object newPage)
+        private void Navigate(object sender, RoutedEventArgs e)
         {
-            MainFrame.Content = newPage;
-            var fade = (Storyboard)FindResource("FadeInStoryboard");
-            fade.Begin(MainFrame);
-        }
+            var tag = (sender as Button).Tag?.ToString();
 
-        private void MoveHighlightTo(Button btn)
-        {
-            var index = SidebarPanel.Children.IndexOf(btn);
-            double newTop = index * 42; // altura aproximada por botón
-
-            var storyboard = (Storyboard)FindResource("SlideHighlightStoryboard");
-            var animation = storyboard.Children[0] as DoubleAnimation;
-            animation.To = newTop;
-
-            storyboard.Begin(HighlightBar);
-        }
-
-        private void OnNavHome(object sender, RoutedEventArgs e)
-        {
-            ApplyFade(new HomeView());
-            MoveHighlightTo(sender as Button);
-        }
-
-        private void OnNavConfig(object sender, RoutedEventArgs e)
-        {
-            ApplyFade(new ConfigView());
-            MoveHighlightTo(sender as Button);
-        }
-
-        private void OnNavLogs(object sender, RoutedEventArgs e)
-        {
-            ApplyFade(new LogsView());
-            MoveHighlightTo(sender as Button);
-        }
-
-        private void OnNavTools(object sender, RoutedEventArgs e)
-        {
-            ApplyFade(new ToolsView());
-            MoveHighlightTo(sender as Button);
-        }
-
-        private void OnLightTheme(object sender, RoutedEventArgs e)
-        {
-            ThemeManager.ApplyLightTheme();
-        }
-
-        private void OnDarkTheme(object sender, RoutedEventArgs e)
-        {
-            ThemeManager.ApplyDarkTheme();
+            MainFrame.Content = tag switch
+            {
+                ""Home""   => new HomeView(),
+                ""Config"" => new ConfigView(),
+                ""Search"" => new SearchToolView(),
+                _          => new HomeView()
+            };
         }
     }
 }

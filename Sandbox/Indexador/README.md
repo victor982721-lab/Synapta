@@ -61,7 +61,7 @@ Este enfoque evita escaneos completos y carga el índice solo cuando hay activid
 
 ## Próximos pasos recomendados
 
-1. Integrar `Indexador.Tool --watch` en un servicio (PowerShell/Windows Service) que se ejecute automáticamente. Para facilitarlo se incluye el script `scripts/Start-IndexadorWatcher.ps1`, que invoca el CLI con parámetros recomendados, reintenta tras fallos y expone parámetros (`--root`, `--db`, `--hash`, `--debounce`).  
+1. Integrar `Indexador.Tool --watch` en un servicio (PowerShell/Windows Service) que se ejecute automáticamente. Para facilitarlo se incluye el script `scripts/Start-IndexadorWatcher.ps1` (registra su propio log `IndexadorWatcher.log`, configurable mediante `-LogPath`), que invoca el CLI con parámetros recomendados, reintenta tras fallos y expone parámetros (`--root`, `--db`, `--hash`, `--debounce`).  
 2. Crear scripts que expongan `--duplicates`/`--filemap` como reportes periódicos.  
 3. Opcionalmente, añadir una interfaz REST o web para consultar el índice desde otros equipos.
 
@@ -69,8 +69,15 @@ Este enfoque evita escaneos completos y carga el índice solo cuando hay activid
 
 - `docs/INDEXADOR.md`: mapa del motor core y las DTOs clave.  
 - `docs/WATCHER.md`: flujo del watcher, parámetros de debounce y ejemplos de invocación.  
-- `docs/SERVICE.md`: guía para registrar `scripts/Start-IndexadorWatcher.ps1` en una tarea programada o servicio Windows.
-- `docs/FILELIST.md`: describe el uso del nuevo `Filelist` CLI que lee el índice, aplica filtros y genera reportes de duplicados, top y mapa.
+- `docs/SERVICE.md`: guía para registrar `scripts/Start-IndexadorWatcher.ps1` en una tarea programada o servicio Windows.  
+- `docs/FILELIST.md`: describe el uso del nuevo `Filelist` CLI que lee el índice, aplica filtros y genera reportes de duplicados, top y mapa.  
+- `docs/API.md`: describe cómo exponer el índice mediante la nueva API `Indexador.Api`.  
+- `scripts/Monitor-IndexadorLog.ps1`: monitor ligero del `IndexadorWatcher.log` que detecta errores recientes.  
+- `scripts/Backup-IndexadorDb.ps1`: copia periodica de `indexador.db` a una carpeta de respaldo con timestamp.
+- `scripts/IndexadorHealthCheck.ps1`: script simple para verificar que la API responde `/summary` después de un reboot o despliegue.
 - `scripts/Register-IndexadorWatcherTask.ps1`: wrapper para registrar el watcher como tarea programada (opciones como `-RunAtStartup`, `-Force`, `-ReplaceExisting` y `-Hash` ya vienen configuradas).
+- `scripts/Run-PostRebootChecks.ps1`: ejecuta el checklist completo (tarea, API, monitor de log y backup) tras un reinicio.
+- `scripts/Register-PostRebootChecksTask.ps1`: registra una tarea que dispara el check automático al iniciar el sistema.
 
 Con esta documentación el flujo del indexador y su watcher queda registrado para futuros compañeros. Puedes enlazar este `README.md` desde cualquier proyecto que consuma el índice. Posteriormente puedo ayudarte a generar plantillas de documentación más específicas (por ejemplo `docs/Watcher.md`). ¿Quieres que avance con eso?   
+- `docs/CHECKLIST.md`: pasos rápidos para validar watcher, API, log y backup tras un reinicio.

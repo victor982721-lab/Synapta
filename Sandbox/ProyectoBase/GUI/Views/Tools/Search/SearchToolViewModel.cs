@@ -1,60 +1,32 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Text.RegularExpressions;
+using ProyectoBase.Core.Search;
 
 namespace ProyectoBase.GUI.Views.Tools.Search
 {
     public class SearchToolViewModel
     {
-        private readonly Action<List<string>> Output;
+        private readonly Action<List<string>> Callback;
 
-        public SearchToolViewModel(Action<List<string>> callback)
+        public SearchToolViewModel(Action<List<string>> outputCallback)
         {
-            Output = callback;
+            Callback = outputCallback;
         }
 
         public void Execute(Dictionary<string, string> data)
         {
-            var results = new List<string>();
-
-            string path = data["Ruta"];
-            string pattern = data["Patrón Regex"];
-            bool recursive = data["Buscar en subcarpetas"] == "true";
-            bool caseSensitive = data["Distinguir mayúsculas"] == "true";
-            int maxResults = int.Parse(data["Máximo de resultados"]);
-            var exts = data["Extensiones (coma separadas)"].Split(',');
-
-            var files = Directory.GetFiles(
-                path, "*.*",
-                recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly
-            );
-
-            foreach (var f in files)
+            var opt = new SearchOptions
             {
-                foreach (var ext in exts)
-                {
-                    if (f.EndsWith(ext.Trim(), StringComparison.OrdinalIgnoreCase))
-                    {
-                        string content = File.ReadAllText(f);
-                        var options = caseSensitive ? RegexOptions.None : RegexOptions.IgnoreCase;
+                Path = data["Ruta"],
+                Pattern = data["Patrón Regex"],
+                Recursive = data["Buscar en subcarpetas"] == "true",
+                CaseSensitive = data["Distinguir mayúsculas"] == "true",
+                MaxResults = int.Parse(data["Máximo de resultados"]),
+                Extensions = new List<string>(data["Extensiones (coma separadas)"].Split(','))
+            };
 
-                        var matches = Regex.Matches(content, pattern, options);
-
-                        foreach (Match m in matches)
-                        {
-                            results.Add($"{f} → {m.Value}");
-                            if (results.Count >= maxResults)
-                                break;
-                        }
-                    }
-                }
-
-                if (results.Count >= maxResults)
-                    break;
-            }
-
-            Output(results);
+            var results = SearchEngine.FindMatches(opt);
+            Callback(results);
         }
     }
 }
