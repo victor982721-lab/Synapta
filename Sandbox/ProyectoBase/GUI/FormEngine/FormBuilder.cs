@@ -1,80 +1,170 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using ProyectoBase.GUI.Components;
 
 namespace ProyectoBase.GUI.FormEngine
 {
     public static class FormBuilder
     {
-        public static UIElement BuildForm(List<FormField> fields)
+        public static Panel BuildForm(List<FormField> fields)
         {
-            var stack = new StackPanel
+            var panel = new StackPanel { Margin = new Thickness(0,5,0,5) };
+
+            // Construir campos
+            foreach (var f in fields)
             {
-                Margin = new Thickness(10)
+                if (f.Type == ""section"")
+                {
+                    var border = new Border
+                    {
+                        Margin = new Thickness(0, 10, 0, 10),
+                        Padding = new Thickness(10),
+                        BorderThickness = new Thickness(1),
+                        CornerRadius = new CornerRadius(8),
+                        BorderBrush = System.Windows.Media.Brushes.Gray
+                    };
+
+                    var subPanel = BuildForm(f.SubFields ?? new List<FormField>());
+                    border.Child = subPanel;
+
+                    var title = new TextBlock
+                    {
+                        Text = f.Label,
+                        FontSize = 16,
+                        FontWeight = FontWeights.Bold,
+                        Margin = new Thickness(0,0,0,6)
+                    };
+
+                    var wrapper = new StackPanel();
+                    wrapper.Children.Add(title);
+                    wrapper.Children.Add(border);
+
+                    panel.Children.Add(wrapper);
+                    continue;
+                }
+
+                panel.Children.Add(BuildSingle(f));
+            }
+
+            // ========== SUBMIT AUTOMÁTICO ==========
+            if (fields.Any(f => f.OnSubmit != null))
+            {
+                var btn = new Button
+                {
+                    Content = ""Aceptar"",
+                    Margin = new Thickness(0,15,0,0),
+                    Padding = new Thickness(10),
+                };
+
+                btn.Click += (s,e) =>
+                {
+                    try
+                    {
+                        var data = FormBuilderInspector.ReadFormValues(panel);
+
+                        foreach (var f in fields)
+                            f.OnSubmit?.Invoke(data);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show(ex.Message, ""Error"", MessageBoxButton.OK);
+                    }
+                };
+
+                panel.Children.Add(btn);
+            }
+
+            return panel;
+        }
+
+        private static FrameworkElement BuildSingle(FormField f)
+        {
+            switch (f.Type)
+            {
+                case ""text"": return BuildTextField(f);
+                case ""number"": return BuildNumberField(f);
+                case ""toggle"": return BuildToggleField(f);
+                default: return new TextBlock { Text = ""[Tipo no soportado]"" };
+            }
+        }
+
+        private static FrameworkElement BuildTextField(FormField f)
+        {
+            var box = new TextBox
+            {
+                Text = f.Default,
+                Margin = new Thickness(0,5,0,5),
+                Tag = f
             };
 
-            foreach (var field in fields)
-            {
-                stack.Children.Add(CreateField(field));
-            }
+            if (!string.IsNullOrEmpty(f.Placeholder))
+                box.Text = f.Placeholder;
 
-            return stack;
-        }
-
-        private static UIElement CreateField(FormField field)
-        {
-            return field.Type switch
+            box.TextChanged += (s,e) =>
             {
-                ""text""        => new TextInput        { Label = field.Label, Value = field.Default ?? "" },
-                ""multiline""   => new MultiLineInput  { Label = field.Label, Value = field.Default ?? "" },
-                ""number""      => new NumberInput     { Label = field.Label, Value = field.Default ?? "" },
-                ""toggle""      => new ToggleSwitch    { Label = field.Label, Value = field.BoolDefault },
-                ""combo""       => CreateCombo(field),
-                ""slider""      => new SliderInput     { Label = field.Label, Min = field.Min, Max = field.Max, Value = field.DoubleDefault },
-                ""section""     => CreateSection(field),
-                _ => new TextBlock { Text = $"Tipo desconocido: {field.Type}" }
+                ((FormField)box.Tag).OnChange?.Invoke(box.Text);
             };
+
+            return WrapWithLabel(f, box);
         }
 
-        private static UIElement CreateCombo(FormField field)
+        private static FrameworkElement BuildNumberField(FormField f)
         {
-            var combo = new ComboInput { Label = field.Label, Value = field.Default };
-            if (field.Items != null)
+            var box = new TextBox
             {
-                foreach (var i in field.Items)
-                    combo.Items.Add(i);
-            }
-            return combo;
+                Text = f.Default,
+                Margin = new Thickness(0,5,0,5),
+                Tag = f
+            };
+
+            box.TextChanged += (s,e) =>
+            {
+                ((FormField)box.Tag).OnChange?.Invoke(box.Text);
+            };
+
+            return WrapWithLabel(f, box);
         }
 
-        private static UIElement CreateSection(FormField field)
+        private static FrameworkElement BuildToggleField(FormField f)
         {
-            var section = new GroupedFormSection { Title = field.Label };
-            var innerStack = new StackPanel();
-
-            if (field.SubFields != null)
+            var tog = new CheckBox
             {
-                foreach (var sub in field.SubFields)
-                    innerStack.Children.Add(CreateField(sub));
+                IsChecked = f.BoolDefault,
+                Margin = new Thickness(0,5,0,5),
+                Tag = f
+            };
+
+            tog.Checked += (s,e) => ((FormField)tog.Tag).OnChange?.Invoke(""true"");
+            tog.Unchecked += (s,e) => ((FormField)tog.Tag).OnChange?.Invoke(""false"");
+
+            return WrapWithLabel(f, tog);
+        }
+
+        private static FrameworkElement WrapWithLabel(FormField f, FrameworkElement element)
+        {
+            var panel = new StackPanel { Margin = new Thickness(0,10,0,10) };
+
+            panel.Children.Add(new TextBlock
+            {
+                Text = f.Label,
+                FontWeight = FontWeights.Bold
+            });
+
+            panel.Children.Add(element);
+
+            if (!string.IsNullOrEmpty(f.HelpText))
+            {
+                panel.Children.Add(new TextBlock
+                {
+                    Text = f.HelpText,
+                    FontSize = 10,
+                    Foreground = System.Windows.Media.Brushes.Gray
+                });
             }
 
-            section.Content = innerStack;
-            return section;
+            return panel;
         }
-    }
-
-    public class FormField
-    {
-        public string Type { get; set; } = "";
-        public string Label { get; set; } = "";
-        public string Default { get; set; }
-        public bool BoolDefault { get; set; }
-        public double DoubleDefault { get; set; }
-        public double Min { get; set; }
-        public double Max { get; set; }
-        public List<string> Items { get; set; }
-        public List<FormField> SubFields { get; set; }
     }
 }

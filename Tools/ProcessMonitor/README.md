@@ -30,7 +30,7 @@ This folder mirrors the `ProcessMonitor` module that lives in your user `PowerSh
    ```powershell
    Show-TopMemoryProcesses -Top 30
    ```
-   Add `-ReturnObjects` if you want to capture the filtered list as objects for downstream scripting or exports.
+   Add `-Detalle` to skip the tabular view and print a per-process breakdown (the output uses the same green/gray styling you saw before), or `-ReturnObjects` if you want to capture the filtered list as objects for downstream scripting or exports.
 3. Pipe the output to `Export-Csv` or `Out-File` if you need reporting or persistence.
 
 The module also exposes `Get-SafeProcessPropertyValue` for internal use but only exports `Show-TopMemoryProcesses`. Keep this copy with your other tooling so you can document, extend, and version the helper inside `Tools`.

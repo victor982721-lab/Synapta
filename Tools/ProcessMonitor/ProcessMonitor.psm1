@@ -70,6 +70,50 @@ function Write-ProcessMonitorTable {
     Write-Host 'Native processes appear dimmed.' -ForegroundColor DarkGray
 }
 
+function Write-ProcessMonitorDetailRow {
+    param(
+        [string]$Label,
+        $Value,
+        [ConsoleColor]$ValueColor = 'White'
+    )
+
+    $formattedValue = if ($null -eq $Value -or $Value -eq '') { '<n/a>' } else { $Value }
+    Write-Host -NoNewline ("{0,-20}: " -f $Label) -ForegroundColor DarkGray
+    Write-Host $formattedValue -ForegroundColor $ValueColor
+}
+
+function Write-ProcessMonitorDetail {
+    param(
+        [Parameter(Mandatory)]
+        [System.Collections.IEnumerable]$Rows
+    )
+
+    if (-not $Rows) {
+        return
+    }
+
+    $separator = '-' * 80
+    foreach ($row in $Rows) {
+        $headerColor = if ($row.IsNative) { 'Gray' } else { 'Cyan' }
+        Write-Host $separator -ForegroundColor DarkGray
+        Write-Host ("{0} (PID {1})" -f $row.Name, $row.Id) -ForegroundColor $headerColor
+        Write-ProcessMonitorDetailRow 'Memory MB' (Format-Decimal $row.'Memory (MB)') 'Yellow'
+        Write-ProcessMonitorDetailRow 'Memory %' (Format-Decimal $row.'Memory (%)') 'Yellow'
+        Write-ProcessMonitorDetailRow 'Memory Delta (MB)' (Format-Decimal $row.'Memory Delta (MB)') 'Yellow'
+        Write-ProcessMonitorDetailRow 'CPU (s)' (Format-Decimal $row.'CPU (s)') 'Magenta'
+        Write-ProcessMonitorDetailRow 'CPU (%)' (Format-Decimal $row.'CPU (%)') 'Magenta'
+        Write-ProcessMonitorDetailRow 'IsNative' $row.IsNative 'Gray'
+        Write-ProcessMonitorDetailRow 'Threads' $row.Threads 'White'
+        Write-ProcessMonitorDetailRow 'Handles' $row.Handles 'White'
+        Write-ProcessMonitorDetailRow 'StartTime' $row.StartTime 'DarkGray'
+        Write-ProcessMonitorDetailRow 'Path' $row.Path 'DarkGray'
+        Write-ProcessMonitorDetailRow 'ProcessKey' $row.ProcessKey 'DarkGray'
+        Write-Host ''
+    }
+    Write-Host $separator -ForegroundColor DarkGray
+    Write-Host 'Use -ReturnObjects if you need the data programmatically.' -ForegroundColor DarkGray
+}
+
 function Show-TopMemoryProcesses {
     <#
     .SYNOPSIS
@@ -83,7 +127,8 @@ function Show-TopMemoryProcesses {
         [Parameter(Mandatory=$false)]
         [ValidateRange(1, 200)]
         [int]$Top = 20,
-        [switch]$ReturnObjects
+        [switch]$ReturnObjects,
+        [switch]$Detalle
     )
 
     $osInfo = Get-CimInstance -ClassName Win32_OperatingSystem
@@ -208,7 +253,11 @@ function Show-TopMemoryProcesses {
     $snapshotData = $processList | Select-Object ProcessKey, @{Name='MemoryMB';Expression={$_.'Memory (MB)'}}
     $snapshotData | ConvertTo-Json -Depth 3 | Set-Content -Path $snapshotPath -Force
 
-    Write-ProcessMonitorTable -Rows $processList
+    if ($Detalle) {
+        Write-ProcessMonitorDetail -Rows $processList
+    } else {
+        Write-ProcessMonitorTable -Rows $processList
+    }
 
     if ($ReturnObjects) {
         return $processList
