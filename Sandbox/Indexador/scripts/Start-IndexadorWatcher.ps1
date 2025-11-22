@@ -4,6 +4,7 @@ param(
     [ValidateSet("CRC32","SHA256")] [string]$Hash = "CRC32",
     [int]$Debounce = 1500,
     [string]$LogPath,
+    [string]$Framework = "net8.0",
     [switch]$Force,
     [switch]$NoClean,
     [int]$RetryDelaySeconds = 5
@@ -15,7 +16,9 @@ $solutionDir = Split-Path -Parent $scriptDir
 $project = Join-Path $solutionDir "Indexador.Tool\Indexador.Tool.csproj"
 
 Write-Host "Iniciando watcher para '$rootPath' (hash=$Hash, debounce=${Debounce}ms)"
-$logPath = if ($LogPath) { Resolve-Path $LogPath } else { Join-Path $scriptDir "IndexadorWatcher.log" }
+$logValue = if ($LogPath) { $LogPath } else { Join-Path $scriptDir "IndexadorWatcher.log" }
+$logPath = [System.IO.Path]::GetFullPath($logValue)
+New-Item -ItemType File -Force -Path $logPath | Out-Null
 Add-Content -Path $logPath -Value "$(Get-Date -Format o) [Watcher] Servicio arrancado para '$rootPath'."
 
 while ($true)
@@ -44,7 +47,7 @@ while ($true)
     Add-Content -Path $logPath -Value "$(Get-Date -Format o) [Watcher] Ejecutando dotnet run."
     try
     {
-        & dotnet run --project $project -- $argsList
+        & dotnet run --framework $Framework --project $project -- $argsList
         $exitCode = $LASTEXITCODE
     }
     catch

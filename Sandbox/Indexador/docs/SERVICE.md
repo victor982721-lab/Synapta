@@ -23,5 +23,6 @@ pwsh -NoProfile -File $RegScript -Root C:\Datos -Database C:\Datos\indexador.db 
 - `RetryDelaySeconds` reintenta automáticamente cuando el watcher termina con errores, evitando reinicios manuales.  
 - Usa `scripts/IndexadorHealthCheck.ps1` para validar que la API responde `/summary` tras un reinicio o despliegue del servicio.  
 - Después de comprobar que el watcher está vivo, ejecuta `scripts/Run-PostRebootChecks.ps1` (puedes dejarlo en un scheduled task) para obtener estado, API, log y backup en un solo paso.  
-- Para automatizar ese check, registra `scripts/Register-PostRebootChecksTask.ps1` (usando `-Trigger AtStartup` o `-Trigger Daily`) y así el sistema ejecuta el checklist tras cada reboot.
+- Para automatizar ese check, registra `scripts/Register-PostRebootChecksTask.ps1` (usando `-Trigger AtStartup` o `-Trigger Daily`) y así el sistema ejecuta el checklist tras cada reboot.  
+- `scripts/Register-IndexadorMonitoringTasks.ps1` crea tareas periódicas (`IndexadorHealthCheck`, `IndexadorLogMonitor`) para que la API y el log se verifiquen sin intervención.
 - Puedes ejecutar `scripts/Monitor-IndexadorLog.ps1 -LogPath C:\Logs\IndexadorWatcher.log` en tareas periódicas para detectar errores recientes y `scripts/Backup-IndexadorDb.ps1 -Database C:\Datos\indexador.db -BackupFolder C:\Backups\Indexador` antes de reinicios largos.

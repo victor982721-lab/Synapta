@@ -1,0 +1,203 @@
+===========================================
+        NEUROLOGIC ARTEFACT MANIFEST
+              Version 1.0
+===========================================
+
+Este documento define la arquitectura, reglas, capas,
+componentes, módulos y convenciones oficiales del
+Artefacto Neurologic.
+
+Debe mantenerse siempre actualizado conforme el
+artefacto evolucione, sin cambiar el nombre de este
+archivo.
+
+===========================================
+1. ESTRUCTURA GENERAL DEL ARTEFACTO
+===========================================
+
+El artefacto Neurologic consiste en las siguientes
+capas formales:
+
+CORE    → Lógica interna, motores, opciones y modelos
+CLI     → Modo técnico basado en flags
+WIZARD  → Interfaz interactiva sin GUI
+GUI     → Interfaz gráfica moderna con componentes
+
+Cada capa es independiente, modular y no genera
+dependencias cíclicas.
+
+Carpetas principales:
+
+/Core
+    /Search
+    Options, lógica, motores, modelos
+
+/CLI
+    CLIHandler.cs
+    /Wizard
+        SearchWizard.cs
+
+/GUI
+    App.xaml
+    MainWindow.xaml
+    Components/
+    Styles/
+    Views/
+        HomeView.xaml
+        ConfigView.xaml
+        FormView.xaml
+        /Tools/Search
+            SearchToolView.xaml
+            SearchToolViewModel.cs
+    FormEngine/
+        FormBuilder.cs
+
+/Utils
+    Utils.psm1 (funciones reutilizables para PowerShell)
+
+ArtefactManifest.txt (este archivo)
+
+===========================================
+2. REGLAS INTERNAS DEL ARTEFACTO
+===========================================
+
+- Todas las capas deben permanecer separadas.
+- El Core nunca debe depender de la GUI ni del CLI.
+- La GUI interactúa con el Core mediante ViewModels.
+- El CLI y Wizard usan el mismo Core.
+- Todo módulo nuevo debe añadirse de forma modular.
+- Nunca se renombra ningún archivo preexistente.
+- Las correcciones deben realizarse entregando el
+  archivo completo (“módulo completo y corregido”).
+- No se deben generar carpetas manualmente; el sistema
+  las creará automáticamente antes de escribir archivos.
+- No deben ofrecerse rutas, opciones o alternativas:
+  siempre se deben tomar decisiones deterministas.
+
+===========================================
+3. COMPONENTES DE LA GUI (CATÁLOGO INTERNO)
+===========================================
+
+Componentes base:
+- CardControl
+- SectionHeader
+- InfoRow
+
+Componentes de formulario:
+- TextInput
+- MultiLineInput
+- NumberInput
+- ToggleSwitch
+- ComboInput
+- SliderInput
+- GroupedFormSection
+
+Motor declarativo:
+- FormBuilder.cs
+- FormField (modelo de campos)
+
+Vistas integradas:
+- HomeView
+- ConfigView
+- FormView
+- Tools/Search/SearchToolView
+
+Temas y estilos:
+- ModernTheme.xaml
+- Theme.Light.xaml
+- Theme.Dark.xaml
+- FadeIn.xaml
+- SidebarHighlight.xaml
+- UnifiedVisual.xaml
+
+===========================================
+4. MODULOS INTERNOS FUNCIONALES
+===========================================
+
+SEARCH TOOL
+-----------
+
+El módulo SearchTool es el primer módulo funcional
+del artefacto Neurologic.
+
+Capas:
+
+GUI     → SearchToolView.xaml
+CLI     → search
+Wizard  → search-wizard
+Core    → SearchEngine.cs + SearchOptions
+
+Convergencia:
+Todas las capas ejecutan el mismo motor central.
+
+===========================================
+5. REGLAS DE FUTURA EXPANSIÓN
+===========================================
+
+- Toda nueva herramienta debe tener al menos:
+    GUI View
+    ViewModel
+    CLI flag/command
+    Wizard interactivo
+    Motor Core
+
+- Los componentes existentes deben reutilizarse en
+  lugar de duplicar XAML o lógica.
+
+- El estilo visual debe mantenerse coherente usando
+  los diccionarios de estilos existentes.
+
+- Los formularios deben construirse preferentemente
+  usando FormBuilder.
+
+===========================================
+6. PREFERENCIAS DE TRABAJO DEL USUARIO
+===========================================
+
+- Modularidad sin micro-pasos inútiles.
+- Pasos directos cuando el camino está claro.
+- No ofrecer opciones ni alternativas.
+- Tomar decisiones deterministas basadas en contexto.
+- Siempre crear carpetas antes de escribir archivos.
+- Entregar módulos completos y corregidos.
+- No pedir confirmación cuando el siguiente paso es obvio.
+- Proactividad constante.
+- No usar rutas alternativas.
+- Código estable, limpio y sin adornos innecesarios.
+
+===========================================
+7. COMPATIBILIDAD
+===========================================
+
+Sistema operativo:
+- Windows 10+
+- Compatible con Windows 11
+
+PowerShell:
+- pwsh 7.5.4+
+- Soporte limitado para Windows PowerShell 5.x
+  cuando no genere fricción.
+
+.NET:
+- SDK y runtime objetivo: .NET 8
+- Self-contained
+- Portable en un solo archivo
+- No requiere .NET instalado en el sistema destino
+
+===========================================
+8. IDENTIDAD DEL ARTEFACTO
+===========================================
+
+Nombre oficial:
+NEUROLOGIC ARTEFACT BASE — V1.0
+
+Función:
+Ser la plantilla base, framework y esqueleto para
+todo el ecosistema Neurologic.
+
+Este artefacto es el punto de partida para todas las
+herramientas, módulos y sistemas futuros.
+
+===========================================
+FIN DEL MANIFEST
+===========================================

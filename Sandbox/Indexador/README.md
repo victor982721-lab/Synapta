@@ -78,6 +78,10 @@ Este enfoque evita escaneos completos y carga el índice solo cuando hay activid
 - `scripts/Register-IndexadorWatcherTask.ps1`: wrapper para registrar el watcher como tarea programada (opciones como `-RunAtStartup`, `-Force`, `-ReplaceExisting` y `-Hash` ya vienen configuradas).
 - `scripts/Run-PostRebootChecks.ps1`: ejecuta el checklist completo (tarea, API, monitor de log y backup) tras un reinicio.
 - `scripts/Register-PostRebootChecksTask.ps1`: registra una tarea que dispara el check automático al iniciar el sistema.
+- `scripts/Register-IndexadorMonitoringTasks.ps1`: agenda tareas periódicas para el health check y el monitor de log.
+- `scripts/IndexadorControlCenter.ps1`: panel interactivo para ver estado, iniciar watcher, ejecutar checks y re-registrar tareas sin memorizar comandos.
+- `scripts/Create-ControlCenterShortcut.ps1`: crea un acceso directo en el escritorio para abrir el centro de control con un doble clic.
+- `docs/STATUS.md`: explica cómo diferenciar procesos legítimos (`MsMpEng`) y qué comandos usar para chequear qué bloquea el índice.
 
 Con esta documentación el flujo del indexador y su watcher queda registrado para futuros compañeros. Puedes enlazar este `README.md` desde cualquier proyecto que consuma el índice. Posteriormente puedo ayudarte a generar plantillas de documentación más específicas (por ejemplo `docs/Watcher.md`). ¿Quieres que avance con eso?   
 - `docs/CHECKLIST.md`: pasos rápidos para validar watcher, API, log y backup tras un reinicio.
