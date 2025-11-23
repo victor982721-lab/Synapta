@@ -24,52 +24,138 @@ function Format-Decimal {
     return "{0:N2}" -f $Value
 }
 
+function Shorten-Path {
+    param(
+        [string]$Path,
+        [int]$MaxLength = 38
+    )
+
+    if (-not $Path) {
+        return ''
+    }
+
+    if ($Path.Length -le $MaxLength) {
+        return $Path
+    }
+
+    return '...' + $Path.Substring($Path.Length - ($MaxLength - 3))
+}
+
+function Get-ThresholdColor {
+    param(
+        [double]$Value,
+        [double]$Warn,
+        [double]$Alert,
+        [ConsoleColor]$DefaultColor
+    )
+
+    if ($null -ne $Alert -and $Value -ge $Alert) {
+        return 'Red'
+    }
+
+    if ($null -ne $Warn -and $Value -ge $Warn) {
+        return 'Yellow'
+    }
+
+    return $DefaultColor
+}
+
+function Determine-ProcessCategory {
+    param(
+        [Parameter(Mandatory)]
+        [System.Diagnostics.Process]$Process,
+        [string]$Path
+    )
+
+    $name = $Process.ProcessName.ToLowerInvariant()
+    $lowerPath = ($Path ?? '').ToLowerInvariant()
+
+    $rules = @(
+        @{Category='Security'; Names=@('msmpeng','microsoftsecurityapp','ekrn'); Paths=@('microsoft defender','windows defender','microsoft security')},
+        @{Category='Browser'; Names=@('chrome','msedge','firefox','brave'); Paths=@('google\\chrome','microsoft\\edge','mozilla')},
+        @{Category='Shell'; Names=@('pwsh','powershell','cmd','WindowsTerminal','wt'); Paths=@('powershell','windows terminal')},
+        @{Category='System'; Names=@('explorer','dwm','winlogon','csrss','svchost'); Paths=@('windows\\system32','windows\\syswow64')},
+        @{Category='Office'; Paths=@('officeclicktorun','microsoft office','onenote','word','excel','powerpnt')},
+        @{Category='VM'; Names=@('vmsrvc','vmware','vmtools'); Paths=@('vmware','virtualbox','hyper-v')},
+        @{Category='Media'; Names=@('spotify','vlc'); Paths=@('spotify','vlc')},
+        @{Category='Database'; Names=@('sql','postgres','redis','mongod'); Paths=@('sql server','postgresql','redis')},
+        @{Category='Other'; Names=@(); Paths=@()}
+    )
+
+    foreach ($rule in $rules) {
+        if ($rule.Names -and ($rule.Names -contains $name)) {
+            return $rule.Category
+        }
+        foreach ($pathFragment in $rule.Paths) {
+            if ($pathFragment -and $lowerPath.Contains($pathFragment)) {
+                return $rule.Category
+            }
+        }
+    }
+
+    return 'Other'
+}
+
 function Write-ProcessMonitorTable {
     param(
         [Parameter(Mandatory)]
-        [System.Collections.IEnumerable]$Rows
+        [System.Collections.IEnumerable]$Rows,
+        [double]$MemoryWarnPercent = 5,
+        [double]$MemoryAlertPercent = 25,
+        [double]$CpuWarnPercent = 5,
+        [double]$CpuAlertPercent = 20
     )
 
     if (-not $Rows) {
         return
     }
 
-    $lineFormat = '{0,-18}{1,8}{2,9}{3,9}{4,12}{5,12}{6,17}{7,11}{8,11}{9,9}{10,-20}{11}'
-    $header = $lineFormat -f 'Name','Pid','Threads','Handles','Memory MB','Memory %','Memory Delta','CPU s','CPU %','Native','StartTime','Path'
-    Write-Host $header -ForegroundColor Gray
-    Write-Host ('-' * $header.Length) -ForegroundColor DarkGray
+    $formatList = @(
+        @{Label='Name'; Format='{0,-18} '},
+        @{Label='Category'; Format='{0,-10} '},
+        @{Label='PID'; Format='{0,7} '},
+        @{Label='Memory MB'; Format='{0,10} '},
+        @{Label='Mem %'; Format='{0,9} '},
+        @{Label='Delta MB'; Format='{0,11} '},
+        @{Label='CPU %'; Format='{0,10} '},
+        @{Label='Native'; Format='{0,6} '},
+        @{Label='Path'; Format='{0,-38}'}
+    )
+
+    Write-Host ('-' * 120) -ForegroundColor DarkGray
+    foreach ($col in $formatList) {
+        Write-Host -NoNewline ($col.Format -f $col.Label) -ForegroundColor Cyan
+    }
+    Write-Host
+    Write-Host ('-' * 120) -ForegroundColor DarkGray
 
     foreach ($row in $Rows) {
         $status = if ($row.IsNative) { 'Native' } else { '' }
-        $startTimeDisplay = if ($row.StartTime) { $row.StartTime.ToString('g') } else { '' }
         $memoryMBDisplay = Format-Decimal ($row.'Memory (MB)')
         $memoryPercentDisplay = Format-Decimal ($row.'Memory (%)')
         $memoryDeltaDisplay = Format-Decimal ($row.'Memory Delta (MB)')
-        $cpuSecondsDisplay = Format-Decimal ($row.'CPU (s)')
         $cpuPercentDisplay = Format-Decimal ($row.'CPU (%)')
 
-        $values = @(
-            $row.Name,
-            $row.Id,
-            $row.Threads,
-            $row.Handles,
-            $memoryMBDisplay,
-            $memoryPercentDisplay,
-            $memoryDeltaDisplay,
-            $cpuSecondsDisplay,
-            $cpuPercentDisplay,
-            $status,
-            $startTimeDisplay,
-            $row.Path
-        )
-        $line = $lineFormat -f $values
-        $color = if ($row.IsNative) { 'Gray' } else { 'White' }
-        Write-Host $line -ForegroundColor $color
+        $shortPath = Shorten-Path -Path $row.Path -MaxLength 38
+        $baseColor = if ($row.IsNative) { 'DarkGreen' } else { 'White' }
+        $memoryColor = Get-ThresholdColor -Value $row.'Memory (%)' -Warn $MemoryWarnPercent -Alert $MemoryAlertPercent -DefaultColor $baseColor
+        $cpuColor = Get-ThresholdColor -Value $row.'CPU (%)' -Warn $CpuWarnPercent -Alert $CpuAlertPercent -DefaultColor $baseColor
+        $deltaColor = if ($row.'Memory Delta (MB)' -ge 100) { 'Yellow' } elseif ($row.'Memory Delta (MB)' -le -100) { 'DarkCyan' } else { $baseColor }
+
+        Write-Host -NoNewline ($formatList[0].Format -f $row.Name) -ForegroundColor $baseColor
+        Write-Host -NoNewline ($formatList[1].Format -f $row.Category) -ForegroundColor $baseColor
+        Write-Host -NoNewline ($formatList[2].Format -f $row.Id) -ForegroundColor $baseColor
+        Write-Host -NoNewline ($formatList[3].Format -f $memoryMBDisplay) -ForegroundColor $memoryColor
+        Write-Host -NoNewline ($formatList[4].Format -f $memoryPercentDisplay) -ForegroundColor $memoryColor
+        Write-Host -NoNewline ($formatList[5].Format -f $memoryDeltaDisplay) -ForegroundColor $deltaColor
+        Write-Host -NoNewline ($formatList[6].Format -f $cpuPercentDisplay) -ForegroundColor $cpuColor
+        Write-Host -NoNewline ($formatList[7].Format -f $status) -ForegroundColor $baseColor
+        Write-Host ($formatList[8].Format -f $shortPath) -ForegroundColor $baseColor
     }
 
-    Write-Host 'Native processes appear dimmed.' -ForegroundColor DarkGray
+    Write-Host ('-' * 120) -ForegroundColor DarkGray
+    Write-Host 'Native rows fade away; yellow/red values flag high memory/CPU while dark cyan highlights big drops.' -ForegroundColor DarkGray
 }
-
 function Write-ProcessMonitorDetailRow {
     param(
         [string]$Label,
@@ -97,6 +183,7 @@ function Write-ProcessMonitorDetail {
         $headerColor = if ($row.IsNative) { 'Gray' } else { 'Cyan' }
         Write-Host $separator -ForegroundColor DarkGray
         Write-Host ("{0} (PID {1})" -f $row.Name, $row.Id) -ForegroundColor $headerColor
+        Write-ProcessMonitorDetailRow 'Category' $row.Category 'Cyan'
         Write-ProcessMonitorDetailRow 'Memory MB' (Format-Decimal $row.'Memory (MB)') 'Yellow'
         Write-ProcessMonitorDetailRow 'Memory %' (Format-Decimal $row.'Memory (%)') 'Yellow'
         Write-ProcessMonitorDetailRow 'Memory Delta (MB)' (Format-Decimal $row.'Memory Delta (MB)') 'Yellow'
@@ -127,8 +214,15 @@ function Show-TopMemoryProcesses {
         [Parameter(Mandatory=$false)]
         [ValidateRange(1, 200)]
         [int]$Top = 20,
-        [switch]$ReturnObjects,
-        [switch]$Detalle
+        [double]$MinMemoryMB = $null,
+        [double]$MinCpuPercent = $null,
+        [switch]$HideNative,
+        [switch]$Detalle,
+        [double]$MemoryWarnPercent = 5,
+        [double]$MemoryAlertPercent = 25,
+        [double]$CpuWarnPercent = 5,
+        [double]$CpuAlertPercent = 20,
+        [switch]$ReturnObjects
     )
 
     $osInfo = Get-CimInstance -ClassName Win32_OperatingSystem
@@ -223,6 +317,8 @@ function Show-TopMemoryProcesses {
                 $isNative = $true
             }
 
+            $category = Determine-ProcessCategory -Process $_ -Path $path
+
             $previousValue = 0
             if ($previousMemory.ContainsKey($processKey)) {
                 $previousValue = $previousMemory[$processKey]
@@ -240,6 +336,7 @@ function Show-TopMemoryProcesses {
                 'CPU (s)'       = if ($_.CPU) { [math]::Round($_.CPU, 2) } else { 0 }
                 'CPU (%)'       = $cpuPercent
                 IsNative        = $isNative
+                Category        = $category
                 StartTime       = $startTime
                 Path            = $path
                 ProcessKey      = $processKey
@@ -253,14 +350,26 @@ function Show-TopMemoryProcesses {
     $snapshotData = $processList | Select-Object ProcessKey, @{Name='MemoryMB';Expression={$_.'Memory (MB)'}}
     $snapshotData | ConvertTo-Json -Depth 3 | Set-Content -Path $snapshotPath -Force
 
+    $displayList = $processList | Where-Object {
+        ($MinMemoryMB -eq $null -or $_.'Memory (MB)' -ge $MinMemoryMB) -and
+        ($MinCpuPercent -eq $null -or $_.'CPU (%)' -ge $MinCpuPercent) -and
+        (-not $HideNative -or -not $_.IsNative)
+    }
+
+    $displayList = @($displayList)
+
     if ($Detalle) {
-        Write-ProcessMonitorDetail -Rows $processList
+        Write-ProcessMonitorDetail -Rows $displayList
     } else {
-        Write-ProcessMonitorTable -Rows $processList
+        Write-ProcessMonitorTable -Rows $displayList `
+            -MemoryWarnPercent $MemoryWarnPercent `
+            -MemoryAlertPercent $MemoryAlertPercent `
+            -CpuWarnPercent $CpuWarnPercent `
+            -CpuAlertPercent $CpuAlertPercent
     }
 
     if ($ReturnObjects) {
-        return $processList
+        return $displayList
     }
 }
 

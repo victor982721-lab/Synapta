@@ -10,6 +10,13 @@ Este directorio contiene los procedimientos formales que rigen la forma de traba
 Establece las reglas para aplicar correcciones completas a módulos, archivos o componentes sin delegar trabajo al usuario.  
 Define el método de reemplazo modular, consistencia entre capas y prevención de reescrituras futuras.
 
+### 1.2. Integraciones
+**Carpeta:** Integraciones/  
+**Descripción:**  
+Contiene procedimientos os específicos de cada integración externa (indexador, Dedupe, etc.) que reutilizan el esqueleto base sin alterar su estructura. Actualmente incluye `Indexador.md`, que explica cómo conectar la GUI/Wizard con el motor `Indexador.Core`.
+
+- `ProyectoBase\Integraciones\IndexadorViewModel.cs` es el ejemplo de código que muestra cómo enlazar la GUI con `Indexador.Core`; puedes replicarlo en otros projects.
+
 ---
 
 ## 2. Procedimientos pendientes / en desarrollo
@@ -37,3 +44,4 @@ Estos pueden añadirse cuando el usuario lo solicite explícitamente, manteniend
 - Todos los procedimientos deben ser respetados por el asistente.  
 - Ningún procedimiento debe contradecir las instrucciones del proyecto.  
 - La expansión de este índice debe hacerse solo cuando el usuario lo pida.  
+- Los ejemplos de código ubicados en `ProyectoBase\Integraciones\` son parte de estas integraciones y deben mantenerse sincronizados con la documentación.

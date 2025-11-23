@@ -18,7 +18,11 @@ This folder mirrors the `ProcessMonitor` module that lives in your user `PowerSh
 
 ## Display hints
 
-- Native processes appear dimmed (`Gray`) when you run `Show-TopMemoryProcesses`, so any bright line is worth investigating; the table still prints the `IsNative` flag alongside.
+- The default table draws a slim 8-column grid with cyan headers, gray separators, and green-tinted rows for native binaries; the footer explains that natives fade into the background while long paths are truncated. Memory/CPU columns turn yellow/red as percentages pass the `-MemoryWarnPercent`/`-MemoryAlertPercent` and `-CpuWarnPercent`/`-CpuAlertPercent` thresholds, and dark cyan highlights big drops in `Memory Delta`.
+- Use `-Detalle` to switch to the multi-line breakdown you already saw if you need every field expanded, or add `-ReturnObjects` to capture the raw data for scripts.
+  You can also pass `-MinMemoryMB`/`-MinCpuPercent` to skip the entries below a threshold or `-HideNative` to omit Windows-built services entirely before printing.
+- Each row is assigned a `Category` (Security, Browser, Shell, System, Office, VM, Media, Database, Other) based on process names/paths so you can scan by workload type.
+- The memory and CPU columns turn yellow/red when the reported ratios exceed the thresholds you pass (`-MemoryWarnPercent`/`-MemoryAlertPercent` and `-CpuWarnPercent`/`-CpuAlertPercent`), letting you spot spiky workloads at a glance.
 
 ## Usage notes
 
@@ -30,7 +34,10 @@ This folder mirrors the `ProcessMonitor` module that lives in your user `PowerSh
    ```powershell
    Show-TopMemoryProcesses -Top 30
    ```
-   Add `-Detalle` to skip the tabular view and print a per-process breakdown (the output uses the same green/gray styling you saw before), or `-ReturnObjects` if you want to capture the filtered list as objects for downstream scripting or exports.
+   * Add `-Detalle` to skip the tabular view and print a per-process breakdown (the output uses the same green/gray styling you saw before).
+   * Add `-ReturnObjects` if you want to capture the filtered list as objects for downstream scripting or exports.
+   * Filter the table earlier with `-MinMemoryMB <value>` / `-MinCpuPercent <value>` or drop Windows-built rows using `-HideNative`.
+   * Tune the coloring thresholds with `-MemoryWarnPercent`, `-MemoryAlertPercent`, `-CpuWarnPercent`, and `-CpuAlertPercent`.
 3. Pipe the output to `Export-Csv` or `Out-File` if you need reporting or persistence.
 
 The module also exposes `Get-SafeProcessPropertyValue` for internal use but only exports `Show-TopMemoryProcesses`. Keep this copy with your other tooling so you can document, extend, and version the helper inside `Tools`.
