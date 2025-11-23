@@ -1,0 +1,177 @@
+{
+  "Time": "2025-11-22T15:51:36.2368264-06:00",
+  "Type": "SessionStart",
+  "Data": {
+    "PSVersion": "7.5.4",
+    "OSVersion": "Microsoft Windows NT 10.0.19045.0",
+    "UserName": "VictorFabianVeraVill",
+    "ComputerName": "SYNAPTA"
+  }
+}
+{
+  "Time": "2025-11-22T15:51:36.2945558-06:00",
+  "Type": "StepStart",
+  "Data": {
+    "Name": "Diagnostics"
+  }
+}
+{
+  "Time": "2025-11-22T15:51:43.3158598-06:00",
+  "Type": "Diagnostics",
+  "Data": {
+    "Video": {
+      "Name": "Intel(R) HD Graphics 5500",
+      "DriverVersion": "20.19.15.5144",
+      "AdapterRAM": 1073741824
+    },
+    "OperatingSystem": {
+      "Caption": "Microsoft Windows 10 Pro",
+      "Version": "10.0.19045",
+      "OSArchitecture": "64 bits",
+      "LastBootUpTime": "2025-11-22T14:40:39.5-06:00"
+    },
+    "Processor": {
+      "Name": "Intel(R) Core(TM) i5-5300U CPU @ 2.30GHz",
+      "NumberOfCores": 2,
+      "NumberOfLogicalProcessors": 4,
+      "MaxClockSpeed": 2295
+    },
+    "NetAdapter": {
+      "Name": "Wi-Fi",
+      "Status": "Up",
+      "LinkSpeed": "65 Mbps",
+      "MacAddress": "5C-E0-C5-71-97-88"
+    },
+    "ComputerSystem": {
+      "Manufacturer": "LENOVO",
+      "Model": "20BWS1G905",
+      "TotalPhysicalMemory": 8477274112
+    },
+    "PhysicalDisk": [
+      {
+        "FriendlyName": "ADATA SU630",
+        "MediaType": "SSD",
+        "Size": 480103981056,
+        "HealthStatus": "Healthy"
+      },
+      {
+        "FriendlyName": "SanDisk SSD U110 16GB",
+        "MediaType": "SSD",
+        "Size": 16013942784,
+        "HealthStatus": "Healthy"
+      }
+    ]
+  }
+}
+{
+  "Time": "2025-11-22T15:51:43.3261059-06:00",
+  "Type": "StepEnd",
+  "Data": {
+    "Status": "OK",
+    "Name": "Diagnostics"
+  }
+}
+{
+  "Time": "2025-11-22T15:51:43.3404696-06:00",
+  "Type": "StepStart",
+  "Data": {
+    "Name": "RepairPerformanceCounters"
+  }
+}
+{
+  "Time": "2025-11-22T15:51:43.3928238-06:00",
+  "Type": "StepStart",
+  "Data": {
+    "Name": "lodctr_System32"
+  }
+}
+{
+  "Time": "2025-11-22T15:51:45.4332162-06:00",
+  "Type": "ExternalCommand",
+  "Data": {
+    "ExitCode": 0,
+    "FilePath": "C:\\WINDOWS\\System32\\lodctr.exe",
+    "Args": "/R",
+    "Name": "lodctr_System32"
+  }
+}
+{
+  "Time": "2025-11-22T15:51:45.4356079-06:00",
+  "Type": "StepEnd",
+  "Data": {
+    "Status": "OK",
+    "Name": "lodctr_System32"
+  }
+}
+{
+  "Time": "2025-11-22T15:51:45.4564956-06:00",
+  "Type": "StepStart",
+  "Data": {
+    "Name": "lodctr_SysWOW64"
+  }
+}
+{
+  "Time": "2025-11-22T15:51:48.4933342-06:00",
+  "Type": "ExternalCommand",
+  "Data": {
+    "ExitCode": 0,
+    "FilePath": "C:\\WINDOWS\\SysWOW64\\lodctr.exe",
+    "Args": "/R",
+    "Name": "lodctr_SysWOW64"
+  }
+}
+{
+  "Time": "2025-11-22T15:51:48.4960315-06:00",
+  "Type": "StepEnd",
+  "Data": {
+    "Status": "OK",
+    "Name": "lodctr_SysWOW64"
+  }
+}
+{
+  "Time": "2025-11-22T15:51:48.5134900-06:00",
+  "Type": "StepStart",
+  "Data": {
+    "Name": "winmgmt_resyncperf"
+  }
+}
+{
+  "Time": "2025-11-22T15:51:49.5546168-06:00",
+  "Type": "ExternalCommand",
+  "Data": {
+    "ExitCode": 0,
+    "FilePath": "winmgmt.exe",
+    "Args": "/resyncperf",
+    "Name": "winmgmt_resyncperf"
+  }
+}
+{
+  "Time": "2025-11-22T15:51:49.5574946-06:00",
+  "Type": "StepEnd",
+  "Data": {
+    "Status": "OK",
+    "Name": "winmgmt_resyncperf"
+  }
+}
+{
+  "Time": "2025-11-22T15:51:49.5819106-06:00",
+  "Type": "StepEnd",
+  "Data": {
+    "Status": "OK",
+    "Name": "RepairPerformanceCounters"
+  }
+}
+{
+  "Time": "2025-11-22T15:51:49.6053994-06:00",
+  "Type": "StepStart",
+  "Data": {
+    "Name": "DefenderScan"
+  }
+}
+{
+  "Time": "2025-11-22T15:52:25.6512025-06:00",
+  "Type": "Defender",
+  "Data": {
+    "Action": "UpdateSignatures"
+  }
+}

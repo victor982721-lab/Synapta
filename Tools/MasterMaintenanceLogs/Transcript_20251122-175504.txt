@@ -1,0 +1,62 @@
+**********************
+PowerShell transcript start
+Start time: 20251122175504
+Username: AzureAD\VictorFabianVeraVill
+RunAs User: AzureAD\VictorFabianVeraVill
+Configuration Name: 
+Machine: SYNAPTA (Microsoft Windows NT 10.0.19045.0)
+Host Application: C:\Program Files\PowerShell\7\pwsh.dll
+Process ID: 3952
+PSVersion: 7.5.4
+PSEdition: Core
+GitCommitId: 7.5.4
+OS: Microsoft Windows 10.0.19045
+Platform: Win32NT
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1, 6.0, 7.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+WSManStackVersion: 3.0
+**********************
+VERBOSE: Perform operation 'Enumerate CimInstances' with following parameters, ''className' = Win32_ComputerSystem,'namespaceName' = root\cimv2'.
+VERBOSE: Operation 'Enumerate CimInstances' complete.
+VERBOSE: Perform operation 'Enumerate CimInstances' with following parameters, ''className' = Win32_OperatingSystem,'namespaceName' = root\cimv2'.
+VERBOSE: Operation 'Enumerate CimInstances' complete.
+VERBOSE: Perform operation 'Enumerate CimInstances' with following parameters, ''className' = Win32_Processor,'namespaceName' = root\cimv2'.
+VERBOSE: Operation 'Enumerate CimInstances' complete.
+VERBOSE: Perform operation 'Enumerate CimInstances' with following parameters, ''className' = Win32_VideoController,'namespaceName' = root\cimv2'.
+VERBOSE: Operation 'Enumerate CimInstances' complete.
+VERBOSE: Importing function 'Format-AdapterInstanceID'.
+VERBOSE: Importing function 'Format-AdapterName'.
+VERBOSE: Importing function 'Format-LinkSpeed'.
+VERBOSE: Importing function 'Format-MacAddress'.
+VERBOSE: Perform operation 'Enumerate CimInstances' with following parameters, ''className' = Win32_OperatingSystem,'namespaceName' = root\cimv2'.
+VERBOSE: Operation 'Enumerate CimInstances' complete.
+PS C:\Users\VictorFabianVeraVill\Downloads> TerminatingError(Invoke-Command): "No valid sessions were specified.  Ensure you provide valid sessions that are in the Opened state and are available to run commands."
+>> TerminatingError(Invoke-Command): "No valid sessions were specified.  Ensure you provide valid sessions that are in the Opened state and are available to run commands."
+>> TerminatingError(Invoke-Command): "No valid sessions were specified.  Ensure you provide valid sessions that are in the Opened state and are available to run commands."
+WARNING: Paso DefenderScan falló: No valid sessions were specified.  Ensure you provide valid sessions that are in the Opened state and are available to run commands.
+PS C:\Users\VictorFabianVeraVill\Downloads> TerminatingError(Test-Path): "A parameter cannot be found that matches parameter name 'and'."
+>> TerminatingError(Repair-WindowsUpdate): "A parameter cannot be found that matches parameter name 'and'."
+>> TerminatingError(Repair-WindowsUpdate): "A parameter cannot be found that matches parameter name 'and'."
+WARNING: Paso RepairWindowsUpdate falló: A parameter cannot be found that matches parameter name 'and'.
+PS C:\Users\VictorFabianVeraVill\Downloads> TerminatingError(Test-Path): "A parameter cannot be found that matches parameter name 'and'."
+>> TerminatingError(Repair-WindowsSearchIndex): "A parameter cannot be found that matches parameter name 'and'."
+>> TerminatingError(Repair-WindowsSearchIndex): "A parameter cannot be found that matches parameter name 'and'."
+WARNING: Paso RepairSearchIndex falló: A parameter cannot be found that matches parameter name 'and'.
+PS C:\Users\VictorFabianVeraVill\Downloads> TerminatingError(ForEach-Object): "The property 'FullName' cannot be found on this object. Verify that the property exists."
+>> TerminatingError(ForEach-Object): "The property 'FullName' cannot be found on this object. Verify that the property exists."
+>> TerminatingError(ForEach-Object): "The property 'FullName' cannot be found on this object. Verify that the property exists."
+WARNING: Paso DuplicateFilesUserProfile falló: The property 'FullName' cannot be found on this object. Verify that the property exists.
+PS C:\Users\VictorFabianVeraVill\Downloads> TerminatingError(Start-Process): "This command cannot be run due to the error: %1 no es una aplicación Win32 válida."
+>> TerminatingError(Start-Process): "This command cannot be run due to the error: %1 no es una aplicación Win32 válida."
+>> TerminatingError(Start-Process): "This command cannot be run due to the error: %1 no es una aplicación Win32 válida."
+>> TerminatingError(Start-Process): "This command cannot be run due to the error: %1 no es una aplicación Win32 válida."
+WARNING: Paso RestoreCodexCli falló: This command cannot be run due to the error: %1 no es una aplicación Win32 válida.
+PS C:\Users\VictorFabianVeraVill\Downloads> TerminatingError(Where-Object): "The property 'DisplayName' cannot be found on this object. Verify that the property exists."
+>> TerminatingError(Where-Object): "The property 'DisplayName' cannot be found on this object. Verify that the property exists."
+>> TerminatingError(Where-Object): "The property 'DisplayName' cannot be found on this object. Verify that the property exists."
+WARNING: Paso DetectStalePrograms falló: The property 'DisplayName' cannot be found on this object. Verify that the property exists.
+**********************
+PowerShell transcript end
+End time: 20251122181713
+**********************

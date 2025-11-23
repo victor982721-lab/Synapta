@@ -1,0 +1,2 @@
+{"Time":"2025-11-22T17:52:14.1753120-06:00","Type":"SessionStart","Data":{"ComputerName":"SYNAPTA","OSVersion":"Microsoft Windows NT 10.0.19045.0","LogDirectory":"C:\\Users\\VictorFabianVeraVill\\MasterMaintenanceLogs","PSVersion":"7.5.4","Timestamp":"20251122-175214","UserName":"VictorFabianVeraVill"}}
+{"Time":"2025-11-22T17:52:14.2252111-06:00","Type":"StepStart","Data":{"Name":"Diagnostics","Total":14,"Index":1}}

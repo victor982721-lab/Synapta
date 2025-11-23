@@ -1,0 +1,322 @@
+**********************
+PowerShell transcript start
+Start time: 20251122174231
+Username: AzureAD\VictorFabianVeraVill
+RunAs User: AzureAD\VictorFabianVeraVill
+Configuration Name: 
+Machine: SYNAPTA (Microsoft Windows NT 10.0.19045.0)
+Host Application: C:\Program Files\PowerShell\7\pwsh.dll
+Process ID: 3952
+PSVersion: 7.5.4
+PSEdition: Core
+GitCommitId: 7.5.4
+OS: Microsoft Windows 10.0.19045
+Platform: Win32NT
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1, 6.0, 7.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+WSManStackVersion: 3.0
+**********************
+PS>TerminatingError(): "The pipeline has been stopped."
+>> TerminatingError(): "The pipeline has been stopped."
+>> TerminatingError(): "The pipeline has been stopped."
+>> TerminatingError(): "The pipeline has been stopped."
+>> TerminatingError(): "The pipeline has been stopped."
+>> TerminatingError(): "The pipeline has been stopped."
+PS C:\Users\VictorFabianVeraVill\Downloads> memoryUsage
+------------------------------------------------------------------------------------------------------------------------
+Name
+Category
+    PID
+ Memory MB
+    Mem %
+   Delta MB
+     CPU %
+Native
+Path
+
+------------------------------------------------------------------------------------------------------------------------
+chrome
+Browser
+   7808
+    535.46
+     6.62
+     452.40
+      6.75
+
+...oogle\Chrome\Application\chrome.exe
+chrome
+Browser
+   7872
+    376.61
+     4.66
+     293.55
+      1.65
+
+...oogle\Chrome\Application\chrome.exe
+MsMpEng
+Security
+   3100
+    353.00
+     4.37
+    -227.12
+      3.06
+Native
+
+explorer
+System
+   3224
+    241.43
+     2.99
+      42.81
+      0.33
+Native
+C:\WINDOWS\Explorer.EXE
+chrome
+Browser
+   8144
+    212.38
+     2.63
+     129.32
+      0.51
+
+...oogle\Chrome\Application\chrome.exe
+chrome
+Browser
+   7396
+    212.07
+     2.62
+     129.01
+      4.10
+
+...oogle\Chrome\Application\chrome.exe
+pwsh
+Shell
+   3952
+    188.14
+     2.33
+      69.46
+      0.18
+
+C:\Program Files\PowerShell\7\pwsh.exe
+SearchApp
+Other
+   6740
+    169.73
+     2.10
+      78.56
+      0.06
+Native
+....Search_cw5n1h2txyewy\SearchApp.exe
+Microsoft.CmdPal.UI
+Other
+   8780
+    152.66
+     1.89
+       1.68
+      0.23
+
+...ekyb3d8bbwe\Microsoft.CmdPal.UI.exe
+MicrosoftSecurityApp
+Security
+   8548
+    142.30
+     1.76
+      -2.08
+      0.09
+
+...ecurityApp\MicrosoftSecurityApp.exe
+Registry
+Other
+    100
+    124.28
+     1.54
+       7.80
+      0.02
+
+
+powershell
+Shell
+   9108
+    110.09
+     1.36
+      -6.76
+      0.34
+Native
+...ndowsPowerShell\v1.0\powershell.exe
+ShellExperienceHost
+Other
+   5956
+     86.64
+     1.07
+      23.57
+      0.07
+Native
+...5n1h2txyewy\ShellExperienceHost.exe
+dwm
+System
+   1376
+     78.26
+     0.97
+      -7.67
+      3.03
+Native
+C:\WINDOWS\system32\dwm.exe
+WindowsTerminal
+Shell
+   7496
+     73.72
+     0.91
+     -18.75
+      0.03
+
+...__8wekyb3d8bbwe\WindowsTerminal.exe
+StartMenuExperienceHost
+Other
+   6328
+     70.87
+     0.88
+       1.19
+      0.02
+Native
+...2txyewy\StartMenuExperienceHost.exe
+OfficeClickToRun
+Office
+   3556
+     59.04
+     0.73
+      -0.01
+      0.01
+
+...red\ClickToRun\OfficeClickToRun.exe
+sublime_text
+Other
+   6844
+     56.21
+     0.70
+      56.21
+      0.04
+
+...l\Programs\Sublime\sublime_text.exe
+plugin_host-3.8
+Other
+   8600
+     54.60
+     0.68
+      54.60
+      0.03
+
+...rograms\Sublime\plugin_host-3.8.exe
+chrome
+Browser
+   7452
+     49.60
+     0.61
+     -33.46
+      0.12
+
+...oogle\Chrome\Application\chrome.exe
+------------------------------------------------------------------------------------------------------------------------
+Native rows fade away; yellow/red values flag high memory/CPU while dark cyan highlights big drops.
+PS C:\Users\VictorFabianVeraVill\Downloads> .\Mantenimiento.ps1 -verbose
+VERBOSE: Perform operation 'Enumerate CimInstances' with following parameters, ''className' = Win32_ComputerSystem,'namespaceName' = root\cimv2'.
+VERBOSE: Operation 'Enumerate CimInstances' complete.
+VERBOSE: Perform operation 'Enumerate CimInstances' with following parameters, ''className' = Win32_OperatingSystem,'namespaceName' = root\cimv2'.
+VERBOSE: Operation 'Enumerate CimInstances' complete.
+VERBOSE: Perform operation 'Enumerate CimInstances' with following parameters, ''className' = Win32_Processor,'namespaceName' = root\cimv2'.
+VERBOSE: Operation 'Enumerate CimInstances' complete.
+VERBOSE: Perform operation 'Enumerate CimInstances' with following parameters, ''className' = Win32_VideoController,'namespaceName' = root\cimv2'.
+VERBOSE: Operation 'Enumerate CimInstances' complete.
+VERBOSE: Importing function 'Format-AdapterInstanceID'.
+VERBOSE: Importing function 'Format-AdapterName'.
+VERBOSE: Importing function 'Format-LinkSpeed'.
+VERBOSE: Importing function 'Format-MacAddress'.
+VERBOSE: Perform operation 'Enumerate CimInstances' with following parameters, ''className' = Win32_OperatingSystem,'namespaceName' = root\cimv2'.
+VERBOSE: Operation 'Enumerate CimInstances' complete.
+PS C:\Users\VictorFabianVeraVill\Downloads> TerminatingError(Invoke-Command): "No valid sessions were specified.  Ensure you provide valid sessions that are in the Opened state and are available to run commands."
+>> TerminatingError(Invoke-Command): "No valid sessions were specified.  Ensure you provide valid sessions that are in the Opened state and are available to run commands."
+>> TerminatingError(Invoke-Command): "No valid sessions were specified.  Ensure you provide valid sessions that are in the Opened state and are available to run commands."
+WARNING: Paso DefenderScan falló: No valid sessions were specified.  Ensure you provide valid sessions that are in the Opened state and are available to run commands.
+PS C:\Users\VictorFabianVeraVill\Downloads> TerminatingError(): "The pipeline has been stopped."
+>> TerminatingError(): "The pipeline has been stopped."
+>> TerminatingError(): "The pipeline has been stopped."
+>> TerminatingError(): "The pipeline has been stopped."
+>> TerminatingError(): "The pipeline has been stopped."
+>> TerminatingError(): "The pipeline has been stopped."
+>> TerminatingError(): "The pipeline has been stopped."
+PS C:\Users\VictorFabianVeraVill\Downloads> .\Mantenimiento.ps1
+PS C:\Users\VictorFabianVeraVill\Downloads> TerminatingError(): "The variable '$script:HeartbeatTimer' cannot be retrieved because it has not been set."
+>> TerminatingError(Show-LiveProgress): "The variable '$script:HeartbeatTimer' cannot be retrieved because it has not been set."
+>> TerminatingError(Show-LiveProgress): "The variable '$script:HeartbeatTimer' cannot be retrieved because it has not been set."
+>> TerminatingError(Show-LiveProgress): "The variable '$script:HeartbeatTimer' cannot be retrieved because it has not been set."
+>> TerminatingError(Show-LiveProgress): "The variable '$script:HeartbeatTimer' cannot be retrieved because it has not been set."
+The variable '$script:HeartbeatTimer' cannot be retrieved because it has not been set.
+Show-LiveProgress: C:\Users\VictorFabianVeraVill\Downloads\Mantenimiento.ps1:162
+Line |
+ 162 |      Show-LiveProgress -StepName $Name -StepIndex $Index -TotalSteps $ …
+     |      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     | The variable '$script:HeartbeatTimer' cannot be retrieved because it has not been set.
+
+PS C:\Users\VictorFabianVeraVill\Downloads> invoke-scriptAnalyzer "C:\Users\VictorFabianVeraVill\Downloads\Mantenimiento"
+PS C:\Users\VictorFabianVeraVill\Downloads> TerminatingError(Invoke-ScriptAnalyzer): "Cannot find path 'C:\Users\VictorFabianVeraVill\Downloads\Mantenimiento' because it does not exist."
+Invoke-ScriptAnalyzer: Cannot find path 'C:\Users\VictorFabianVeraVill\Downloads\Mantenimiento' because it does not exist.
+Invoke-ScriptAnalyzer: Cannot find path 'C:\Users\VictorFabianVeraVill\Downloads\Mantenimiento' because it does not exist.
+PS C:\Users\VictorFabianVeraVill\Downloads> invoke-scriptAnalyzer .\Mantenimiento.ps1
+
+RuleName                            Severity     ScriptName Line  Message
+--------                            --------     ---------- ----  -------
+PSUseBOMForUnicodeEncodedFile       Warning      Mantenimie       Missing BOM encoding for non-ASCII encoded file
+                                                 nto.ps1          'Mantenimiento.ps1'
+PSUseShouldProcessForStateChangingF Warning      Mantenimie 108   Function 'Set-LiveProgressState' has verb that could change
+unctions                                         nto.ps1          system state. Therefore, the function has to support
+                                                                  'ShouldProcess'.
+
+PS C:\Users\VictorFabianVeraVill\Downloads> .\Mantenimiento.ps1
+PS C:\Users\VictorFabianVeraVill\Downloads> TerminatingError(): "The pipeline has been stopped."
+>> TerminatingError(): "The pipeline has been stopped."
+>> TerminatingError(): "The pipeline has been stopped."
+>> TerminatingError(): "The pipeline has been stopped."
+PS C:\Users\VictorFabianVeraVill\Downloads> TerminatingError(): "The pipeline has been stopped."
+>> TerminatingError(): "The pipeline has been stopped."
+>> TerminatingError(): "The pipeline has been stopped."
+PS C:\Users\VictorFabianVeraVill\Downloads> .\Mantenimiento.ps1 -verbose
+VERBOSE: Perform operation 'Enumerate CimInstances' with following parameters, ''className' = Win32_ComputerSystem,'namespaceName' = root\cimv2'.
+VERBOSE: Operation 'Enumerate CimInstances' complete.
+VERBOSE: Perform operation 'Enumerate CimInstances' with following parameters, ''className' = Win32_OperatingSystem,'namespaceName' = root\cimv2'.
+VERBOSE: Operation 'Enumerate CimInstances' complete.
+VERBOSE: Perform operation 'Enumerate CimInstances' with following parameters, ''className' = Win32_Processor,'namespaceName' = root\cimv2'.
+VERBOSE: Operation 'Enumerate CimInstances' complete.
+VERBOSE: Perform operation 'Enumerate CimInstances' with following parameters, ''className' = Win32_VideoController,'namespaceName' = root\cimv2'.
+VERBOSE: Operation 'Enumerate CimInstances' complete.
+VERBOSE: Importing function 'Format-AdapterInstanceID'.
+VERBOSE: Importing function 'Format-AdapterName'.
+VERBOSE: Importing function 'Format-LinkSpeed'.
+VERBOSE: Importing function 'Format-MacAddress'.
+VERBOSE: Perform operation 'Enumerate CimInstances' with following parameters, ''className' = Win32_OperatingSystem,'namespaceName' = root\cimv2'.
+VERBOSE: Operation 'Enumerate CimInstances' complete.
+PS C:\Users\VictorFabianVeraVill\Downloads> TerminatingError(Invoke-Command): "No valid sessions were specified.  Ensure you provide valid sessions that are in the Opened state and are available to run commands."
+>> TerminatingError(Invoke-Command): "No valid sessions were specified.  Ensure you provide valid sessions that are in the Opened state and are available to run commands."
+>> TerminatingError(Invoke-Command): "No valid sessions were specified.  Ensure you provide valid sessions that are in the Opened state and are available to run commands."
+WARNING: Paso DefenderScan falló: No valid sessions were specified.  Ensure you provide valid sessions that are in the Opened state and are available to run commands.
+PS C:\Users\VictorFabianVeraVill\Downloads> TerminatingError(Test-Path): "A parameter cannot be found that matches parameter name 'and'."
+>> TerminatingError(Repair-WindowsUpdate): "A parameter cannot be found that matches parameter name 'and'."
+>> TerminatingError(Repair-WindowsUpdate): "A parameter cannot be found that matches parameter name 'and'."
+WARNING: Paso RepairWindowsUpdate falló: A parameter cannot be found that matches parameter name 'and'.
+PS C:\Users\VictorFabianVeraVill\Downloads> TerminatingError(Test-Path): "A parameter cannot be found that matches parameter name 'and'."
+>> TerminatingError(Repair-WindowsSearchIndex): "A parameter cannot be found that matches parameter name 'and'."
+>> TerminatingError(Repair-WindowsSearchIndex): "A parameter cannot be found that matches parameter name 'and'."
+WARNING: Paso RepairSearchIndex falló: A parameter cannot be found that matches parameter name 'and'.
+PS C:\Users\VictorFabianVeraVill\Downloads> TerminatingError(ForEach-Object): "The property 'FullName' cannot be found on this object. Verify that the property exists."
+>> TerminatingError(ForEach-Object): "The property 'FullName' cannot be found on this object. Verify that the property exists."
+>> TerminatingError(ForEach-Object): "The property 'FullName' cannot be found on this object. Verify that the property exists."
+WARNING: Paso DuplicateFilesUserProfile falló: The property 'FullName' cannot be found on this object. Verify that the property exists.
+PS C:\Users\VictorFabianVeraVill\Downloads> TerminatingError(Start-Process): "This command cannot be run due to the error: %1 no es una aplicación Win32 válida."
+>> TerminatingError(Start-Process): "This command cannot be run due to the error: %1 no es una aplicación Win32 válida."
+>> TerminatingError(Start-Process): "This command cannot be run due to the error: %1 no es una aplicación Win32 válida."
+>> TerminatingError(Start-Process): "This command cannot be run due to the error: %1 no es una aplicación Win32 válida."
+WARNING: Paso RestoreCodexCli falló: This command cannot be run due to the error: %1 no es una aplicación Win32 válida.
+PS C:\Users\VictorFabianVeraVill\Downloads> TerminatingError(Where-Object): "The property 'DisplayName' cannot be found on this object. Verify that the property exists."
+>> TerminatingError(Where-Object): "The property 'DisplayName' cannot be found on this object. Verify that the property exists."
+>> TerminatingError(Where-Object): "The property 'DisplayName' cannot be found on this object. Verify that the property exists."
+WARNING: Paso DetectStalePrograms falló: The property 'DisplayName' cannot be found on this object. Verify that the property exists.
+Mantenimiento maestro completado. Revisa los logs en: C:\Users\VictorFabianVeraVill\MasterMaintenanceLogs

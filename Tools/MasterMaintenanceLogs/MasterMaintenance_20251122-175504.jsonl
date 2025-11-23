@@ -1,0 +1,49 @@
+{"Time":"2025-11-22T17:55:04.6475557-06:00","Type":"SessionStart","Data":{"ComputerName":"SYNAPTA","OSVersion":"Microsoft Windows NT 10.0.19045.0","LogDirectory":"C:\\Users\\VictorFabianVeraVill\\MasterMaintenanceLogs","PSVersion":"7.5.4","Timestamp":"20251122-175504","UserName":"VictorFabianVeraVill"}}
+{"Time":"2025-11-22T17:55:04.6536756-06:00","Type":"StepStart","Data":{"Name":"Diagnostics","Total":14,"Index":1}}
+{"Time":"2025-11-22T17:55:05.9398099-06:00","Type":"Diagnostics","Data":{"ComputerSystem":{"Manufacturer":"LENOVO","Model":"20BWS1G905","TotalPhysicalMemory":8477274112},"Video":{"Name":"Intel(R) HD Graphics 5500","DriverVersion":"20.19.15.5144","AdapterRAM":1073741824},"PhysicalDisk":[{"FriendlyName":"ADATA SU630","MediaType":"SSD","Size":480103981056,"HealthStatus":"Healthy"},{"FriendlyName":"SanDisk SSD U110 16GB","MediaType":"SSD","Size":16013942784,"HealthStatus":"Healthy"}],"Processor":{"Name":"Intel(R) Core(TM) i5-5300U CPU @ 2.30GHz","NumberOfCores":2,"NumberOfLogicalProcessors":4,"MaxClockSpeed":2295},"OperatingSystem":{"Caption":"Microsoft Windows 10 Pro","Version":"10.0.19045","OSArchitecture":"64 bits","LastBootUpTime":"2025-11-22T17:08:56.500925-06:00"},"NetAdapter":{"Name":"Wi-Fi","Status":"Up","LinkSpeed":"19.5 Mbps","MacAddress":"5C-E0-C5-71-97-88"}}}
+{"Time":"2025-11-22T17:55:05.9420637-06:00","Type":"StepEnd","Data":{"DurationMs":1288,"Name":"Diagnostics"}}
+{"Time":"2025-11-22T17:55:05.9625415-06:00","Type":"StepStart","Data":{"Name":"PerformanceSnapshot","Total":14,"Index":2}}
+{"Time":"2025-11-22T17:55:06.0988988-06:00","Type":"PerformanceSnapshot","Data":{"TopCpu":[{"Name":"MsMpEng","CPU":735.625,"PM":355229696,"Id":3100},{"Name":"chrome","CPU":690.15625,"PM":487260160,"Id":7808},{"Name":"chrome","CPU":495.9375,"PM":116064256,"Id":7396},{"Name":"dwm","CPU":349.515625,"PM":50376704,"Id":1376},{"Name":"TiWorker","CPU":238.703125,"PM":12861440,"Id":10244}],"MemoryMB":{"Free":3056.55,"Total":8084.56,"Used":5028.01},"Disks":[{"FriendlyName":"ADATA SU630","HealthStatus":"Healthy","OperationalStatus":"OK","MediaType":"SSD","Size":480103981056},{"FriendlyName":"SanDisk SSD U110 16GB","HealthStatus":"Healthy","OperationalStatus":"OK","MediaType":"SSD","Size":16013942784}],"TopMem":[{"Name":"chrome","WorkingSetMB":529.84,"Id":7808},{"Name":"chrome","WorkingSetMB":404.95,"Id":10112},{"Name":"MsMpEng","WorkingSetMB":295.21,"Id":3100},{"Name":"explorer","WorkingSetMB":252.21,"Id":3224},{"Name":"chrome","WorkingSetMB":237.05,"Id":8144}]}}
+{"Time":"2025-11-22T17:55:06.1022722-06:00","Type":"StepEnd","Data":{"DurationMs":139,"Name":"PerformanceSnapshot"}}
+{"Time":"2025-11-22T17:55:06.1191476-06:00","Type":"StepStart","Data":{"Name":"RepairPerformanceCounters","Total":14,"Index":3}}
+{"Time":"2025-11-22T17:55:08.1473360-06:00","Type":"ExternalCommand","Data":{"FilePath":"C:\\WINDOWS\\System32\\lodctr.exe","Args":"/R","Name":"lodctr_System32","ExitCode":0}}
+{"Time":"2025-11-22T17:55:11.1755196-06:00","Type":"ExternalCommand","Data":{"FilePath":"C:\\WINDOWS\\SysWOW64\\lodctr.exe","Args":"/R","Name":"lodctr_SysWOW64","ExitCode":0}}
+{"Time":"2025-11-22T17:55:12.2061892-06:00","Type":"ExternalCommand","Data":{"FilePath":"winmgmt.exe","Args":"/resyncperf","Name":"winmgmt_resyncperf","ExitCode":0}}
+{"Time":"2025-11-22T17:55:12.2085232-06:00","Type":"StepEnd","Data":{"DurationMs":6089,"Name":"RepairPerformanceCounters"}}
+{"Time":"2025-11-22T17:55:12.2346639-06:00","Type":"StepStart","Data":{"Name":"DefenderScan","Total":14,"Index":4}}
+{"Time":"2025-11-22T17:55:12.2938015-06:00","Type":"StepError","Data":{"Name":"DefenderScan","DurationMs":54,"Error":"No valid sessions were specified.  Ensure you provide valid sessions that are in the Opened state and are available to run commands."}}
+{"Time":"2025-11-22T17:55:12.3028679-06:00","Type":"StepStart","Data":{"Name":"SystemFileRepair","Total":14,"Index":5}}
+{"Time":"2025-11-22T17:59:26.3436805-06:00","Type":"ExternalCommand","Data":{"FilePath":"sfc.exe","Args":"/scannow","Name":"SFC","ExitCode":0}}
+{"Time":"2025-11-22T18:04:08.3731497-06:00","Type":"ExternalCommand","Data":{"FilePath":"dism.exe","Args":"/Online /Cleanup-Image /ScanHealth","Name":"DISM_ScanHealth","ExitCode":0}}
+{"Time":"2025-11-22T18:09:53.4611757-06:00","Type":"ExternalCommand","Data":{"FilePath":"dism.exe","Args":"/Online /Cleanup-Image /RestoreHealth","Name":"DISM_RestoreHealth","ExitCode":0}}
+{"Time":"2025-11-22T18:09:53.4682439-06:00","Type":"StepEnd","Data":{"DurationMs":881164,"Name":"SystemFileRepair"}}
+{"Time":"2025-11-22T18:09:54.1920828-06:00","Type":"StepStart","Data":{"Name":"ComponentStoreCleanup","Total":14,"Index":6}}
+{"Time":"2025-11-22T18:16:11.5903561-06:00","Type":"ExternalCommand","Data":{"FilePath":"dism.exe","Args":"/Online /Cleanup-Image /StartComponentCleanup","Name":"DISM_ComponentCleanup","ExitCode":0}}
+{"Time":"2025-11-22T18:16:11.5929527-06:00","Type":"StepEnd","Data":{"DurationMs":377400,"Name":"ComponentStoreCleanup"}}
+{"Time":"2025-11-22T18:16:11.7401681-06:00","Type":"StepStart","Data":{"Name":"ResetWinHTTP","Total":14,"Index":7}}
+{"Time":"2025-11-22T18:16:12.8682171-06:00","Type":"ExternalCommand","Data":{"FilePath":"netsh.exe","Args":"winhttp reset proxy","Name":"netsh_winhttp_reset_proxy","ExitCode":0}}
+{"Time":"2025-11-22T18:16:12.8751006-06:00","Type":"StepEnd","Data":{"DurationMs":1134,"Name":"ResetWinHTTP"}}
+{"Time":"2025-11-22T18:16:12.9660444-06:00","Type":"StepStart","Data":{"Name":"RepairWindowsUpdate","Total":14,"Index":8}}
+{"Time":"2025-11-22T18:16:13.3684959-06:00","Type":"StepError","Data":{"Name":"RepairWindowsUpdate","DurationMs":399,"Error":"A parameter cannot be found that matches parameter name 'and'."}}
+{"Time":"2025-11-22T18:16:13.4208373-06:00","Type":"StepStart","Data":{"Name":"RepairSearchIndex","Total":14,"Index":9}}
+{"Time":"2025-11-22T18:16:13.5384181-06:00","Type":"StepError","Data":{"Name":"RepairSearchIndex","DurationMs":116,"Error":"A parameter cannot be found that matches parameter name 'and'."}}
+{"Time":"2025-11-22T18:16:13.5730880-06:00","Type":"StepStart","Data":{"Name":"NetworkCleanup","Total":14,"Index":10}}
+{"Time":"2025-11-22T18:16:13.6474364-06:00","Type":"ExternalCommand","Data":{"FilePath":"ipconfig.exe","Name":"ipconfig_flushdns","Reason":"No encontrado","Skipped":true}}
+{"Time":"2025-11-22T18:16:13.6510584-06:00","Type":"ExternalCommand","Data":{"FilePath":"arp.exe","Name":"arp_flush","Reason":"No encontrado","Skipped":true}}
+{"Time":"2025-11-22T18:16:13.6737948-06:00","Type":"StepEnd","Data":{"DurationMs":100,"Name":"NetworkCleanup"}}
+{"Time":"2025-11-22T18:16:13.7079230-06:00","Type":"StepStart","Data":{"Name":"TempCleanup","Total":14,"Index":11}}
+{"Time":"2025-11-22T18:16:13.7827618-06:00","Type":"TempCleanupPath","Data":{"Path":"C:\\Windows\\Temp"}}
+{"Time":"2025-11-22T18:16:13.9359628-06:00","Type":"TempCleanupPath","Data":{"Path":"C:\\Users\\VICTOR~1\\AppData\\Local\\Temp"}}
+{"Time":"2025-11-22T18:16:14.8758863-06:00","Type":"TempCleanupPath","Data":{"Path":"C:\\Users\\VictorFabianVeraVill\\AppData\\Local\\Temp"}}
+{"Time":"2025-11-22T18:16:14.9253726-06:00","Type":"TempCleanupPath","Data":{"Path":"C:\\Users\\VictorFabianVeraVill\\AppData\\Local\\Microsoft\\Windows\\INetCache"}}
+{"Time":"2025-11-22T18:16:15.1644132-06:00","Type":"TempCleanupPath","Data":{"Path":"C:\\Users\\VictorFabianVeraVill\\AppData\\Local\\Microsoft\\Windows\\Temporary Internet Files"}}
+{"Time":"2025-11-22T18:16:15.1788199-06:00","Type":"TempCleanupPath","Data":{"Path":"C:\\Users\\VictorFabianVeraVill\\AppData\\Local\\Microsoft\\Edge\\User Data\\Default\\Cache"}}
+{"Time":"2025-11-22T18:16:15.5562851-06:00","Type":"TempCleanupPath","Data":{"Path":"C:\\Users\\VictorFabianVeraVill\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\Cache"}}
+{"Time":"2025-11-22T18:16:16.6674655-06:00","Type":"StepEnd","Data":{"DurationMs":2959,"Name":"TempCleanup"}}
+{"Time":"2025-11-22T18:16:16.6705186-06:00","Type":"StepStart","Data":{"Name":"DuplicateFilesUserProfile","Total":14,"Index":12}}
+{"Time":"2025-11-22T18:17:12.7619960-06:00","Type":"StepError","Data":{"Name":"DuplicateFilesUserProfile","DurationMs":56088,"Error":"The property 'FullName' cannot be found on this object. Verify that the property exists."}}
+{"Time":"2025-11-22T18:17:12.8087199-06:00","Type":"StepStart","Data":{"Name":"RestoreCodexCli","Total":14,"Index":13}}
+{"Time":"2025-11-22T18:17:13.0088253-06:00","Type":"StepError","Data":{"Name":"RestoreCodexCli","DurationMs":215,"Error":"This command cannot be run due to the error: %1 no es una aplicación Win32 válida."}}
+{"Time":"2025-11-22T18:17:13.0510408-06:00","Type":"StepStart","Data":{"Name":"DetectStalePrograms","Total":14,"Index":14}}
+{"Time":"2025-11-22T18:17:13.5869156-06:00","Type":"StepError","Data":{"Name":"DetectStalePrograms","DurationMs":534,"Error":"The property 'DisplayName' cannot be found on this object. Verify that the property exists."}}
+{"Time":"2025-11-22T18:17:13.6317955-06:00","Type":"SessionEnd","Data":{"Completed":true,"LogRoot":"C:\\Users\\VictorFabianVeraVill\\MasterMaintenanceLogs"}}
